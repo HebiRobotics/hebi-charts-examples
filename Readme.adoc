@@ -2,7 +2,6 @@
 
 HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a focus on the robotics domain. It features a stable C ABI supporting Linux, macOS, and Windows, with idiomatic bindings for Python, MATLAB, and C++.
 
-.Robot Example
 image::docs/images/main_snapshot.png[align="center"]
 
 [source,mermaid]
@@ -69,10 +68,10 @@ Using the headers or running any of the examples will automatically download the
 
 The main entry point is the `GridWindow`, a layout container of equally sized rows and columns. All other display elements are created in a top-down manner. A window can contain various charts, and each chart can have various lines or other elements. All bindings are fully type-hinted and documented to simplify exploration.
 
-Some constructor calls for UI elements may block until the next frame for proper initialization. Subsequent calls are non-blocking. For example, a random walk in all languages could look like below,
+Some constructor calls for UI elements may block until the next frame for proper initialization. Subsequent calls are non-blocking. You can find examples in the corresponding subdirectories. For example, a random walk in all languages could look like below,
 
-.Random Walk Example
-image::docs/images/python_randomwalk.png[align="center"]
+.Example 01 - Random Walk
+image::docs/images/ex01_python_randomwalk.png[align="center"]
 
 *Python*
 [source,python]
@@ -148,7 +147,7 @@ while (window.isShowing()) {
     // append data (non-blocking)
     x += 1;
     y += ((double) rand() / RAND_MAX) * 2.0 - 1.0;
-    line.addPoint(x++, y+=rnd);
+    line.addPoint(x, y);
 }
 ----
 
@@ -203,7 +202,7 @@ image::docs/images/line_chart.png[align="center"]
 === Scope
 A LineChart with a pre-configured X-axis for monotonically increasing time in seconds.
 
-.Sinewave Example
+.Example 02 - Sine Wave
 image::docs/images/python_sinewave.png[align="center"]
 
 === PercentileHistogram
@@ -320,14 +319,17 @@ while window.is_showing():
         window.close()
 ----
 
+.Example 03 - Robot 3d
+image::docs/images/ex03_python_robot_3d.png[align="center"]
+
 == LoopTimer
 
 We also provide some non-visual utilities that are often needed when working with control loops. The `LoopTimer` class helps with loop timings and measuring jitter.
 
 On Windows, `LoopTimer` also manages the system timer resolution via `timeBeginPeriod(1)` and `timeEndPeriod()`. This ensures that `sleep` operations use a 1ms resolution rather than the 15.6ms default.
 
-.Latency Example
-image::docs/images/python_latency.png[align="center"]
+.Example 04 - Latency
+image::docs/images/ex04_python_latency.png[align="center"]
 
 *Running a 1KHz loop (best effort sleep)*
 [source,python]
