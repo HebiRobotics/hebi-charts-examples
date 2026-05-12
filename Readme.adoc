@@ -2,6 +2,7 @@
 
 HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a focus on the robotics domain. It features a stable C ABI supporting Linux, macOS, and Windows, with idiomatic bindings for Python, MATLAB, and C++.
 
+.Robot Example
 image::docs/images/main_snapshot.png[align="center"]
 
 [source,mermaid]
@@ -68,41 +69,55 @@ Using the headers or running any of the examples will automatically download the
 
 The main entry point is the `GridWindow`, a layout container of equally sized rows and columns. All other display elements are created in a top-down manner. A window can contain various charts, and each chart can have various lines or other elements. All bindings are fully type-hinted and documented to simplify exploration.
 
-Some constructor calls for UI elements may block until the next frame for proper initialization. Subsequent calls are non-blocking. For example,
+Some constructor calls for UI elements may block until the next frame for proper initialization. Subsequent calls are non-blocking. For example, a random walk in all languages could look like below,
+
+.Random Walk Example
+image::docs/images/python_randomwalk.png[align="center"]
 
 *Python*
 [source,python]
 ----
+import time
+import random
 import hebi_charts
-# Build elements (blocking calls)
-window = hebi_charts.GridWindow(title="Window Title", size=(800, 600))
-chart = window.add_line_chart(title="Chart Title", xlabel="x-data")
-line = chart.add_line("Line", line_style=hebi_charts.LineStyle.SOLID)
 
-# Update data (non-blocking calls)
+# Build Layout (blocking)
+window = hebi_charts.GridWindow(title="Python", size=(800, 600))
+chart = window.add_line_chart(title="Random Walk", xlabel="sample", ylabel="rnd(x)")
+line = chart.add_line("walk", line_style=hebi_charts.LineStyle.SOLID)
+
+# Live Update
 x, y = 0, 0
 window.show()
 while window.is_showing():
+    # reduce the rate (optional)
+    time.sleep(0.001)
+
+    # append data (non-blocking)
     x += 1
-    y += 1
+    y += random.uniform(-1, 1)
     line.add_point(x, y)
 ----
 
 *MATLAB*
 [source,matlab]
 ----
-% Build elements
-window = hebi_charts.GridWindow('title', 'MATLAB Random Walk', 'size', [800 600]);
-chart = window.addLineChart('title', 'Chart Title', 'xlabel', 'x-data');
-line = chart.addLine('Line', 'lineStyle', 'Solid');
+% Build Layout (blocking)
+window = hebi_charts.GridWindow(title='MATLAB', size=[800 600]);
+chart = window.addLineChart(title='Random Walk', xlabel='sample', ylabel='rnd(x)');
+line = chart.addLine('walk', lineStyle='Solid');
 
-% Continuous data update
+% Live Update
 x = 0;
 y = 0;
 window.show();
 while window.isShowing()
+    % reduce the rate (optional)
+    pause(0.001)
+
+    % append data (non-blocking)
     x = x + 1;
-    y = y + 1;
+    y = y + (rand() * 2 - 1);
     line.addPoint(x, y);
 end
 ----
@@ -110,23 +125,30 @@ end
 *C++*
 [source,cpp]
 ----
-// Build elements
+// Build Layout (blocking)
 hebi::charts::GridWindow window;
-window.setTitle("Window Title");
+window.setTitle("Cpp");
 window.setSize(800, 600);
 
 auto chart = window.addLineChart();
-chart.setTitle("Chart Title");
-chart.setXLabel("x-data");
+chart.setTitle("Random Walk");
+chart.setXLabel("sample");
+chart.setYLabel("rnd(x)");
 
-auto line = chart.addLine("Line");
+auto line = chart.addLine("walk");
 line.setLineStyle(hebi::charts::LineStyle::Solid);
 
-// Update loop
+// Live Update
 window.show();
 double x = 0, y = 0;
 while (window.isShowing()) {
-    line.addPoint(++x, ++y);
+    // reduce the rate (optional)
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    // append data (non-blocking)
+    x += 1;
+    y += ((double) rand() / RAND_MAX) * 2.0 - 1.0;
+    line.addPoint(x++, y+=rnd);
 }
 ----
 
@@ -144,6 +166,7 @@ import hebi_charts
 
 # run the app on a Cocoa runner
 def main():
+    # <application logic goes here>
     return
 
 # macOS: let cocoa have the main thread
@@ -161,6 +184,7 @@ Not necessary as MATLAB already starts a Cocoa loop for its own UI.
 ----
 // Run the app on a Cocoa runner
 int application_main(int argc, char **argv) {
+    // <application logic goes here>
 }
 
 // macOS: let cocoa have the main thread
@@ -179,6 +203,9 @@ image::docs/images/line_chart.png[align="center"]
 === Scope
 A LineChart with a pre-configured X-axis for monotonically increasing time in seconds.
 
+.Sinewave Example
+image::docs/images/python_sinewave.png[align="center"]
+
 === PercentileHistogram
 Visualizes data distribution using percentiles (e.g., p50, p95, p99).
 
@@ -188,7 +215,7 @@ A PercentileHistogram pre-configured for high-resolution timing data.
 image::docs/images/latency_chart.png[align="center"]
 
 === StreamView
-Low-latency image viewer that reads from shared memory buffers. Requires HEBI's https://docs.hebi.us/downloads_changelogs.html#software[Video Acquisition] tools.
+Low-latency image viewer that reads from shared memory buffers. Requires HEBI's https://docs.hebi.us/downloads_changelogs.html#software[Video Acquisition] tools. The format is non-final, so expect potential changes.
 
 === Scene3d
 A 3D coordinate space for rendering meshes and geometric primitives.
@@ -299,6 +326,9 @@ We also provide some non-visual utilities that are often needed when working wit
 
 On Windows, `LoopTimer` also manages the system timer resolution via `timeBeginPeriod(1)` and `timeEndPeriod()`. This ensures that `sleep` operations use a 1ms resolution rather than the 15.6ms default.
 
+.Latency Example
+image::docs/images/python_latency.png[align="center"]
+
 *Running a 1KHz loop (best effort sleep)*
 [source,python]
 ----
@@ -309,15 +339,22 @@ while timer.elapsed_time < 10:
 ----
 
 *Running a 1KHz loop (high accuracy spin)*
+
+The `spin_nanos` method uses a tiered strategy of `sleep > yield > spin` depending on the remaining deadline.
+
 [source,python]
 ----
 import hebi_charts
 timer = hebi_charts.LoopTimer(frequency=1000)
 while timer.elapsed_time < 10:
-    timer.spin_nanos(timer.get_nanos_to_next_tick())
+    nanos = timer.get_nanos_to_next_tick()
+    hebi_charts.LoopTimer.spin_nanos(nanos)
 ----
 
 *Measuring Time*
+
+`LoopTimer` methods `tic()` and `toc()` measure the time in between an action, and `tic_toc()` atomically returns the time since the last `tic()` and immediately restarts the timer.
+
 [source,python]
 ----
 import hebi_charts
