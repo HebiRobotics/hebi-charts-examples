@@ -1,24 +1,22 @@
-= HEBI Charts - Examples
+= HEBI Charts
 
-HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a focus on the robotics domain.
+HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a focus on the robotics domain. It features a stable C ABI supporting Linux, macOS, and Windows, with idiomatic bindings for Python, MATLAB, and C++.
 
 image::docs/images/main_snapshot.png[align="center"]
-
-It features a stable C ABI supporting Linux, macOS, and Windows, with idiomatic bindings for Python, MATLAB, and C++.
 
 [source,mermaid]
 ----
 graph TD
 
-    PY_C[Python Script]
-    ML_C[MATLAB Script]
-    CPP_C[C++ App]
+    PY_C[<b>Python</b>]
+    ML_C[<b>MATLAB</b>]
+    CPP_C[<b>C++</b>]
 
     PY_W["<b>Python Module</b><br/>Classes, Enums, Hints"]
     ML_W["<b>MATLAB Toolbox</b><br/>Classdef, Hints"]
     CPP_W["<b>C++ Header</b><br/>CMake, OOP / RAII"]
 
-    P11[C-Types FFI]
+    P11[ctypes FFI]
     MEX[MEX Gateway]
     LINK[Direct Link]
 
@@ -299,6 +297,8 @@ while window.is_showing():
 
 We also provide some non-visual utilities that are often needed when working with control loops. The `LoopTimer` class helps with loop timings and measuring jitter.
 
+On Windows, `LoopTimer` also manages the system timer resolution via `timeBeginPeriod(1)` and `timeEndPeriod()`. This ensures that `sleep` operations use a 1ms resolution rather than the 15.6ms default.
+
 *Running a 1KHz loop (best effort sleep)*
 [source,python]
 ----
@@ -327,8 +327,6 @@ timer.spin_nanos(1_000_000)
 dt_ms = timer.toc() * 1e3
 print(f"Elapsed time: {dt_ms:.3f} ms")
 ----
-
-Note that on Windows, `LoopTimer` automatically manages the system timer resolution via `timeBeginPeriod(1)` and `timeEndPeriod()`. This ensures that `sleep` operations use a 1ms resolution rather than the 15.6ms default.
 
 == HdrHistogram
 
@@ -374,33 +372,6 @@ The measurement overhead is very low and can be used for fast loops. The below n
 
 `.hrgm` files store individual histogram data in a pre-processed percentile format that can be easily plotted in tools like Excel or the https://hdrhistogram.github.io/HdrHistogram/plotFiles.html[HdrHistogram Plotter]. Local histograms have no internal synchronization and assume a single-writer for minimal overhead.
 
-*HdrHistogram Plotter*
-
-image::docs/images/HdrHistogram_low.png[align="center"]
-image::docs/images/HdrHistogram_high.png[align="center"]
-
-*Text Representation (.hrgm)*
-
-[source,text]
-----
-       Value     Percentile TotalCount 1/(1-Percentile)
-
-        1.00 0.000000000000   61643852           1.00
-        1.00 0.100000000000   61643852           1.11
-        1.00 0.200000000000   61643852           1.25
-        1.00 0.300000000000   61643852           1.43
-         ...                       ...            ...
-   350207.00 0.999999988079   99999999    83886080.31
-   350207.00 0.999999989569   99999999    95869805.31
-   364543.00 0.999999991059  100000000   111848106.39
-   364543.00 1.000000000000  100000000
-#[Mean    =        39.18, StdDeviation   =       117.22]
-#[Max     =    364543.00, Total count    =    100000000]
-#[Buckets =           35, SubBuckets     =          256]
-----
-
-The snippets below measure the overhead of the C-barrier crossing in various languages:
-
 *Python*
 [source,python]
 ----
@@ -433,6 +404,31 @@ int main() {
     }
     hdrHistogram.saveAsHrgm("overhead.hrgm", 1e9);
 }
+----
+
+*HdrHistogram Plotter*
+
+image::docs/images/HdrHistogram_low.png[align="center"]
+image::docs/images/HdrHistogram_high.png[align="center"]
+
+*Text Representation (.hrgm)*
+
+[source,text]
+----
+       Value     Percentile TotalCount 1/(1-Percentile)
+
+        1.00 0.000000000000   61643852           1.00
+        1.00 0.100000000000   61643852           1.11
+        1.00 0.200000000000   61643852           1.25
+        1.00 0.300000000000   61643852           1.43
+         ...                       ...            ...
+   350207.00 0.999999988079   99999999    83886080.31
+   350207.00 0.999999989569   99999999    95869805.31
+   364543.00 0.999999991059  100000000   111848106.39
+   364543.00 1.000000000000  100000000
+#[Mean    =        39.18, StdDeviation   =       117.22]
+#[Max     =    364543.00, Total count    =    100000000]
+#[Buckets =           35, SubBuckets     =          256]
 ----
 
 === Recorded Intervals (.hlog)
