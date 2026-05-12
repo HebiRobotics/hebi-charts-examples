@@ -1,6 +1,10 @@
 = HEBI Charts - Examples
 
-HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a focus on the robotics domain. It features a stable C ABI supporting Linux, macOS, and Windows, with auto-generated bindings for C++, Python, and MATLAB.
+HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a focus on the robotics domain.
+
+image::docs/images/main_snapshot.png[align="center"]
+
+It features a stable C ABI supporting Linux, macOS, and Windows, with idiomatic bindings for Python, MATLAB, and C++.
 
 [source,mermaid]
 ----
@@ -10,117 +14,59 @@ graph TD
     ML_C[MATLAB Script]
     CPP_C[C++ App]
 
-    ML_W["<b>MATLAB Toolbox</b><br/>Classdef, Hints"]
     PY_W["<b>Python Module</b><br/>Classes, Enums, Hints"]
+    ML_W["<b>MATLAB Toolbox</b><br/>Classdef, Hints"]
     CPP_W["<b>C++ Header</b><br/>CMake, OOP / RAII"]
 
-    MEX[MEX Gateway]
     P11[C-Types FFI]
+    MEX[MEX Gateway]
     LINK[Direct Link]
 
     ABI["<b>Stable C ABI</b><br/>Shared Binary (.dll / .so)"]
 
     %% Flow
-    ML_C --> ML_W --> MEX --> ABI
     PY_C --> PY_W --> P11 --> ABI
+    ML_C --> ML_W --> MEX --> ABI
     CPP_C --> CPP_W --> LINK --> ABI
 
     %% Styling
-    style ABI fill:#f96,stroke:#333,stroke-width:2px
+    style ABI fill:#fff3e0,stroke:#333,stroke-width:2px
     style ML_W fill:#e1f5fe,stroke:#01579b
     style PY_W fill:#e1f5fe,stroke:#01579b
     style CPP_W fill:#e1f5fe,stroke:#01579b
 ----
 
-== Key Philosophy: Performance through Isolation
+**Performance through Isolation**
 
-Unlike traditional visualization libraries, HEBI Charts does not grant users access to the UI thread. Every user call is asynchronous and gets synchronized internally at the beginning of each frame.
-
-Decoupling the data ingestion from rendering allows for arbitrarily high data rates without affecting the internal 60 FPS update rate. This means that MATLAB users can stream data from a busy-loop running at >1MHz without the need for `drawnow` or forcing pauses.
-
-For example, a call to `Line::addPoint(x,y)` appends a point to a double-buffered circular buffer that updates the UI state once at the beginning of each frame.
+Unlike traditional visualization libraries, HEBI Charts fully decouples data ingestion from the UI thread. Telemetry is pushed into internal buffers that update the UI state at the start of every frame. This isolation allows for MHz-rate updates without stuttering the 60 FPS rendering or requiring manual UI flushes.
 
 [source,mermaid]
 ----
-sequenceDiagram
-    participant UT as User Thread
-    participant FB as Circular Buffer (Front)
-    participant BB as Circular Buffer (Back)
-    participant RT as Render Thread (UI)
-
-    Note over UT: High-Speed Loop
-    UT->>FB: addPoint(x,y)
-    Note right of FB: Set "Dirty" Flag (Frame Update Triggered)
-    UT->>FB: addPoint(x,y)
-    UT->>FB: addPoint(x,y)
-
-    Note over RT: Frame Start (V-Sync)
-    RT->>RT: Check Dirty Bit
-
-    rect rgb(240, 240, 240)
-    Note over FB,BB: Atomic Swap
-    FB-->>BB: Front becomes Back
-    BB-->>FB: Back becomes Front (Clear)
+graph LR
+    subgraph Application [<b>User Application</b>]
+        UserLoop["<b>Control Loop</b><br>1 MHz"]
     end
 
-    RT->>BB: Consume accumulated data
-    RT->>RT: Render current state
+    subgraph Renderer [<b>Shared Library</b>]
+        DoubleBuffer["<b>Data Buffers</b>"]
+        RenderLoop["<b>Render Loop</b><br/>60 FPS"]
+    end
+
+    UserLoop -- "Push Data" --> DoubleBuffer
+    UserLoop -- "Poll State" --> DoubleBuffer
+    DoubleBuffer -- "Frame Sync" --> RenderLoop
+
+    style Application fill:#e1f5fe,stroke:#01579b
+    style Renderer fill:#fff3e0,stroke:#333
 ----
 
-Note that this library provides a set of specialized utilities optimized for R&D. It is not intended to be a replacement for general-purpose UI toolkits used in customer-facing applications.
+For MATLAB and Python users this means that they can stream data from a high-speed busy-loop without using `drawnow` or adding artificial pauses to maintain UI responsiveness.
 
-== API Design & Constraints
-
-Using a header-only library with a standalone Ahead-of-Time (AOT) compiled stable C ABI significantly simplifies deployment, but it does introduce constraints on the API design. We only use concepts that work across a C bridge and map cleanly to all languages, such as single-chain inheritance and limited callbacks and overloads.
-
-To ensure a modern developer experience, the auto-generated wrappers handle the "heavy lifting" of the C layer – including memory ownership, resource cleanup, and error mapping.
-
-While all languages share the same feature set, the interfaces remain idiomatic. For example, C++ accessors map to Python properties and MATLAB key/value pairs, while C error codes are automatically translated into native exceptions.
-
-== Getting Started
+== Installation
 
 Using the headers or running any of the examples will automatically download the correct platform binaries into a shared OS cache directory. Proper packages for `pip` and `matlab` are still a work in progress.
 
-=== macOS: Cocoa Handoff
-
-To satisfy macOS thread requirements, Cocoa needs to own the main thread (id=0) and the user code needs to be run on a background thread. We provide a built-in start function to handle the handover as shown below.
-
-Note that this is not necessary if the library is running inside a GUI application (like MATLAB). On non-macOS platforms, the start function executes the application code directly, making the code portable across all supported systems without manual platform checks.
-
-*Python*
-
-[source,python]
-----
-import hebi_charts
-
-# run the app on a Cocoa runner
-def main():
-    return
-
-# macOS: let cocoa have the main thread
-if __name__ == "__main__":
-    hebi_charts.run_application(main)
-----
-
-*MATLAB*
-
-Not necessary as MATLAB already starts a Cocoa loop for its own UI.
-
-*C++*
-
-[source,cpp]
-----
-// Run the app on a Cocoa runner
-int application_main(int argc, char **argv) {
-}
-
-// macOS: let cocoa have the main thread
-int main(int argc, char **argv) {
-    return hebi::charts::runApplication(application_main, argc, argv);
-}
-----
-
-=== Top-Down Construction
+== Getting Started
 
 The main entry point is the `GridWindow`, a layout container of equally sized rows and columns. All other display elements are created in a top-down manner. A window can contain various charts, and each chart can have various lines or other elements. All bindings are fully type-hinted and documented to simplify exploration.
 
@@ -134,7 +80,6 @@ import hebi_charts
 window = hebi_charts.GridWindow(title="Window Title", size=(800, 600))
 chart = window.add_line_chart(title="Chart Title", xlabel="x-data")
 line = chart.add_line("Line", line_style=hebi_charts.LineStyle.SOLID)
-window.show()
 
 # Update data (non-blocking calls)
 x, y = 0, 0
@@ -187,57 +132,96 @@ while (window.isShowing()) {
 }
 ----
 
-=== Window Elements
+== macOS: Starting Cocoa
 
-==== LineChart
+To satisfy macOS thread requirements, Cocoa needs to own the main thread (id=0) and the user code needs to be run on a background thread. We provide a built-in start function to handle the handover as shown below.
+
+Note that this is not necessary if the library is running inside a GUI application (like MATLAB). On non-macOS platforms, the start function executes the application code directly, making the code portable across all supported systems without manual platform checks.
+
+*Python*
+
+[source,python]
+----
+import hebi_charts
+
+# run the app on a Cocoa runner
+def main():
+    return
+
+# macOS: let cocoa have the main thread
+if __name__ == "__main__":
+    hebi_charts.run_application(main)
+----
+
+*MATLAB*
+
+Not necessary as MATLAB already starts a Cocoa loop for its own UI.
+
+*C++*
+
+[source,cpp]
+----
+// Run the app on a Cocoa runner
+int application_main(int argc, char **argv) {
+}
+
+// macOS: let cocoa have the main thread
+int main(int argc, char **argv) {
+    return hebi::charts::runApplication(application_main, argc, argv);
+}
+----
+
+== Window Elements
+
+=== LineChart
 Standard 2D X/Y Cartesian plot. Supports multiple series and auto-scaling.
 
 image::docs/images/line_chart.png[align="center"]
 
-==== Scope
+=== Scope
 A LineChart with a pre-configured X-axis for monotonically increasing time in seconds.
 
-==== PercentileHistogram
+=== PercentileHistogram
 Visualizes data distribution using percentiles (e.g., p50, p95, p99).
 
-==== LatencyChart
+=== LatencyChart
 A PercentileHistogram pre-configured for high-resolution timing data.
 
 image::docs/images/latency_chart.png[align="center"]
 
-==== StreamView
+=== StreamView
 Low-latency image viewer that reads from shared memory buffers. Requires HEBI's https://docs.hebi.us/downloads_changelogs.html#software[Video Acquisition] tools.
 
-==== Scene3d
+=== Scene3d
 A 3D coordinate space for rendering meshes and geometric primitives.
 
 image::docs/images/3d_scene.png[align="center"]
 
-=== Scene3D Elements
+== Scene3D Elements
 
-==== Frame
+=== Frame
 A coordinate triad showing the X (Red), Y (Green), and Z (Blue) axes.
 
 image::docs/images/3d_frame.png[align="center"]
 
-==== Mesh
+=== Mesh
 A 3D object defined by vertices and faces. Meshes support native colors as well as ghosted overlays. We currently only support WaveFront `.obj` files.
 
 image::docs/images/3d_mesh.png[align="center"]
 
 Note that we recommend storing large models on a web server and using URLs instead of storing them in the code repository. URLs to mesh files are cached locally and stored in a pre-parsed binary format, so they can be loaded very efficiently after the initial download.
 
-==== Line3d
-A continuous path of connected vertices in 3D space. Note that lines are currently implemented by generating custom meshes, so continuous updates are comparatively expensive.
+=== Line3d
+A continuous path of connected vertices in 3D space. Note that the current implementation uses dynamic mesh generation with thin triangles, which may have platform differences and gets comparatively expensive for very long lines.
 
 image::docs/images/3d_line.png[align="center"]
 
-==== Points
-A collection of one or more points that get rendered using basic shapes. Note that points are currently implemented by generating custom meshes, so this is not suitable for large point clouds.
+=== Points
+A collection of one or more points that get rendered using basic shapes. Note that the current implementation uses dynamic mesh generation and is not suitable for large point clouds.
 
 image::docs/images/3d_points.png[align="center"]
 
-==== Robot
+=== Robot
 A high-level object that builds a kinematic tree from a description file. Robots support native colors as well as ghosted overlays.
 
 image::docs/images/3d_robot.png[align="center"]
@@ -251,13 +235,13 @@ The below screenshot shows a Franka Panda arm imported from a converted URDF:
 image::docs/images/3d_franka.png[align="center"]
 
 
-=== Controls
+== Controls
 
 The primary goal of this library is passive visualization, but we do provide a basic set of controls to avoid introducing large dependencies for common user input. The controls live in a separate detachable panel and are not part of the main grid layout. Anything more complex should be done with actual UI frameworks.
 
 image::docs/images/control_panel.png[align="center"]
 
-Note that the API is purely polling-based to integrate well with linear control loops. Trigger events can be checked via internal event state checks like `button.was_pressed()` or `toggle.was_changed()`. The flag gets atomically reset after each call.
+The API is purely polling-based to integrate seamlessly with linear control loops. Event checks like `button.was_pressed()` use an atomic read-and-reset mechanism that guarantees that UI events are caught.
 
 *Available Elements*
 
@@ -311,7 +295,7 @@ while window.is_showing():
         window.close()
 ----
 
-=== LoopTimer
+== LoopTimer
 
 We also provide some non-visual utilities that are often needed when working with control loops. The `LoopTimer` class helps with loop timings and measuring jitter.
 
@@ -344,9 +328,9 @@ dt_ms = timer.toc() * 1e3
 print(f"Elapsed time: {dt_ms:.3f} ms")
 ----
 
-Note that on Windows the `LoopTimer` also sets the timer interrupt resolution (`timeBeginPeriod` / `timeEndPeriod`) to 1ms for the duration of the application. Sleep would otherwise use the default system timer resolution of 15.6ms.
+Note that on Windows, `LoopTimer` automatically manages the system timer resolution via `timeBeginPeriod(1)` and `timeEndPeriod()`. This ensures that `sleep` operations use a 1ms resolution rather than the 15.6ms default.
 
-=== HdrHistogram
+== HdrHistogram
 
 https://hdrhistogram.github.io/HdrHistogram/[HdrHistogram] is a popular tool in the low-latency community for recording jitter. It uses an efficient high-dynamic-range storage format for recording latencies with long tails.
 
@@ -356,11 +340,11 @@ The measurement overhead is very low and can be used for fast loops. The below n
 
 [cols="1,>1,>1,>1,>1", options="header"]
 |====
-| Language | Mean | Max | FFI-Overhead | Frequency
+| Language | Mean | Max | FFI-Overhead | Max Rate
 
 | Baseline
 | 23 ns
-| 174 ns
+| 174 us
 | -
 | 43.5 MHz
 
@@ -386,7 +370,7 @@ The measurement overhead is very low and can be used for fast loops. The below n
 
 `HdrHistogram` supports both official file/storage formats:
 
-==== Processed Histograms (.hrgm)
+=== Processed Histograms (.hrgm)
 
 `.hrgm` files store individual histogram data in a pre-processed percentile format that can be easily plotted in tools like Excel or the https://hdrhistogram.github.io/HdrHistogram/plotFiles.html[HdrHistogram Plotter]. Local histograms have no internal synchronization and assume a single-writer for minimal overhead.
 
@@ -417,26 +401,12 @@ image::docs/images/HdrHistogram_high.png[align="center"]
 
 The snippets below measure the overhead of the C-barrier crossing in various languages:
 
-*C++*
-[source,cpp]
-----
-#include "hebi_charts.hpp"
-
-int main() {
-    auto hdrHistogram = hebi::charts::HdrHistogramTrace::createLocal();
-    for (int i = 0; i < 100 * 1000 * 1000; i++) {
-        hdrHistogram.ticToc();
-    }
-    hdrHistogram.saveAsHrgm("overhead.hrgm", 1e9 /* nanos */);
-}
-----
-
 *Python*
 [source,python]
 ----
 import hebi_charts
 hdrHistogram = hebi_charts.HdrHistogramTrace.create_local()
-for _ in range(100 * 1000 * 1000):
+for _ in range(100_000_000):
     hdrHistogram.tic_toc()
 hdrHistogram.save_as_hrgm("overhead_python.hrgm", 1e9)
 ----
@@ -451,7 +421,21 @@ end
 hdrHistogram.saveAsHrgm('overhead_matlab.hrgm', 1e9)
 ----
 
-==== Recorded Intervals (.hlog)
+*C++*
+[source,cpp]
+----
+#include "hebi_charts.hpp"
+
+int main() {
+    auto hdrHistogram = hebi::charts::HdrHistogramTrace::createLocal();
+    for (int i = 0; i < 100 * 1000 * 1000; i++) {
+        hdrHistogram.ticToc();
+    }
+    hdrHistogram.saveAsHrgm("overhead.hrgm", 1e9);
+}
+----
+
+=== Recorded Intervals (.hlog)
 
 The `.hlog` format stores raw interval histograms with start/end timestamps to analyze latency characteristics over time. These can be loaded into Azul's https://github.com/HdrHistogram/HistogramLogAnalyzer[HistogramLogAnalyzer].
 
@@ -471,3 +455,56 @@ recorder.stop_recording()
 // *Azul HistogramLogAnalyzer*
 //
 // image::docs/images/HdrHistogram_hlog.png[align="center"]
+
+== Experimental Features
+
+The below features are experimental and are likely to change API in the future.
+
+=== Embedding Snapshots
+
+Some UI frameworks do not support fast charts or 3D elements, so we are testing ways to render HEBI Charts windows off-screen and embed them as streaming images into other UI frameworks like Qt or Wx.
+
+The `ImageStream` API provides a triple-buffered pixel buffer that is stable between calls. The pixels need to be copied or wrapped by the user in a format that the target framework understands.
+
+[source,python]
+----
+import hebi_charts
+window = hebi_charts.GridWindow()
+snapshot = window.create_image_stream(pixel_format=PixelFormat.BGRA_PRE)
+window.show_off_screen()
+
+# The buffer provides a zero-copy access to the raw pixels that
+# is guaranteed to be stable until the next try_get_next() call
+def poll_loop():
+    if snapshot.try_get_next():
+        size = snapshot.width * snapshot.height * snapshot.channels
+        buffer = snapshot.buffer
+
+# Map user input on the static image
+window.dispatch_mouse_event(...)
+----
+
+=== Video Recording
+
+For high-fidelity experiment exports, we provide a multi-threaded recording pipeline. To keep the core library lightweight and to avoid platform-specific pitfalls, frames are initially stored as `.png` sequences with timing metadata that can be converted to video using a local FFMpeg installation. The API provides appropriate FFMpeg commands for different output formats.
+
+[source,python]
+----
+import hebi_charts
+
+# Render 1080p resolution at 2x scale for 4K video output
+hebi_charts.Runtime.set_option(hebi_charts.RuntimeOption.DPI_SCALE, "2.0")
+window = hebi_charts.GridWindow(size=(1920,1080))
+
+# Record the animation
+stream = window.create_image_stream(recorder_threads=8)
+stream.start_recording("video", overwrite=True)
+while window.is_showing():
+    pass
+record = stream.stop_recording()
+
+# Convert to ffmpeg
+print(record) # statistics on frame rate, skipped frames, etc.
+print(record.get_ffmpeg_command(hebi_charts.VideoOutputFormat.H264))
+print(record.run_ffmpeg(hebi_charts.VideoOutputFormat.H264, delete_directory=True))
+----
