@@ -1,10 +1,11 @@
-#include <cmath>
 #include <vector>
 #include <string>
 #include <random>
 #include "hebi_charts.hpp"
 
-#define PI 3.14159
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 int application_main(int argc, char **argv) {
     // Select a desired Theme
@@ -58,7 +59,7 @@ int application_main(int argc, char **argv) {
     for (int i = 0; i < robot.getDof(); ++i) {
         jointSliders.push_back(controls.addSlider());
         jointSliders.back().setLabel("Joint " + std::to_string(i + 1));
-        jointSliders.back().setLimits(-PI, PI);
+        jointSliders.back().setLimits(-M_PI, M_PI);
         jointSliders.back().setValue(0.0);
     }
     auto btnZero = controls.addStartButton();
@@ -74,7 +75,7 @@ int application_main(int argc, char **argv) {
     // Seed standard random number generator
     std::random_device rd;
     std::default_random_engine rng(rd());
-    std::uniform_real_distribution<double> random(-PI, PI);
+    std::uniform_real_distribution<double> random(-M_PI, M_PI);
 
     while (window.isShowing()) {
         loopTimer.waitForNextTick();
