@@ -34,6 +34,8 @@ graph TD
     style CPP_W fill:#e1f5fe,stroke:#01579b
 ----
 
+While HEBI Charts integrates seamlessly with other https://www.hebirobotics.com/[HEBI Robotics] https://docs.hebi.us/tools.html[APIs], it is a fully standalone, zero-dependency library. It accepts raw numerical inputs, making it entirely hardware-agnostic and ready to use with any custom actuator, sensor, or data source.
+
 **Performance through Isolation**
 
 Unlike traditional visualization libraries, HEBI Charts fully decouples data ingestion from the UI thread. Telemetry is pushed into internal buffers that update the UI state at the start of every frame. This isolation allows for MHz-rate updates without stuttering the 60 FPS rendering or requiring manual UI flushes.
@@ -60,15 +62,19 @@ graph LR
 
 For MATLAB and Python users this means that they can stream data from a high-speed busy-loop without using `drawnow` or adding artificial pauses to maintain UI responsiveness.
 
+State updates still look immediate, so property accessors like `slider.value += 1` work as expected.
+
 == Installation
 
-Using the headers or running any of the examples will automatically download the correct platform binaries into a shared OS cache directory. Proper packages for `pip` and `matlab` are still a work in progress.
+HEBI Charts features zero-configuration installation. Using the headers or running any example automatically fetches the correct platform-specific binaries and stores them in a shared system cache. Dedicated `pip` and MATLAB package distributions are under active development.
+
+Currently, the target system must support local rendering and hardware GPU acceleration. Software mode and headless rendering support may be added in the future.
 
 == Getting Started
 
 The main entry point is the `GridWindow`, a layout container of equally sized rows and columns. All other display elements are created in a top-down manner. A window can contain various charts, and each chart can have various lines or other elements. All bindings are fully type-hinted and documented to simplify exploration.
 
-Some constructor calls for UI elements may block until the next frame for proper initialization. Subsequent calls are non-blocking. You can find examples in the corresponding subdirectories. For example, a random walk in all languages could look like below,
+Some constructor calls for UI elements may block until the next frame for proper initialization. Subsequent calls are non-blocking. You can find examples in the corresponding subdirectories. For example, a random walk could look like the snippets below,
 
 .Example 01 - Random Walk
 image::docs/images/ex01_python_randomwalk.png[align="center"]
@@ -124,6 +130,10 @@ end
 *C++*
 [source,cpp]
 ----
+#include <chrono>
+#include <thread>
+#include <cstdlib>
+
 // Build Layout (blocking)
 hebi::charts::GridWindow window;
 window.setTitle("Cpp");
@@ -150,6 +160,8 @@ while (window.isShowing()) {
     line.addPoint(x, y);
 }
 ----
+
+The window contents can be exported as PNG using `ctrl + c` to copy to clipboard, and `ctrl + s` to save to disk.
 
 == macOS: Starting Cocoa
 
@@ -214,7 +226,7 @@ A PercentileHistogram pre-configured for high-resolution timing data.
 image::docs/images/latency_chart.png[align="center"]
 
 === StreamView
-Low-latency image viewer that reads from shared memory buffers. Requires HEBI's https://docs.hebi.us/downloads_changelogs.html#software[Video Acquisition] tools. The format is non-final, so expect potential changes.
+Low-latency image viewer that reads from shared memory. Requires https://docs.hebi.us/downloads_changelogs.html#software[HEBI Video Acquisition] tools. The format is under active development, so interfaces signatures are subject to refinement in future releases.
 
 === Scene3d
 A 3D coordinate space for rendering meshes and geometric primitives.
@@ -525,17 +537,19 @@ For high-fidelity experiment exports, we provide a multi-threaded recording pipe
 
 [source,python]
 ----
+import time
 import hebi_charts
 
 # Render 1080p resolution at 2x scale for 4K video output
 hebi_charts.Runtime.set_option(hebi_charts.RuntimeOption.DPI_SCALE, "2.0")
 window = hebi_charts.GridWindow(size=(1920,1080))
+window.show()
 
 # Record the animation
 stream = window.create_image_stream(recorder_threads=8)
 stream.start_recording("video", overwrite=True)
 while window.is_showing():
-    pass
+    time.sleep(1e-3)
 record = stream.stop_recording()
 
 # Convert to ffmpeg
