@@ -5,8 +5,8 @@ persistent cachedInfo
 if isempty(cachedInfo)
 
     libName = 'hebi_charts';
-    version = '0.9.1';
-    buildNumber = '113';
+    version = '0.9.2';
+    buildNumber = '115';
 
     % Determine appropriate OS parameters
     switch computer('arch')
@@ -81,6 +81,13 @@ if isempty(cachedInfo)
     info.includeDir = fullfile(rootDir, 'include');
     info.headerFile = fullfile(info.includeDir, [libName '_c.h']);
     info.matlabHeader = fullfile(thisDir, [libName '_matlab.h']);
+    cachedInfo = info;
+
+end
+
+info = cachedInfo;
+end
+sDir, [libName '_matlab.h']);
     cachedInfo = info;
 
 end

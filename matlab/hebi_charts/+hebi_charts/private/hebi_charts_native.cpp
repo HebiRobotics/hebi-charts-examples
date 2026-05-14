@@ -1189,18 +1189,18 @@ MEX_EXPORT void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
             hebi_charts_HdrHistogramTrace_reset(getPtr<void*>(prhs[1]));
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_HdrHistogramTrace_toHrgmString") */ 667660890: {
-            static auto hebi_charts_HdrHistogramTrace_toHrgmString = libLoader.getFunc<const char*(*)(void*, double)>("hebi_charts_HdrHistogramTrace_toHrgmString");
+        case /* hash32_fnv1a("hebi_charts_HdrHistogramTrace_toHgrmString") */ 1378221180: {
+            static auto hebi_charts_HdrHistogramTrace_toHgrmString = libLoader.getFunc<const char*(*)(void*, double)>("hebi_charts_HdrHistogramTrace_toHgrmString");
             double outputUnitsPerSecond = getScalar<double>(prhs[2]);
-            const char* _value = hebi_charts_HdrHistogramTrace_toHrgmString(getPtr<void*>(prhs[1]), outputUnitsPerSecond);
+            const char* _value = hebi_charts_HdrHistogramTrace_toHgrmString(getPtr<void*>(prhs[1]), outputUnitsPerSecond);
             if (nlhs > 0) plhs[0] = createMexString(_value);
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_HdrHistogramTrace_saveAsHrgm") */ 56837499: {
-            static auto hebi_charts_HdrHistogramTrace_saveAsHrgm = libLoader.getFunc<const char*(*)(void*, const char*, double)>("hebi_charts_HdrHistogramTrace_saveAsHrgm");
+        case /* hash32_fnv1a("hebi_charts_HdrHistogramTrace_saveAsHgrm") */ 1639013757: {
+            static auto hebi_charts_HdrHistogramTrace_saveAsHgrm = libLoader.getFunc<const char*(*)(void*, const char*, double)>("hebi_charts_HdrHistogramTrace_saveAsHgrm");
             MatlabString fileName(prhs[2]);
             double outputUnitsPerSecond = getScalar<double>(prhs[3]);
-            const char* _value = hebi_charts_HdrHistogramTrace_saveAsHrgm(getPtr<void*>(prhs[1]), fileName, outputUnitsPerSecond);
+            const char* _value = hebi_charts_HdrHistogramTrace_saveAsHgrm(getPtr<void*>(prhs[1]), fileName, outputUnitsPerSecond);
             if (nlhs > 0) plhs[0] = createMexString(_value);
             break;
         }
@@ -2458,6 +2458,20 @@ MEX_EXPORT void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
         case /* hash32_fnv1a("hebi_charts_Runtime_getLastErrorString") */ 1987067772: {
             static auto hebi_charts_Runtime_getLastErrorString = libLoader.getFunc<const char*(*)()>("hebi_charts_Runtime_getLastErrorString");
             const char* _value = hebi_charts_Runtime_getLastErrorString();
+            if (nlhs > 0) plhs[0] = createMexString(_value);
+            break;
+        }
+
+
+        default:
+            mexErrMsgIdAndTxt("hebi_charts:NotFound", "Function hash %08X not found.", funcHash);
+    }
+
+}
+
+#ifdef __cplusplus
+}
+#endifrString();
             if (nlhs > 0) plhs[0] = createMexString(_value);
             break;
         }

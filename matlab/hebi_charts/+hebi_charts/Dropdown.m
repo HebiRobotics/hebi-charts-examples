@@ -23,8 +23,8 @@ classdef (Sealed) Dropdown < hebi_charts.Control
 
         function result = get.selectedIndex(this)
             % Returns the currently selected index
-            index = index + 1
             result = hebi_charts_native('hebi_charts_Dropdown_getSelectedIndex', this.ref_Dropdown);
+            result = result + 1
         end
 
         function set.selectedIndex(this, index)

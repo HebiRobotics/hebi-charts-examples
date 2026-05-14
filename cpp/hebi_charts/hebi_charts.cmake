@@ -1,8 +1,8 @@
 # Used to download the binaries - this should not be used directly.
 cmake_minimum_required(VERSION 3.12)
 
-set(HEBI_CHARTS_VERSION "0.9.1")
-set(HEBI_CHARTS_BUILD_NUMBER "113")
+set(HEBI_CHARTS_VERSION "0.9.2")
+set(HEBI_CHARTS_BUILD_NUMBER "115")
 
 # ======== Determine target platform ========
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -90,6 +90,9 @@ if(DOWNLOAD_HEBI_CHARTS AND NOT EXISTS "${HEBI_CHARTS_LIB_FILE}")
        DESTINATION "${HEBI_CHARTS_DOWNLOAD_DIR}")
 
   message(STATUS "Removing temporary files")
+  file(REMOVE "${HEBI_CHARTS_DL_PATH}")
+
+endif()message(STATUS "Removing temporary files")
   file(REMOVE "${HEBI_CHARTS_DL_PATH}")
 
 endif()

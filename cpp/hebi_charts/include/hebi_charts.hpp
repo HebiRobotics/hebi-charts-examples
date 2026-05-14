@@ -1288,23 +1288,23 @@ public:
   void reset() noexcept;
 
   /**
-   * @brief A string of the percentile distribution for plotting .hrgm files
+   * @brief A string of the percentile distribution for plotting .hgrm files
    *
    * @param outputUnitsPerSecond output scale (ms=1e3, us=1e6, ns=1e9
    */
-  std::string toHrgmString(double outputUnitsPerSecond = 1e6) const noexcept;
+  std::string toHgrmString(double outputUnitsPerSecond = 1e6) const noexcept;
 
   /**
    * @details 
-   * Saves the percentile distribution as an .hrgm file in the desired output units. This
+   * Saves the percentile distribution as an .hgrm file in the desired output units. This
    * can be loaded into standard hrgm plotting tools. Returns the absolute path to the output.
    *
    * @param fileName 
    * @param outputUnitsPerSecond output scale (ms=1e3, us=1e6, ns=1e9
    * @throw on internal errors
    */
-  std::string saveAsHrgm(const char* fileName, double outputUnitsPerSecond = 1e6) const;
-  std::string saveAsHrgm(const std::string& fileName, double outputUnitsPerSecond = 1e6) const;
+  std::string saveAsHgrm(const char* fileName, double outputUnitsPerSecond = 1e6) const;
+  std::string saveAsHgrm(const std::string& fileName, double outputUnitsPerSecond = 1e6) const;
   HdrHistogramTrace(HdrHistogramTrace&& from) noexcept;
   HdrHistogramTrace& operator=(HdrHistogramTrace&& from) noexcept;
   ~HdrHistogramTrace() noexcept;
@@ -3113,8 +3113,8 @@ extern "C" {
   void hebi_charts_HdrHistogramTrace_recordValueWithCount(internal::HdrHistogramTracePtr, double, size_t);
   void hebi_charts_HdrHistogramTrace_recordValueWithExpectedInterval(internal::HdrHistogramTracePtr, double, double);
   void hebi_charts_HdrHistogramTrace_reset(internal::HdrHistogramTracePtr);
-  const char* hebi_charts_HdrHistogramTrace_toHrgmString(internal::HdrHistogramTracePtr, double);
-  const char* hebi_charts_HdrHistogramTrace_saveAsHrgm(internal::HdrHistogramTracePtr, const char*, double);
+  const char* hebi_charts_HdrHistogramTrace_toHgrmString(internal::HdrHistogramTracePtr, double);
+  const char* hebi_charts_HdrHistogramTrace_saveAsHgrm(internal::HdrHistogramTracePtr, const char*, double);
   void hebi_charts_HdrHistogramTrace_release(internal::HdrHistogramTracePtr);
   void* hebi_charts_ImageStream_getBuffer(internal::ImageStreamPtr);
   size_t hebi_charts_ImageStream_getBufferSize(internal::ImageStreamPtr);
@@ -4131,16 +4131,16 @@ inline void HdrHistogramTrace::recordValueWithExpectedInterval(double value, dou
 inline void HdrHistogramTrace::reset() noexcept {
   hebi_charts_HdrHistogramTrace_reset(ptr_);
 }
-inline std::string HdrHistogramTrace::toHrgmString(double outputUnitsPerSecond) const noexcept {
-  auto ptr = hebi_charts_HdrHistogramTrace_toHrgmString(ptr_, outputUnitsPerSecond);
+inline std::string HdrHistogramTrace::toHgrmString(double outputUnitsPerSecond) const noexcept {
+  auto ptr = hebi_charts_HdrHistogramTrace_toHgrmString(ptr_, outputUnitsPerSecond);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
-inline std::string HdrHistogramTrace::saveAsHrgm(const char* fileName, double outputUnitsPerSecond) const {
-  auto ptr = hebi_charts_HdrHistogramTrace_saveAsHrgm(ptr_, fileName, outputUnitsPerSecond);
+inline std::string HdrHistogramTrace::saveAsHgrm(const char* fileName, double outputUnitsPerSecond) const {
+  auto ptr = hebi_charts_HdrHistogramTrace_saveAsHgrm(ptr_, fileName, outputUnitsPerSecond);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
-inline std::string HdrHistogramTrace::saveAsHrgm(const std::string& fileName, double outputUnitsPerSecond) const {
-  return saveAsHrgm(fileName.c_str(), outputUnitsPerSecond);
+inline std::string HdrHistogramTrace::saveAsHgrm(const std::string& fileName, double outputUnitsPerSecond) const {
+  return saveAsHgrm(fileName.c_str(), outputUnitsPerSecond);
 }
 inline void HdrHistogramTrace::cleanup() noexcept {
   if (ptr_ != nullptr) {
@@ -5184,7 +5184,7 @@ struct Version {
 };
 
 inline Version getHeaderVersion() {
-  return {0, 9, 1, 113};
+  return {0, 9, 2, 115};
 }
 
 inline Version getLibraryVersion() {

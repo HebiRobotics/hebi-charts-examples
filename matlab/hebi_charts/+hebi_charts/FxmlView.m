@@ -34,7 +34,7 @@ classdef (Sealed) FxmlView < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            hebi_charts_native('hebi_charts_FxmlView_setSource', this.ptr, pathOrUrl);
+            status_ = hebi_charts_native('hebi_charts_FxmlView_setSource', this.ptr, pathOrUrl);
             if status_ ~= 0
                 error(['Encountered error in FxmlView.set.source' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
             end

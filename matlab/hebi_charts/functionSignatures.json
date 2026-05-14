@@ -1497,7 +1497,7 @@
         "type": "hebi_charts.HdrHistogramTrace"
       }]
   },
-  "hebi_charts.HdrHistogramTrace.saveAsHrgm": {
+  "hebi_charts.HdrHistogramTrace.saveAsHgrm": {
     "inputs": [{
         "name": "this",
         "type": "hebi_charts.HdrHistogramTrace"
@@ -1527,7 +1527,7 @@
         "type": "hebi_charts.HdrHistogramTrace"
       }]
   },
-  "hebi_charts.HdrHistogramTrace.toHrgmString": {
+  "hebi_charts.HdrHistogramTrace.toHgrmString": {
     "inputs": [{
         "name": "this",
         "type": "hebi_charts.HdrHistogramTrace"

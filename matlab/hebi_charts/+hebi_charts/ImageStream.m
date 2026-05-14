@@ -109,7 +109,7 @@ classdef (Sealed) ImageStream < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            hebi_charts_native('hebi_charts_ImageStream_setRateLimit', this.ptr, maxFramesPerSecond);
+            status_ = hebi_charts_native('hebi_charts_ImageStream_setRateLimit', this.ptr, maxFramesPerSecond);
             if status_ ~= 0
                 error(['Encountered error in ImageStream.set.rateLimit' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
             end
@@ -131,7 +131,7 @@ classdef (Sealed) ImageStream < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            hebi_charts_native('hebi_charts_ImageStream_setRecorderThreads', this.ptr, numThreads);
+            status_ = hebi_charts_native('hebi_charts_ImageStream_setRecorderThreads', this.ptr, numThreads);
             if status_ ~= 0
                 error(['Encountered error in ImageStream.set.recorderThreads' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
             end

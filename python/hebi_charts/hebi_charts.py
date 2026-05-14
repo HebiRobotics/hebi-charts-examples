@@ -8,8 +8,8 @@ from typing import Sequence, Tuple, Any
 # Load the shared library relative to this file
 def load_library():
     lib_name = 'hebi_charts'
-    version = '0.9.1'
-    build_number = '113'
+    version = '0.9.2'
+    build_number = '115'
 
     architecture = platform.architecture()[0]  # gets '64bit' or '32bit'
     os_name = platform.system()  # gets 'Windows', 'Linux', 'Darwin'
@@ -535,10 +535,10 @@ libhebi_charts.hebi_charts_HdrHistogramTrace_recordValueWithExpectedInterval.arg
 libhebi_charts.hebi_charts_HdrHistogramTrace_recordValueWithExpectedInterval.restype = None
 libhebi_charts.hebi_charts_HdrHistogramTrace_reset.argtypes = [HdrHistogramTracePtr]
 libhebi_charts.hebi_charts_HdrHistogramTrace_reset.restype = None
-libhebi_charts.hebi_charts_HdrHistogramTrace_toHrgmString.argtypes = [HdrHistogramTracePtr, c_double]
-libhebi_charts.hebi_charts_HdrHistogramTrace_toHrgmString.restype = c_char_p
-libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHrgm.argtypes = [HdrHistogramTracePtr, c_char_p, c_double]
-libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHrgm.restype = c_char_p
+libhebi_charts.hebi_charts_HdrHistogramTrace_toHgrmString.argtypes = [HdrHistogramTracePtr, c_double]
+libhebi_charts.hebi_charts_HdrHistogramTrace_toHgrmString.restype = c_char_p
+libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm.argtypes = [HdrHistogramTracePtr, c_char_p, c_double]
+libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm.restype = c_char_p
 libhebi_charts.hebi_charts_HdrHistogramTrace_release.argtypes = [HdrHistogramTracePtr]
 libhebi_charts.hebi_charts_HdrHistogramTrace_release.restype = None
 
@@ -2743,17 +2743,17 @@ class HdrHistogramTrace:
         """Reset the contents and stats of this histogram"""
         libhebi_charts.hebi_charts_HdrHistogramTrace_reset(self.ptr)
 
-    def to_hrgm_string(self, output_units_per_second: float = 1e6) -> str:
-        """A string of the percentile distribution for plotting .hrgm files
+    def to_hgrm_string(self, output_units_per_second: float = 1e6) -> str:
+        """A string of the percentile distribution for plotting .hgrm files
         
         Args:
             output_units_per_second: output scale (ms=1e3, us=1e6, ns=1e9
         """
-        ptr_ = libhebi_charts.hebi_charts_HdrHistogramTrace_toHrgmString(self.ptr, output_units_per_second)
+        ptr_ = libhebi_charts.hebi_charts_HdrHistogramTrace_toHgrmString(self.ptr, output_units_per_second)
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
-    def save_as_hrgm(self, file_name: str, output_units_per_second: float = 1e6) -> str:
-        """Saves the percentile distribution as an .hrgm file in the desired output units. This
+    def save_as_hgrm(self, file_name: str, output_units_per_second: float = 1e6) -> str:
+        """Saves the percentile distribution as an .hgrm file in the desired output units. This
         can be loaded into standard hrgm plotting tools. Returns the absolute path to the output.
         
         Args:
@@ -2765,7 +2765,7 @@ class HdrHistogramTrace:
         """
         if file_name is not None and not isinstance(file_name, c_char_p):
             file_name = c_char_p(file_name.encode('utf-8') if isinstance(file_name, str) else file_name)
-        ptr_ = libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHrgm(self.ptr, file_name, output_units_per_second)
+        ptr_ = libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm(self.ptr, file_name, output_units_per_second)
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
 

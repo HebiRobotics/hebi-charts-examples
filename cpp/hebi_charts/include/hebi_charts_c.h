@@ -370,8 +370,8 @@ void hebi_charts_HdrHistogramTrace_recordValue(hebi_charts_HdrHistogramTracePtr 
 void hebi_charts_HdrHistogramTrace_recordValueWithCount(hebi_charts_HdrHistogramTracePtr obj, double value, size_t count);
 void hebi_charts_HdrHistogramTrace_recordValueWithExpectedInterval(hebi_charts_HdrHistogramTracePtr obj, double value, double expectedIntervalBetweenSamples);
 void hebi_charts_HdrHistogramTrace_reset(hebi_charts_HdrHistogramTracePtr obj);
-const char* hebi_charts_HdrHistogramTrace_toHrgmString(hebi_charts_HdrHistogramTracePtr obj, double outputUnitsPerSecond);
-const char* hebi_charts_HdrHistogramTrace_saveAsHrgm(hebi_charts_HdrHistogramTracePtr obj, const char* fileName, double outputUnitsPerSecond);
+const char* hebi_charts_HdrHistogramTrace_toHgrmString(hebi_charts_HdrHistogramTracePtr obj, double outputUnitsPerSecond);
+const char* hebi_charts_HdrHistogramTrace_saveAsHgrm(hebi_charts_HdrHistogramTracePtr obj, const char* fileName, double outputUnitsPerSecond);
 void hebi_charts_HdrHistogramTrace_release(hebi_charts_HdrHistogramTracePtr obj);
 
 // ==== ImageStream ====
@@ -611,8 +611,8 @@ void hebi_charts_getLibraryVersion(int* major, int* minor, int* patch, int* buil
 void hebi_charts_getHeaderVersion(int* major, int* minor, int* patch, int* build) {
     *major = 0;
     *minor = 9;
-    *patch = 1;
-    *build = 113;
+    *patch = 2;
+    *build = 115;
 }
 
 

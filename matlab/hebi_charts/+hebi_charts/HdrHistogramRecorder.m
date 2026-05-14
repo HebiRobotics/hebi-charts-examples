@@ -22,7 +22,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setFrequency', this.ptr, frequency);
+            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setFrequency', this.ptr, frequency);
             if status_ ~= 0
                 error(['Encountered error in HdrHistogramRecorder.set.frequency']);
             end
@@ -40,7 +40,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMax', this.ptr, value);
+            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMax', this.ptr, value);
             if status_ ~= 0
                 error(['Encountered error in HdrHistogramRecorder.set.max']);
             end
@@ -58,7 +58,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMin', this.ptr, value);
+            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMin', this.ptr, value);
             if status_ ~= 0
                 error(['Encountered error in HdrHistogramRecorder.set.min']);
             end
@@ -76,7 +76,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setSignificantDigits', this.ptr, significantDigits);
+            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setSignificantDigits', this.ptr, significantDigits);
             if status_ ~= 0
                 error(['Encountered error in HdrHistogramRecorder.set.significantDigits']);
             end

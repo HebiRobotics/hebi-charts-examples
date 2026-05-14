@@ -127,19 +127,19 @@ classdef (Sealed) HdrHistogramTrace < handle & matlab.mixin.SetGet
             hebi_charts_native('hebi_charts_HdrHistogramTrace_reset', this.ptr);
         end
 
-        function result = toHrgmString(this, outputUnitsPerSecond)
-            % A string of the percentile distribution for plotting .hrgm files
+        function result = toHgrmString(this, outputUnitsPerSecond)
+            % A string of the percentile distribution for plotting .hgrm files
             %
             %   Inputs:
             %       outputUnitsPerSecond - output scale (ms=1e3, us=1e6, ns=1e9
             if nargin < 2
                 outputUnitsPerSecond = 1e6;
             end
-            result = hebi_charts_native('hebi_charts_HdrHistogramTrace_toHrgmString', this.ptr, outputUnitsPerSecond);
+            result = hebi_charts_native('hebi_charts_HdrHistogramTrace_toHgrmString', this.ptr, outputUnitsPerSecond);
         end
 
-        function result = saveAsHrgm(this, fileName, outputUnitsPerSecond)
-            % Saves the percentile distribution as an .hrgm file in the desired output units. This
+        function result = saveAsHgrm(this, fileName, outputUnitsPerSecond)
+            % Saves the percentile distribution as an .hgrm file in the desired output units. This
             %   can be loaded into standard hrgm plotting tools. Returns the absolute path to the output.
             %
             %   Inputs:
@@ -151,7 +151,7 @@ classdef (Sealed) HdrHistogramTrace < handle & matlab.mixin.SetGet
             if nargin < 3
                 outputUnitsPerSecond = 1e6;
             end
-            result = hebi_charts_native('hebi_charts_HdrHistogramTrace_saveAsHrgm', this.ptr, fileName, outputUnitsPerSecond);
+            result = hebi_charts_native('hebi_charts_HdrHistogramTrace_saveAsHgrm', this.ptr, fileName, outputUnitsPerSecond);
         end
 
     end

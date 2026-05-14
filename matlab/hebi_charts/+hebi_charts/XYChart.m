@@ -90,7 +90,7 @@ classdef XYChart < handle & matlab.mixin.SetGet
                 min = xlim(1);
                 max = xlim(2);
             end
-            hebi_charts_native('hebi_charts_XYChart_setXLim', this.ptr, min, max);
+            status_ = hebi_charts_native('hebi_charts_XYChart_setXLim', this.ptr, min, max);
             if status_ ~= 0
                 error(['Encountered error in XYChart.set.xlim' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
             end
