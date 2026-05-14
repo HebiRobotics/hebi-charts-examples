@@ -186,15 +186,15 @@ def record_video():
     print(record.get_ffmpeg_command(output_format=VideoOutputFormat.H264))
 
 
-def HdrHistogram_hrgm():
-    print("Starting timing measurements (.hrgm)...")
+def HdrHistogram_hgrm():
+    print("Starting timing measurements (.hgrm)...")
     hist = hebi_charts.HdrHistogramTrace.create_local()
     for _ in range(10000):
         time.sleep(0.001) # measure Python sleep
         hist.tic_toc()  # built-in measurements
 
     output_units_us = 1e6
-    print(hist.to_hrgm_string(output_units_us))
+    print(hist.to_hgrm_string(output_units_us))
 
 def HdrHistogram_hlog():
     print("Starting timing measurements (.hlog)...")
@@ -212,11 +212,11 @@ def HdrHistogram_hlog():
 
 def HdrHistogram_overhead():
     # HdrHistogram - measure overhead of itself
-    print("Measuring 100M calls (.hrgm)...")
+    print("Measuring 100M calls (.hgrm)...")
     hist = hebi_charts.HdrHistogramTrace.create_local()
     for _ in range(100_000_000):
         hist.tic_toc()
-    hist.save_as_hrgm("overhead_python.hrgm", 1e9)
+    hist.save_as_hgrm("overhead_python.hgrm", 1e9)
 
     # HdrHistogram - Recorder
     print("Measuring 100M calls (.hlog)...")
@@ -239,7 +239,7 @@ def main():
     panda_control()
     control_panel()
     record_video()
-    HdrHistogram_hrgm()
+    HdrHistogram_hgrm()
     HdrHistogram_hlog()
     HdrHistogram_overhead()
 
