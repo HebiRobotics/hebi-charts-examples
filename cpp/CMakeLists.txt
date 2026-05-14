@@ -18,3 +18,5 @@ target_add_hebi_charts(ex03_robot_3d)
 add_executable(ex04_latency ex04_latency.cpp)
 target_add_hebi_charts(ex04_latency)
 
+add_executable(ex05_pid_simulation ex05_pid_simulation.cpp)
+target_add_hebi_charts(ex05_pid_simulation)
