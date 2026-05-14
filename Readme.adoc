@@ -70,6 +70,10 @@ HEBI Charts features zero-configuration installation. Using the headers or runni
 
 Currently, the target system must support local rendering and hardware GPU acceleration. Software mode and headless rendering support may be added in the future.
 
+++++
+<div align="center">
+++++
+
 .Supported Target Platforms
 [cols="1,^1,^1", options="header"]
 
@@ -88,6 +92,10 @@ Currently, the target system must support local rendering and hardware GPU accel
 | ✔️
 | ❌
 |====
+
+++++
+</div>
+++++
 
 == Getting Started
 
@@ -337,7 +345,14 @@ image::docs/images/ex03_python_robot_3d.png[align="center"]
 
 |===
 
+++++
+<div align="center">
+++++
 image::docs/images/control_panel.png[align="center"]
+++++
+</div>
+++++
+
 
 **Python**
 [source,python]
@@ -414,12 +429,17 @@ print(f"Elapsed time: {dt_ms:.3f} ms")
 
 == HdrHistogram
 
-https://hdrhistogram.github.io/HdrHistogram/[HdrHistogram] is a popular tool in the low-latency community for recording jitter. It uses an efficient high-dynamic-range storage format for recording latencies with long tails.
+https://hdrhistogram.github.io/HdrHistogram/[HdrHistogram] is a popular tool in the low-latency community for recording jitter. It uses an efficient high-dynamic-range storage format for recording latencies with long tails. We support both official storage formats: `.hgrm` for pre-processed histogram data, and `.hlog` for interleaved histograms over time.
 
 Besides accepting user-supplied timing values, we also provide built-in timing functionality for consistent access to high-resolution timers (`tic()`, `toc()`), and to reduce the number of hops across the C interface (`tic_toc()`). Recorded values are capped at the (configurable) min and max values to avoid exception handling.
 
 The measurement overhead is very low and can be used for fast loops. The below numbers are for 100M calls of `ticToc()` on Windows 11,
 
+++++
+<div align="center">
+++++
+
+.FFI Overhead
 [cols="1,>1,>1,>1,>1", options="header"]
 |====
 | Language | Mean | Max | FFI-Overhead | Max Rate
@@ -450,11 +470,13 @@ The measurement overhead is very low and can be used for fast loops. The below n
 
 |====
 
-`HdrHistogram` supports both official file/storage formats:
+++++
+</div>
+++++
 
-=== Processed Histograms (.hrgm)
+=== Processed Histograms (.hgrm)
 
-`.hrgm` files store individual histogram data in a pre-processed percentile format that can be easily plotted in tools like Excel or the https://hdrhistogram.github.io/HdrHistogram/plotFiles.html[HdrHistogram Plotter]. Local histograms have no internal synchronization and assume a single-writer for minimal overhead.
+`.hgrm` files store individual histogram data in a pre-processed percentile format that can be easily plotted in tools like Excel or the https://hdrhistogram.github.io/HdrHistogram/plotFiles.html[HdrHistogram Plotter]. Local histograms have no internal synchronization and assume a single-writer for minimal overhead.
 
 *Python*
 [source,python]
@@ -463,7 +485,7 @@ import hebi_charts
 hdrHistogram = hebi_charts.HdrHistogramTrace.create_local()
 for _ in range(100_000_000):
     hdrHistogram.tic_toc()
-hdrHistogram.save_as_hrgm("overhead_python.hrgm", 1e9)
+hdrHistogram.save_as_hrgm("overhead_python.hgrm", 1e9)
 ----
 
 *MATLAB*
@@ -473,7 +495,7 @@ hdrHistogram = hebi_charts.HdrHistogramTrace.createLocal();
 for i = 1: 100 * 1000 * 1000
     hdrHistogram.ticToc();
 end
-hdrHistogram.saveAsHrgm('overhead_matlab.hrgm', 1e9)
+hdrHistogram.saveAsHrgm('overhead_matlab.hgrm', 1e9)
 ----
 
 *C++*
@@ -486,7 +508,7 @@ int main() {
     for (int i = 0; i < 100 * 1000 * 1000; i++) {
         hdrHistogram.ticToc();
     }
-    hdrHistogram.saveAsHrgm("overhead.hrgm", 1e9);
+    hdrHistogram.saveAsHrgm("overhead.hgrm", 1e9);
 }
 ----
 
@@ -495,7 +517,7 @@ int main() {
 image::docs/images/HdrHistogram_low.png[align="center"]
 image::docs/images/HdrHistogram_high.png[align="center"]
 
-*Text Representation (.hrgm)*
+*Text Representation (.hgrm)*
 
 [source,text]
 ----
