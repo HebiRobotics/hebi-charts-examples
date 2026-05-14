@@ -45,11 +45,11 @@ while window.isShowing()
 
     % Poll for user input
     if theme.wasChanged()
-        hebi_charts.Runtime.setTheme(themes{theme.selectedIndex + 1});
+        hebi_charts.Runtime.setTheme(themes{theme.selectedIndex});
     end
 
     if displayStyle.wasChanged()
-        robot.displayStyle = displayStyles{displayStyle.selectedIndex + 1};
+        robot.displayStyle = displayStyles{displayStyle.selectedIndex};
     end
 
     if btnZero.wasPressed()
