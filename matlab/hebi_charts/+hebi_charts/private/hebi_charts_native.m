@@ -52,7 +52,4 @@ catch ME
     error('MEX compiled but failed to execute: %s', ME.message);
 end
 
-endpiled but failed to execute: %s', ME.message);
-end
-
 end

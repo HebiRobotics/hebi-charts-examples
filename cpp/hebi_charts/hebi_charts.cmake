@@ -92,7 +92,4 @@ if(DOWNLOAD_HEBI_CHARTS AND NOT EXISTS "${HEBI_CHARTS_LIB_FILE}")
   message(STATUS "Removing temporary files")
   file(REMOVE "${HEBI_CHARTS_DL_PATH}")
 
-endif()message(STATUS "Removing temporary files")
-  file(REMOVE "${HEBI_CHARTS_DL_PATH}")
-
 endif()

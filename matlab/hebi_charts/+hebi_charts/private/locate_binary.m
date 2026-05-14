@@ -87,10 +87,3 @@ end
 
 info = cachedInfo;
 end
-sDir, [libName '_matlab.h']);
-    cachedInfo = info;
-
-end
-
-info = cachedInfo;
-end

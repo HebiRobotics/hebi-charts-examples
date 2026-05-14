@@ -2471,18 +2471,4 @@ MEX_EXPORT void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 
 #ifdef __cplusplus
 }
-#endifrString();
-            if (nlhs > 0) plhs[0] = createMexString(_value);
-            break;
-        }
-
-
-        default:
-            mexErrMsgIdAndTxt("hebi_charts:NotFound", "Function hash %08X not found.", funcHash);
-    }
-
-}
-
-#ifdef __cplusplus
-}
 #endif
