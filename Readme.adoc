@@ -275,9 +275,10 @@ image::docs/images/3d_franka.png[align="center"]
 
 The primary goal of this library is passive visualization, but we do provide a basic set of controls to avoid introducing large dependencies for common user input. The controls live in a separate detachable panel and are not part of the main grid layout. Anything more complex should be done with actual UI frameworks.
 
-image::docs/images/control_panel.png[align="center"]
+.Example 03 - Robot 3d
+image::docs/images/ex03_python_robot_3d.png[align="center"]
 
-The API is purely polling-based to integrate seamlessly with linear control loops. Event checks like `button.was_pressed()` use an atomic read-and-reset mechanism that guarantees that UI events are caught.
+The API is purely polling-based to integrate seamlessly with linear control loops. Event checks like `button.was_pressed()` use an atomic read-and-reset mechanism that guarantees that UI events are caught independent of the polling rate.
 
 *Available Elements*
 
@@ -302,6 +303,7 @@ The API is purely polling-based to integrate seamlessly with linear control loop
 
 |===
 
+image::docs/images/control_panel.png[align="center"]
 
 **Python**
 [source,python]
@@ -331,8 +333,22 @@ while window.is_showing():
         window.close()
 ----
 
-.Example 03 - Robot 3d
-image::docs/images/ex03_python_robot_3d.png[align="center"]
+Controls are also useful for creating simple interactive classroom demos, allowing students to focus on the underlying math or physics without dealing with complex UI framework overhead and asynchronous event callbacks.
+
+.Example 05 - PID Controller Simulation
+image::docs/images/ex05_python_pid_simulation.png[align="center"]
+
+[source,python]
+----
+# Add sliders for control variables
+kp = controls.add_slider(label="Kp (Proportional)", limits=(0.0, 100.0), value=5.0)
+
+# Read state directly in a loop
+while True:
+    # ...
+    output = kp.value * error
+    # ...
+----
 
 == LoopTimer
 
