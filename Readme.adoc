@@ -273,14 +273,29 @@ image::docs/images/3d_franka.png[align="center"]
 
 == Controls
 
-The primary goal of this library is passive visualization, but we do provide a basic set of controls to avoid introducing large dependencies for common user input. The controls live in a separate detachable panel and are not part of the main grid layout. Anything more complex should be done with actual UI frameworks.
+The primary goal of this library is passive visualization, but we do provide a basic set of controls to avoid introducing large dependencies for common user input. The controls live in a detachable side panel and are not part of the main grid layout.
+
+The API is purely polling-based to integrate seamlessly with linear control loops. Event checks like `button.was_pressed()` use an atomic read-and-reset mechanism that guarantees that UI events are caught independent of the polling rate.
+
+[source,python]
+----
+# Create a slider for a control variable
+kp = controls.add_slider(label="Kp (Proportional)", limits=(0.0, 100.0), value=5.0)
+
+# Read state in the loop without extra state variables
+while True:
+    output = kp.value * error
+----
+
+This enables simple robot tasks and interactive classroom demos that can focus on the underlying math without dealing with UI framework initialization and asynchronous event callbacks. However, more advanced use cases and complex layouts should be done with actual UI frameworks.
+
+.Example 05 - PID Controller Simulation
+image::docs/images/ex05_python_pid_simulation.png[align="center"]
 
 .Example 03 - Robot 3d
 image::docs/images/ex03_python_robot_3d.png[align="center"]
 
-The API is purely polling-based to integrate seamlessly with linear control loops. Event checks like `button.was_pressed()` use an atomic read-and-reset mechanism that guarantees that UI events are caught independent of the polling rate.
-
-*Available Elements*
+=== Available Controls
 
 [cols="1,4", options="header"]
 |===
@@ -331,23 +346,6 @@ window.show()
 while window.is_showing():
     if stop.was_pressed():
         window.close()
-----
-
-Controls are also useful for creating simple interactive classroom demos, allowing students to focus on the underlying math or physics without dealing with complex UI framework overhead and asynchronous event callbacks.
-
-.Example 05 - PID Controller Simulation
-image::docs/images/ex05_python_pid_simulation.png[align="center"]
-
-[source,python]
-----
-# Add sliders for control variables
-kp = controls.add_slider(label="Kp (Proportional)", limits=(0.0, 100.0), value=5.0)
-
-# Read state directly in a loop
-while True:
-    # ...
-    output = kp.value * error
-    # ...
 ----
 
 == LoopTimer
