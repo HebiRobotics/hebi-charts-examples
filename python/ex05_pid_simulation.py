@@ -25,7 +25,7 @@ def main():
     i_clamp = controls.add_toggle(label="i Clamp", selected=True)
 
     controls.add_section("System")
-    mass = controls.add_slider(label="Mass", limits=(-1, 1), value=0.1)
+    mass = controls.add_slider(label="Mass", limits=(0.01, 1), value=0.1)
     damping = controls.add_slider(label="Damping", limits=(0, 5), value=1.5)
     stiffness = controls.add_slider(label="Stiffness", limits=(0, 20), value=0)
 
