@@ -4,7 +4,7 @@
 hebi_charts.Runtime.setTheme('NordDark');
 
 % Create a 1x1 grid window with a single chart element
-window = hebi_charts.GridWindow('title', 'Python Random Walk', 'size', [800 600]);
+window = hebi_charts.GridWindow('title', 'Python Random Walk', 'size', [1200 600]);
 
 % Add a line chart element to the window
 chart = window.addLineChart( ...

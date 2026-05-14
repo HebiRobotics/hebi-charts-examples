@@ -8,7 +8,7 @@ def main():
     hebi_charts.Runtime.set_theme(hebi_charts.Theme.NORD_DARK)
 
     # 3x1 Grid: Top 2/3 = 3D robot view, Bottom 1/3 = Scope
-    window = hebi_charts.GridWindow(title="Python Robot", size=(1000, 600), rows=3)
+    window = hebi_charts.GridWindow(title="Python Robot", size=(1200, 800), rows=3)
 
     # 3D Robot
     scene = window.add_scene3d(row_span=2, grid_min_z=0)

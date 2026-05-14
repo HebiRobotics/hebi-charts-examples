@@ -6,7 +6,7 @@ def main():
     hebi_charts.Runtime.set_theme(hebi_charts.Theme.NORD_DARK)
 
     # 2x1 Grid: Top = Scope (Time series), Bottom = LatencyChart (Aggregate distribution)
-    window = hebi_charts.GridWindow(title="Python Latency Profiler", size=(1000, 800), rows=2)
+    window = hebi_charts.GridWindow(title="Python Latency Profiler", size=(1200, 800), rows=2)
     scope = window.add_scope(row=0, title="Measured Sleep Duration vs Target", ylabel="Latency", yunit="s", yauto=True)
     histogram = window.add_latency_chart(row=1, title="Aggregate HdrHistogram")
 

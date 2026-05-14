@@ -6,7 +6,7 @@ def main():
     hebi_charts.Runtime.set_theme(hebi_charts.Theme.NORD_DARK)
 
     # Create a 1x1 grid window with a single scope (time series chart) and trace
-    window = hebi_charts.GridWindow(title="Python Time Series", size=(800, 600))
+    window = hebi_charts.GridWindow(title="Python Time Series", size=(1200, 600))
     chart = window.add_scope(title="Scope", ylabel="sin")
     sinewave = chart.add_line("sine", line_style=hebi_charts.LineStyle.SOLID)
 

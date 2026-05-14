@@ -8,7 +8,7 @@ int application_main(int argc, char **argv) {
     // Create a 1x1 grid window with a single scope (time series chart) and trace
     hebi::charts::GridWindow window;
     window.setTitle("Python Time Series");
-    window.setSize(800, 600);
+    window.setSize(1200, 600);
 
     auto chart = window.addScope();
     chart.setTitle("Scope");

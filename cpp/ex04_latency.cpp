@@ -9,7 +9,7 @@ int application_main(int argc, char **argv) {
     // 2x1 Grid: Top = Scope (Time series), Bottom = LatencyChart (Aggregate distribution)
     hebi::charts::GridWindow window(2,1);
     window.setTitle("C++ Latency Profiler");
-    window.setSize(800, 600);
+    window.setSize(1200, 800);
 
     auto scope = window.addScope();
     scope.setTitle("Measured Sleep Duration vs Target");

@@ -4,7 +4,7 @@
 hebi_charts.Runtime.setTheme('NordDark');
 
 % 3x1 Grid: Top 2/3 = 3D robot view, Bottom 1/3 = Scope
-window = hebi_charts.GridWindow(3, 'title', 'Python Robot', 'size', [1000 600]);
+window = hebi_charts.GridWindow(3, 'title', 'Python Robot', 'size', [1200 800]);
 
 % 3D Robot
 scene = window.addScene3d(1,1,2,1, 'gridMinZ', 0); % row,col,rowSpan,colSpan

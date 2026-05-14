@@ -7,7 +7,7 @@ def main():
     hebi_charts.Runtime.set_theme(hebi_charts.Theme.NORD_DARK)
 
     # Create a 1x1 grid window with a single chart element
-    window = hebi_charts.GridWindow(title="Python Random Walk", size=(800, 600))
+    window = hebi_charts.GridWindow(title="Python Random Walk", size=(1200, 600))
     chart = window.add_line_chart(title="Random Walk", xlabel="sample", ylabel="rnd(x)")
 
     # Add a trace

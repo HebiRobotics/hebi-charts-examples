@@ -4,7 +4,7 @@
 hebi_charts.Runtime.setTheme('NordDark');
 
 % 2x1 Grid: Top = Scope (Time series), Bottom = LatencyChart (Aggregate distribution)
-window = hebi_charts.GridWindow(2, 'title', 'Python Latency Profiler', 'size', [1000 800]);
+window = hebi_charts.GridWindow(2, 'title', 'Python Latency Profiler', 'size', [1200 800]);
 scope = window.addScope(1, 'title', 'Measured Sleep Duration vs Target', 'ylabel', 'Latency', 'yunit', 's', 'yauto', true);
 histogram = window.addLatencyChart(2, 'title', 'Aggregate HdrHistogram');
 
