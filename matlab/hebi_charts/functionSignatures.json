@@ -1,0 +1,2487 @@
+{
+  "_schemaVersion": "1.0.0",
+  "hebi_charts.Button.isPressed": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Button"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.Button.wasPressed": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Button"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.Camera.applyRotation": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Camera"
+      }, {
+        "kind": "required",
+        "name": "qx",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qy",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qz",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qw",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Camera.reset": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Camera"
+      }]
+  },
+  "hebi_charts.Camera.setControlsVisible": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Camera"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.Camera.setDistance": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Camera"
+      }, {
+        "kind": "required",
+        "name": "distanceInMeters",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Camera.setPan": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Camera"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Camera.setView": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Camera"
+      }, {
+        "kind": "required",
+        "name": "view",
+        "type": ["hebi_charts.CameraView", "choices={'ISOMETRIC', 'FRONT', 'BACK', 'LEFT', 'RIGHT', 'TOP', 'BOTTOM'}"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addButton": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "namevalue",
+        "name": "text",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "enabled",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "tooltip",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Button"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addDropdown": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "namevalue",
+        "name": "options",
+        "type": ["cell"]
+      }, {
+        "kind": "namevalue",
+        "name": "selectedIndex",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "enabled",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "tooltip",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Dropdown"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addLabel": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "namevalue",
+        "name": "text",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "enabled",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "tooltip",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Label"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addSection": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "required",
+        "name": "title",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addSlider": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "namevalue",
+        "name": "limits",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "max",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "min",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "enabled",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "tooltip",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Slider"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addStartButton": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "namevalue",
+        "name": "text",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "enabled",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "tooltip",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Button"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addStopButton": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "namevalue",
+        "name": "text",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "enabled",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "tooltip",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Button"]
+      }]
+  },
+  "hebi_charts.ControlPanel.addToggle": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ControlPanel"
+      }, {
+        "kind": "namevalue",
+        "name": "selected",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "enabled",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "tooltip",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Toggle"]
+      }]
+  },
+  "hebi_charts.Dropdown.addOption": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Dropdown"
+      }, {
+        "kind": "required",
+        "name": "option",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.Dropdown.wasChanged": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Dropdown"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.FxmlView.addFxmlView": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.FxmlView"
+      }, {
+        "kind": "required",
+        "name": "fxId",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "autoReload",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "source",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.FxmlView"]
+      }]
+  },
+  "hebi_charts.FxmlView.addLatencyChart": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.FxmlView"
+      }, {
+        "kind": "required",
+        "name": "fxId",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HistogramChart"]
+      }]
+  },
+  "hebi_charts.FxmlView.addLineChart": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.FxmlView"
+      }, {
+        "kind": "required",
+        "name": "fxId",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.LineChart"]
+      }]
+  },
+  "hebi_charts.FxmlView.addPercentileHistogram": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.FxmlView"
+      }, {
+        "kind": "required",
+        "name": "fxId",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HistogramChart"]
+      }]
+  },
+  "hebi_charts.FxmlView.addScene3d": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.FxmlView"
+      }, {
+        "kind": "required",
+        "name": "fxId",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridBounds",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMaxX",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMaxY",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMaxZ",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMinX",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMinY",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMinZ",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridStep",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Scene3d"]
+      }]
+  },
+  "hebi_charts.FxmlView.addScope": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.FxmlView"
+      }, {
+        "kind": "required",
+        "name": "fxId",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.LineChart"]
+      }]
+  },
+  "hebi_charts.FxmlView.addStreamView": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.FxmlView"
+      }, {
+        "kind": "required",
+        "name": "file",
+        "type": ["char"]
+      }, {
+        "kind": "required",
+        "name": "fxId",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.StreamView"]
+      }]
+  },
+  "hebi_charts.GridWindow": {
+    "inputs": [{
+        "kind": "ordered",
+        "name": "rows",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "cols",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "fullScreen",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "height",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "keepOpen",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "location",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "size",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "width",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "y",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.GridWindow"]
+      }]
+  },
+  "hebi_charts.GridWindow.addFxmlView": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "ordered",
+        "name": "row",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "col",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "rowSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "colSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "autoReload",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "source",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.FxmlView"]
+      }]
+  },
+  "hebi_charts.GridWindow.addLatencyChart": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "ordered",
+        "name": "row",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "col",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "rowSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "colSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HistogramChart"]
+      }]
+  },
+  "hebi_charts.GridWindow.addLineChart": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "ordered",
+        "name": "row",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "col",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "rowSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "colSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.LineChart"]
+      }]
+  },
+  "hebi_charts.GridWindow.addPercentileHistogram": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "ordered",
+        "name": "row",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "col",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "rowSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "colSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HistogramChart"]
+      }]
+  },
+  "hebi_charts.GridWindow.addScene3d": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "ordered",
+        "name": "row",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "col",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "rowSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "colSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridBounds",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMaxX",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMaxY",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMaxZ",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMinX",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMinY",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridMinZ",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "gridStep",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Scene3d"]
+      }]
+  },
+  "hebi_charts.GridWindow.addScope": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "ordered",
+        "name": "row",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "col",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "rowSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "colSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xAssumeSorted",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "xlim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xmin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "xunit",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "yauto",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylabel",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "ylim",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymax",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "ymin",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "yunit",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.LineChart"]
+      }]
+  },
+  "hebi_charts.GridWindow.addStreamView": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "required",
+        "name": "file",
+        "type": ["char"]
+      }, {
+        "kind": "ordered",
+        "name": "row",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "col",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "rowSpan",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "colSpan",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.StreamView"]
+      }]
+  },
+  "hebi_charts.GridWindow.addStylesheet": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "required",
+        "name": "pathOrUrl",
+        "type": ["char"]
+      }, {
+        "kind": "ordered",
+        "name": "autoReload",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.GridWindow.createImageStream": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "namevalue",
+        "name": "pixelFormat",
+        "type": ["hebi_charts.PixelFormat", "choices={'Unknown', 'BGRA_PRE', 'BGRA', 'ARGB', 'RGBA', 'RGB', 'BGR', 'GRAY'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "rateLimit",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "recorderThreads",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.ImageStream"]
+      }]
+  },
+  "hebi_charts.GridWindow.dispatchMouseEvent": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "required",
+        "name": "action",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "button",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "downMask",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "modifiers",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.GridWindow.dispatchScrollEvent": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "delta_x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "delta_y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "modifiers",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.GridWindow.getControlPanel": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }, {
+        "kind": "namevalue",
+        "name": "title",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "width",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.ControlPanel"]
+      }]
+  },
+  "hebi_charts.GridWindow.hide": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }]
+  },
+  "hebi_charts.GridWindow.isShowing": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.GridWindow.show": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }]
+  },
+  "hebi_charts.GridWindow.showOffScreen": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }]
+  },
+  "hebi_charts.GridWindow.waitUntilClosed": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.GridWindow"
+      }]
+  },
+  "hebi_charts.HdrHistogramRecorder": {
+    "inputs": [{
+        "kind": "namevalue",
+        "name": "frequency",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "max",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "min",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "significantDigits",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HdrHistogramRecorder"]
+      }]
+  },
+  "hebi_charts.HdrHistogramRecorder.addTrace": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramRecorder"
+      }, {
+        "kind": "required",
+        "name": "tag",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HdrHistogramTrace"]
+      }]
+  },
+  "hebi_charts.HdrHistogramRecorder.startRecording": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramRecorder"
+      }, {
+        "kind": "required",
+        "name": "logFile",
+        "type": ["char"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.HdrHistogramRecorder.stopRecording": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramRecorder"
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.createLocal": {
+    "inputs": [{
+        "kind": "ordered",
+        "name": "numberOfSignificantDigits",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "minSeconds",
+        "type": ["numeric"]
+      }, {
+        "kind": "ordered",
+        "name": "maxSeconds",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HdrHistogramTrace"]
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.getValueAtPercentile": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "percentile",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.recordValue": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.recordValueWithCount": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "count",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.recordValueWithExpectedInterval": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "expectedIntervalBetweenSamples",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.reset": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.saveAsHrgm": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "fileName",
+        "type": ["char"]
+      }, {
+        "kind": "ordered",
+        "name": "outputUnitsPerSecond",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.tic": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.ticToc": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.toHrgmString": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }, {
+        "kind": "ordered",
+        "name": "outputUnitsPerSecond",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.HdrHistogramTrace.toc": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HdrHistogramTrace"
+      }]
+  },
+  "hebi_charts.HistogramChart.addTrace": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HistogramChart"
+      }, {
+        "kind": "required",
+        "name": "name",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "color",
+        "type": ["hebi_charts.Color", "choices={'Default', 'Black', 'White', 'Gray', 'Red', 'Green', 'Blue', 'Yellow', 'Magenta'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "lineStyle",
+        "type": ["hebi_charts.LineStyle", "choices={'Default', 'Solid', 'Dashed', 'Points'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "lineWidth",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "markerSize",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "markerType",
+        "type": ["hebi_charts.MarkerType", "choices={'Default', 'Rectangle', 'Rectangle1', 'Rectangle2', 'Circle', 'Circle1', 'Circle2', 'Plus', 'Cross', 'Diamond', 'Diamond1', 'Diamond2'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "showInLegend",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.HistogramTrace"]
+      }]
+  },
+  "hebi_charts.HistogramTrace.record": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.HistogramTrace.recordCompensated": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "expectedIntervalBetweenValueSamples",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.HistogramTrace.recordWithCount": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HistogramTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "count",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.HistogramTrace.reset": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.HistogramTrace"
+      }]
+  },
+  "hebi_charts.ImageStream.saveToFile": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ImageStream"
+      }, {
+        "kind": "required",
+        "name": "fileName",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.ImageStream.setResolution": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ImageStream"
+      }, {
+        "kind": "required",
+        "name": "width",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "height",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.ImageStream.startRecording": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ImageStream"
+      }, {
+        "kind": "required",
+        "name": "baseName",
+        "type": ["char"]
+      }, {
+        "kind": "ordered",
+        "name": "overwrite",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.ImageStream.stopRecording": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ImageStream"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.RecordingResult"]
+      }]
+  },
+  "hebi_charts.ImageStream.tryGetNext": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ImageStream"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.ImageStream.waitForNext": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.ImageStream"
+      }, {
+        "kind": "required",
+        "name": "maxTimeoutMillis",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.Line.addPoint": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Line.addPoints": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "length",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Line.clear": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line"
+      }]
+  },
+  "hebi_charts.Line.setData": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "length",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Line3d.addPoint": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Line3d.addPoints": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "length",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Line3d.clear": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line3d"
+      }]
+  },
+  "hebi_charts.Line3d.setData": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "length",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Line3d.setMaxPointCount": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Line3d"
+      }, {
+        "kind": "required",
+        "name": "count",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.LineChart.addLine": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LineChart"
+      }, {
+        "kind": "required",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "maxPointCount",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "color",
+        "type": ["hebi_charts.Color", "choices={'Default', 'Black', 'White', 'Gray', 'Red', 'Green', 'Blue', 'Yellow', 'Magenta'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "lineStyle",
+        "type": ["hebi_charts.LineStyle", "choices={'Default', 'Solid', 'Dashed', 'Points'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "lineWidth",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "markerSize",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "markerType",
+        "type": ["hebi_charts.MarkerType", "choices={'Default', 'Rectangle', 'Rectangle1', 'Rectangle2', 'Circle', 'Circle1', 'Circle2', 'Plus', 'Cross', 'Diamond', 'Diamond1', 'Diamond2'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "showInLegend",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Line"]
+      }]
+  },
+  "hebi_charts.LoopTimer": {
+    "inputs": [{
+        "kind": "namevalue",
+        "name": "frequency",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "period",
+        "type": ["numeric"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.LoopTimer"]
+      }]
+  },
+  "hebi_charts.LoopTimer.getNanosToNextTick": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LoopTimer"
+      }]
+  },
+  "hebi_charts.LoopTimer.getSecondsToNextTick": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LoopTimer"
+      }]
+  },
+  "hebi_charts.LoopTimer.parkNanos": {
+    "inputs": [{
+        "kind": "required",
+        "name": "nanos",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.LoopTimer.restart": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LoopTimer"
+      }]
+  },
+  "hebi_charts.LoopTimer.sleepNanos": {
+    "inputs": [{
+        "kind": "required",
+        "name": "nanos",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.LoopTimer.spinNanos": {
+    "inputs": [{
+        "kind": "required",
+        "name": "nanos",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.LoopTimer.tic": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LoopTimer"
+      }]
+  },
+  "hebi_charts.LoopTimer.ticToc": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LoopTimer"
+      }]
+  },
+  "hebi_charts.LoopTimer.timeNanos": {
+    "inputs": []
+  },
+  "hebi_charts.LoopTimer.timeSeconds": {
+    "inputs": []
+  },
+  "hebi_charts.LoopTimer.toc": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LoopTimer"
+      }]
+  },
+  "hebi_charts.LoopTimer.waitForNextTick": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LoopTimer"
+      }]
+  },
+  "hebi_charts.LoopTimer.waitNanos": {
+    "inputs": [{
+        "kind": "required",
+        "name": "nanos",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Object3d.setOrientation": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Object3d"
+      }, {
+        "kind": "required",
+        "name": "qx",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qy",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qz",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qw",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Object3d.setOrientationRPY": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Object3d"
+      }, {
+        "kind": "required",
+        "name": "roll",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "pitch",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "yaw",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Object3d.setPose": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Object3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qx",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qy",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qz",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "qw",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Object3d.setTransform4x4": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Object3d"
+      }, {
+        "kind": "required",
+        "name": "matrix",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "ordering",
+        "type": ["hebi_charts.MatrixOrdering", "choices={'RowMajor', 'ColumnMajor'}"]
+      }]
+  },
+  "hebi_charts.Object3d.setTranslation": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Object3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Points3d.addPoint": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Points3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Points3d.addPoints": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Points3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "length",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Points3d.clear": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Points3d"
+      }]
+  },
+  "hebi_charts.Points3d.setData": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Points3d"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "length",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Points3d.setMaxPointCount": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Points3d"
+      }, {
+        "kind": "required",
+        "name": "count",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.RecordingResult.getFfmpegCommand": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.RecordingResult"
+      }, {
+        "kind": "required",
+        "name": "outputFormat",
+        "type": ["hebi_charts.VideoOutputFormat", "choices={'H264', 'H265', 'ProRes', 'WebM', 'Gif'}"]
+      }, {
+        "kind": "ordered",
+        "name": "deleteDirectory",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.RecordingResult.runFfmpeg": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.RecordingResult"
+      }, {
+        "kind": "required",
+        "name": "outputFormat",
+        "type": ["hebi_charts.VideoOutputFormat", "choices={'H264', 'H265', 'ProRes', 'WebM', 'Gif'}"]
+      }, {
+        "kind": "ordered",
+        "name": "deleteDirectory",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.Robot.setPositions": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Robot"
+      }, {
+        "kind": "required",
+        "name": "positions",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "length",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Runtime.closeAll": {
+    "inputs": []
+  },
+  "hebi_charts.Runtime.collect": {
+    "inputs": []
+  },
+  "hebi_charts.Runtime.getLastErrorString": {
+    "inputs": [],
+    "outputs": [{
+        "name": "obj",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.Runtime.printLastErrorDetails": {
+    "inputs": []
+  },
+  "hebi_charts.Runtime.printThreadInfo": {
+    "inputs": [{
+        "kind": "required",
+        "name": "name",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.Runtime.runOnUiThread": {
+    "inputs": [{
+        "kind": "required",
+        "name": "func",
+        "type": ["any"]
+      }, {
+        "kind": "required",
+        "name": "userData",
+        "type": ["any"]
+      }]
+  },
+  "hebi_charts.Runtime.setAutoCloseWindows": {
+    "inputs": [{
+        "kind": "required",
+        "name": "autoClose",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.Runtime.setOption": {
+    "inputs": [{
+        "kind": "required",
+        "name": "option",
+        "type": ["hebi_charts.RuntimeOption", "choices={'DpiScale', 'GraphicsPipeline', 'TextAntialiasing', 'VSync', 'VerboseGraphics', 'VerbosePulse', 'VerboseFonts', 'VerboseWindowing'}"]
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["char"]
+      }]
+  },
+  "hebi_charts.Runtime.setTheme": {
+    "inputs": [{
+        "kind": "required",
+        "name": "theme",
+        "type": ["hebi_charts.Theme", "choices={'PrimerLight', 'PrimerDark', 'NordLight', 'NordDark', 'CupertinoLight', 'CupertinoDark', 'Dracula'}"]
+      }]
+  },
+  "hebi_charts.Runtime.waitUntilWindowsClosed": {
+    "inputs": []
+  },
+  "hebi_charts.Scene3d.addFrame": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Scene3d"
+      }, {
+        "kind": "ordered",
+        "name": "lengthInMeters",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Frame"]
+      }]
+  },
+  "hebi_charts.Scene3d.addLine": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Scene3d"
+      }, {
+        "kind": "namevalue",
+        "name": "color",
+        "type": ["hebi_charts.Color", "choices={'Default', 'Black', 'White', 'Gray', 'Red', 'Green', 'Blue', 'Yellow', 'Magenta'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Line3d"]
+      }]
+  },
+  "hebi_charts.Scene3d.addMesh": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Scene3d"
+      }, {
+        "kind": "required",
+        "name": "pathOrUrl",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "centered",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "scale",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "style",
+        "type": ["hebi_charts.DisplayStyle", "choices={'Original', 'Translucent', 'Ghosted'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Mesh"]
+      }]
+  },
+  "hebi_charts.Scene3d.addPoints": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Scene3d"
+      }, {
+        "kind": "namevalue",
+        "name": "markerShape",
+        "type": ["hebi_charts.MarkerShape", "choices={'Default', 'Tetrahedron', 'Cube', 'Octahedron', 'Icosahedron', 'Sphere'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "markerSize",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "selfIllumination",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "vertexSharing",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "color",
+        "type": ["hebi_charts.Color", "choices={'Default', 'Black', 'White', 'Gray', 'Red', 'Green', 'Blue', 'Yellow', 'Magenta'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Points3d"]
+      }]
+  },
+  "hebi_charts.Scene3d.addRobot": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Scene3d"
+      }, {
+        "kind": "required",
+        "name": "pathOrUrl",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "displayStyle",
+        "type": ["hebi_charts.DisplayStyle", "choices={'Original', 'Translucent', 'Ghosted'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Robot"]
+      }]
+  },
+  "hebi_charts.Scene3d.getCamera": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Scene3d"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Camera"]
+      }]
+  },
+  "hebi_charts.Slider.wasChanged": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Slider"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.Toggle.wasChanged": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Toggle"
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["logical"]
+      }]
+  },
+  "hebi_charts.XYChart.addXCursor": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.XYChart"
+      }, {
+        "kind": "namevalue",
+        "name": "editable",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Cursor"]
+      }]
+  },
+  "hebi_charts.XYChart.addYCursor": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.XYChart"
+      }, {
+        "kind": "namevalue",
+        "name": "editable",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.Cursor"]
+      }]
+  }
+}
