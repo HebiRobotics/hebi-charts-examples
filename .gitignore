@@ -1,0 +1,27 @@
+# Python / IDE / Runtime
+.idea/
+logs/
+__pycache__/
+*.pyc
+cmake-build-release/
+cmake-build-debug/
+build/
+
+# MATLAB
+*.asv
+*.mexw64
+*.mexa64
+*.mexmaci64
+*.mexmaca64
+*.mexext
+
+# Binaries
+*.lib
+*.dll
+*.so
+*.dylib
+*.zip
+
+# Output files
+*.hlog
+*.hgrm
