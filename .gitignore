@@ -1,10 +1,11 @@
-# JetBrains
+# Python / IDE / Runtime
 .idea/
 logs/
-
-# Python / IDE / Run-time
 __pycache__/
 *.pyc
+cmake-build-release/
+cmake-build-debug/
+build/
 
 # MATLAB
 *.asv
@@ -19,3 +20,8 @@ __pycache__/
 *.dll
 *.so
 *.dylib
+*.zip
+
+# Output files
+*.hlog
+*.hrgm
