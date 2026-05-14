@@ -70,6 +70,25 @@ HEBI Charts features zero-configuration installation. Using the headers or runni
 
 Currently, the target system must support local rendering and hardware GPU acceleration. Software mode and headless rendering support may be added in the future.
 
+.Supported Target Platforms
+[cols="1,^1,^1", options="header"]
+
+|====
+| OS | amd64 / x86_64 | arm64 / aarch64
+
+| Windows
+| ✔️
+| ❌
+
+| macOS
+| ✔️
+| ✔️
+
+| Linux
+| ✔️
+| ❌
+|====
+
 == Getting Started
 
 The main entry point is the `GridWindow`, a layout container of equally sized rows and columns. All other display elements are created in a top-down manner. A window can contain various charts, and each chart can have various lines or other elements. All bindings are fully type-hinted and documented to simplify exploration.
