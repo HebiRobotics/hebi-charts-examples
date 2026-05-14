@@ -1305,7 +1305,7 @@ public:
   /**
    * @details 
    * Saves the percentile distribution as an .hgrm file in the desired output units. This
-   * can be loaded into standard hrgm plotting tools. Returns the absolute path to the output.
+   * can be loaded into standard hgrm plotting tools. Returns the absolute path to the output.
    *
    * @param fileName 
    * @param outputUnitsPerSecond output scale (ms=1e3, us=1e6, ns=1e9
@@ -5218,7 +5218,7 @@ struct Version {
 };
 
 inline Version getHeaderVersion() {
-  return {0, 9, 2, 115};
+  return {0, 9, 2, 118};
 }
 
 inline Version getLibraryVersion() {

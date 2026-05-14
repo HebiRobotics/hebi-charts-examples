@@ -140,7 +140,7 @@ classdef (Sealed) HdrHistogramTrace < handle & matlab.mixin.SetGet
 
         function result = saveAsHgrm(this, fileName, outputUnitsPerSecond)
             % Saves the percentile distribution as an .hgrm file in the desired output units. This
-            %   can be loaded into standard hrgm plotting tools. Returns the absolute path to the output.
+            %   can be loaded into standard hgrm plotting tools. Returns the absolute path to the output.
             %
             %   Inputs:
             %       fileName

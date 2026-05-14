@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 set(HEBI_CHARTS_VERSION "0.9.2")
-set(HEBI_CHARTS_BUILD_NUMBER "115")
+set(HEBI_CHARTS_BUILD_NUMBER "118")
 
 # ======== Determine target platform ========
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

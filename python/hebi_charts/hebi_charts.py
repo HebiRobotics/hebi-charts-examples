@@ -9,7 +9,7 @@ from typing import Sequence, Tuple, Any
 def load_library():
     lib_name = 'hebi_charts'
     version = '0.9.2'
-    build_number = '115'
+    build_number = '118'
 
     architecture = platform.architecture()[0]  # gets '64bit' or '32bit'
     os_name = platform.system()  # gets 'Windows', 'Linux', 'Darwin'
@@ -2754,7 +2754,7 @@ class HdrHistogramTrace:
 
     def save_as_hgrm(self, file_name: str, output_units_per_second: float = 1e6) -> str:
         """Saves the percentile distribution as an .hgrm file in the desired output units. This
-        can be loaded into standard hrgm plotting tools. Returns the absolute path to the output.
+        can be loaded into standard hgrm plotting tools. Returns the absolute path to the output.
         
         Args:
             file_name: 
