@@ -1,6 +1,6 @@
 = HEBI Charts
 
-HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a focus on the robotics domain. It features a stable C ABI supporting Linux, macOS, and Windows, with idiomatic bindings for Python, MATLAB, and C++.
+HEBI Charts is a 2D and 3D visualization library designed for low-overhead rendering of high-speed telemetry with a primary focus on the robotics domain. It exposes a stable C ABI supporting Linux, macOS, and Windows, alongside idiomatic bindings for Python, MATLAB, and C++.
 
 image::docs/images/main_snapshot.png[align="center"]
 
@@ -34,7 +34,7 @@ graph TD
     style CPP_W fill:#e1f5fe,stroke:#01579b
 ----
 
-While HEBI Charts integrates seamlessly with other https://www.hebirobotics.com/[HEBI Robotics] https://docs.hebi.us/tools.html[APIs], it is a fully standalone, zero-dependency library. It accepts raw numerical inputs, making it entirely hardware-agnostic and ready to use with any custom actuator, sensor, or data source.
+While HEBI Charts integrates seamlessly with other https://www.hebirobotics.com/[HEBI Robotics] https://docs.hebi.us/tools.html[APIs] (FK, IK, Dynamics, Trajectories, etc.), it is a fully standalone, zero-dependency library. It accepts raw numerical inputs, making it entirely hardware-agnostic and ready to use with any custom actuator, sensor, or data source.
 
 **Performance through Isolation**
 

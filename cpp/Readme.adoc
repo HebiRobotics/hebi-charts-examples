@@ -4,7 +4,9 @@ This directory contains the HEBI Charts examples for link:https://www.w3schools.
 
 == Installation
 
-HEBI Charts features zero-configuration installation implemented inside link:hebi_charts/hebi_charts.cmake[hebi_charts.cmake]. Configuring a target with the provided CMake macro automatically fetches the correct platform-specific binaries and stores them in a shared local system cache.
+HEBI Charts provides a zero-configuration setup via link:hebi_charts/hebi_charts.cmake[hebi_charts.cmake]. Including this CMake file automatically downloads the required platform-specific binaries and stores them in a shared local system cache.
+
+The included `target_add_hebi_charts` macro adds include paths and automatically copies the necessary dynamic library into the build output directory for correct runtime resolution.
 
 [source,cmake]
 ----
@@ -15,8 +17,6 @@ include(hebi_charts/hebi_charts.cmake)
 add_executable(main src/main.cpp)
 target_add_hebi_charts(main)
 ----
-
-The `target_add_hebi_charts` macro configures compiler include paths and automatically copies the required dynamic library components into your target's build output directory, ensuring they are resolved properly at runtime.
 
 
 

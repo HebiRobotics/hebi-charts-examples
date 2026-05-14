@@ -4,11 +4,11 @@ This directory contains the HEBI Charts examples for link:https://mathworks.com/
 
 == Installation
 
-HEBI Charts features zero-configuration installation implemented inside link:./hebi_charts/+hebi_charts/private/locate_binary.m[locate_binary.m]. Running any of the examples automatically fetches the correct platform-specific binaries and stores them in a shared system cache. A dedicated native toolbox distribution is currently in development.
+HEBI Charts provides a zero-configuration setup via link:./hebi_charts/+hebi_charts/private/locate_binary.m[locate_binary.m], which automatically fetches platform-specific binaries and manages them in a shared local system cache upon running examples. A dedicated native toolbox distribution is currently in development.
 
-* Simply run link:./startup.m[startup.m] or manually add `hebi_charts` to the path
+* Simply run link:./startup.m[startup.m] or add the `hebi_charts` directory to your MATLAB path.
 
-The library uses a zero-dependency dynamically compiled MEX gateway. Pre-compiled MEX files for link:./hebi_charts/+hebi_charts/private/hebi_charts_native.cpp[hebi_charts_native.cpp] are provided for all platforms and should be compatible with `MATLAB 2018b` or later versions.
+The library utilizes a self-contained MEX gateway. Pre-compiled MEX binaries for link:./hebi_charts/+hebi_charts/private/hebi_charts_native.cpp[hebi_charts_native.cpp] are included for all major platforms and require MATLAB 2018b or later.
 
 
 
