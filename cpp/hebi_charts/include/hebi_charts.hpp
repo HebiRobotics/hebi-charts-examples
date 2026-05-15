@@ -153,10 +153,10 @@ class RecordingResult;
 class Scene3d;
 class StreamView;
 class XYChart;
-class HistogramChart;
+class LatencyChart;
 class LineChart;
 class XYSeries;
-class HistogramTrace;
+class LatencyTrace;
 class Line;
 using UserCallbackFunction = void (*)(void* userData);
 
@@ -187,10 +187,10 @@ using RecordingResultPtr = struct RecordingResult_*;
 using Scene3dPtr = struct Scene3d_*;
 using StreamViewPtr = struct StreamView_*;
 using XYChartPtr = struct XYChart_*;
-using HistogramChartPtr = struct HistogramChart_*;
+using LatencyChartPtr = struct LatencyChart_*;
 using LineChartPtr = struct LineChart_*;
 using XYSeriesPtr = struct XYSeries_*;
-using HistogramTracePtr = struct HistogramTrace_*;
+using LatencyTracePtr = struct LatencyTrace_*;
 using LinePtr = struct Line_*;
 }
 
@@ -776,22 +776,13 @@ public:
   LineChart addScope(const std::string& fxId);
 
   /**
-   * @brief Creates a percentile histogram with the given size
+   * @brief Creates a latency chart for displaying latency measurements [s]
    *
    * @param fxId 
    * @throw on internal errors
    */
-  HistogramChart addPercentileHistogram(const char* fxId);
-  HistogramChart addPercentileHistogram(const std::string& fxId);
-
-  /**
-   * @brief Utility for creating a percentile histogram for measuring latency in [s]
-   *
-   * @param fxId 
-   * @throw on internal errors
-   */
-  HistogramChart addLatencyChart(const char* fxId);
-  HistogramChart addLatencyChart(const std::string& fxId);
+  LatencyChart addLatencyChart(const char* fxId);
+  LatencyChart addLatencyChart(const std::string& fxId);
 
   /**
    * @brief Creates a 3d chart with the given size
@@ -969,7 +960,7 @@ public:
   LineChart addScope(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
 
   /**
-   * @brief Creates a percentile histogram with the given size
+   * @brief Creates a latency chart for recording latency measurements in [s]
    *
    * @param row 
    * @param col 
@@ -977,18 +968,7 @@ public:
    * @param colSpan 
    * @throw on internal errors
    */
-  HistogramChart addPercentileHistogram(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
-
-  /**
-   * @brief Utility for creating a percentile histogram for measuring latency in [s]
-   *
-   * @param row 
-   * @param col 
-   * @param rowSpan 
-   * @param colSpan 
-   * @throw on internal errors
-   */
-  HistogramChart addLatencyChart(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
+  LatencyChart addLatencyChart(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
 
   /**
    * @brief Creates a 3d chart with the given size
@@ -1250,7 +1230,7 @@ public:
   double toc() noexcept;
 
   /**
-   * @brief Calls tic and toc in one call.  Returns the recorded value in [s]
+   * @brief Calls tic and toc in one call. Returns the recorded value in [s]
    */
   double ticToc() noexcept;
 
@@ -2605,9 +2585,9 @@ private:
 
 
 /**
- * @brief Shows HdrHistogram percentile data for latency measurements
+ * @brief Shows latency measurements in HdrHistogram percentile format
  */
-class HistogramChart : public XYChart {
+class LatencyChart : public XYChart {
   friend class FxmlView;
   friend class GridWindow;
 public:
@@ -2618,14 +2598,14 @@ public:
    * @param name 
    * @throw on internal errors
    */
-  HistogramTrace addTrace(const char* name);
-  HistogramTrace addTrace(const std::string& name);
-  HistogramChart(HistogramChart&& from) noexcept;
-  HistogramChart& operator=(HistogramChart&& from) noexcept;
+  LatencyTrace addTrace(const char* name);
+  LatencyTrace addTrace(const std::string& name);
+  LatencyChart(LatencyChart&& from) noexcept;
+  LatencyChart& operator=(LatencyChart&& from) noexcept;
 private:
-  explicit HistogramChart(internal::HistogramChartPtr cPointer) noexcept;
-  static internal::XYChartPtr getXYChartPointer(internal::HistogramChartPtr cPointer) noexcept;
-  internal::HistogramChartPtr ptr_{};
+  explicit LatencyChart(internal::LatencyChartPtr cPointer) noexcept;
+  static internal::XYChartPtr getXYChartPointer(internal::LatencyChartPtr cPointer) noexcept;
+  internal::LatencyChartPtr ptr_{};
 };
 
 
@@ -2770,9 +2750,24 @@ private:
 /**
  * @brief Represents a latency measurement that records latency values in the form of an HdrHistogram
  */
-class HistogramTrace : public XYSeries {
-  friend class HistogramChart;
+class LatencyTrace : public XYSeries {
+  friend class LatencyChart;
 public:
+
+  /**
+   * @brief Sets a timestamp for subsequent toc calls
+   */
+  void tic() noexcept;
+
+  /**
+   * @brief Records the elapsed time since the last tic call. Returns the recorded value in [s]
+   */
+  double toc() noexcept;
+
+  /**
+   * @brief Calls tic and toc in one call. Returns the recorded value in [s]
+   */
+  double ticToc() noexcept;
 
   /**
    * @brief Record a latency value in the histogram
@@ -2805,12 +2800,12 @@ public:
    */
   void recordCompensated(double value, double expectedIntervalBetweenValueSamples) noexcept;
   void reset() noexcept;
-  HistogramTrace(HistogramTrace&& from) noexcept;
-  HistogramTrace& operator=(HistogramTrace&& from) noexcept;
+  LatencyTrace(LatencyTrace&& from) noexcept;
+  LatencyTrace& operator=(LatencyTrace&& from) noexcept;
 private:
-  explicit HistogramTrace(internal::HistogramTracePtr cPointer) noexcept;
-  static internal::XYSeriesPtr getXYSeriesPointer(internal::HistogramTracePtr cPointer) noexcept;
-  internal::HistogramTracePtr ptr_{};
+  explicit LatencyTrace(internal::LatencyTracePtr cPointer) noexcept;
+  static internal::XYSeriesPtr getXYSeriesPointer(internal::LatencyTracePtr cPointer) noexcept;
+  internal::LatencyTracePtr ptr_{};
 };
 
 
@@ -3044,8 +3039,7 @@ extern "C" {
   int hebi_charts_FxmlView_setSource(internal::FxmlViewPtr, const char*);
   internal::LineChartPtr hebi_charts_FxmlView_addLineChart(internal::FxmlViewPtr, const char*);
   internal::LineChartPtr hebi_charts_FxmlView_addScope(internal::FxmlViewPtr, const char*);
-  internal::HistogramChartPtr hebi_charts_FxmlView_addPercentileHistogram(internal::FxmlViewPtr, const char*);
-  internal::HistogramChartPtr hebi_charts_FxmlView_addLatencyChart(internal::FxmlViewPtr, const char*);
+  internal::LatencyChartPtr hebi_charts_FxmlView_addLatencyChart(internal::FxmlViewPtr, const char*);
   internal::Scene3dPtr hebi_charts_FxmlView_addScene3d(internal::FxmlViewPtr, const char*);
   internal::StreamViewPtr hebi_charts_FxmlView_addStreamView(internal::FxmlViewPtr, const char*, const char*);
   internal::FxmlViewPtr hebi_charts_FxmlView_addFxmlView(internal::FxmlViewPtr, const char*);
@@ -3069,8 +3063,7 @@ extern "C" {
   void hebi_charts_GridWindow_setY(internal::GridWindowPtr, int);
   internal::LineChartPtr hebi_charts_GridWindow_addLineChart(internal::GridWindowPtr, int, int, int, int);
   internal::LineChartPtr hebi_charts_GridWindow_addScope(internal::GridWindowPtr, int, int, int, int);
-  internal::HistogramChartPtr hebi_charts_GridWindow_addPercentileHistogram(internal::GridWindowPtr, int, int, int, int);
-  internal::HistogramChartPtr hebi_charts_GridWindow_addLatencyChart(internal::GridWindowPtr, int, int, int, int);
+  internal::LatencyChartPtr hebi_charts_GridWindow_addLatencyChart(internal::GridWindowPtr, int, int, int, int);
   internal::Scene3dPtr hebi_charts_GridWindow_addScene3d(internal::GridWindowPtr, int, int, int, int);
   internal::StreamViewPtr hebi_charts_GridWindow_addStreamView(internal::GridWindowPtr, const char*, int, int, int, int);
   internal::FxmlViewPtr hebi_charts_GridWindow_addFxmlView(internal::GridWindowPtr, int, int, int, int);
@@ -3268,8 +3261,8 @@ extern "C" {
   internal::CursorPtr hebi_charts_XYChart_addXCursor(internal::XYChartPtr);
   internal::CursorPtr hebi_charts_XYChart_addYCursor(internal::XYChartPtr);
   void hebi_charts_XYChart_release(internal::XYChartPtr);
-  internal::HistogramTracePtr hebi_charts_HistogramChart_addTrace(internal::HistogramChartPtr, const char*);
-  internal::XYChartPtr hebi_charts_HistogramChart_to_XYChart(internal::HistogramChartPtr);
+  internal::LatencyTracePtr hebi_charts_LatencyChart_addTrace(internal::LatencyChartPtr, const char*);
+  internal::XYChartPtr hebi_charts_LatencyChart_to_XYChart(internal::LatencyChartPtr);
   internal::LinePtr hebi_charts_LineChart_addLine(internal::LineChartPtr, const char*);
   internal::XYChartPtr hebi_charts_LineChart_to_XYChart(internal::LineChartPtr);
   Color hebi_charts_XYSeries_getColor(internal::XYSeriesPtr);
@@ -3289,11 +3282,14 @@ extern "C" {
   int hebi_charts_XYSeries_isVisible(internal::XYSeriesPtr);
   void hebi_charts_XYSeries_setVisible(internal::XYSeriesPtr, int);
   void hebi_charts_XYSeries_release(internal::XYSeriesPtr);
-  void hebi_charts_HistogramTrace_record(internal::HistogramTracePtr, double);
-  void hebi_charts_HistogramTrace_recordWithCount(internal::HistogramTracePtr, double, size_t);
-  void hebi_charts_HistogramTrace_recordCompensated(internal::HistogramTracePtr, double, double);
-  void hebi_charts_HistogramTrace_reset(internal::HistogramTracePtr);
-  internal::XYSeriesPtr hebi_charts_HistogramTrace_to_XYSeries(internal::HistogramTracePtr);
+  void hebi_charts_LatencyTrace_tic(internal::LatencyTracePtr);
+  double hebi_charts_LatencyTrace_toc(internal::LatencyTracePtr);
+  double hebi_charts_LatencyTrace_ticToc(internal::LatencyTracePtr);
+  void hebi_charts_LatencyTrace_record(internal::LatencyTracePtr, double);
+  void hebi_charts_LatencyTrace_recordWithCount(internal::LatencyTracePtr, double, size_t);
+  void hebi_charts_LatencyTrace_recordCompensated(internal::LatencyTracePtr, double, double);
+  void hebi_charts_LatencyTrace_reset(internal::LatencyTracePtr);
+  internal::XYSeriesPtr hebi_charts_LatencyTrace_to_XYSeries(internal::LatencyTracePtr);
   size_t hebi_charts_Line_getMaxPointCount(internal::LinePtr);
   void hebi_charts_Line_setMaxPointCount(internal::LinePtr, size_t);
   void hebi_charts_Line_clear(internal::LinePtr);
@@ -3758,24 +3754,14 @@ inline LineChart FxmlView::addScope(const char* fxId) {
 inline LineChart FxmlView::addScope(const std::string& fxId) {
   return addScope(fxId.c_str());
 }
-inline HistogramChart FxmlView::addPercentileHistogram(const char* fxId) {
-  auto ptr = hebi_charts_FxmlView_addPercentileHistogram(ptr_, fxId);
-  if (!ptr) {
-    throw Exception("Could not create HistogramChart in FxmlView::addPercentileHistogram");
-  }
-  return HistogramChart(ptr);
-}
-inline HistogramChart FxmlView::addPercentileHistogram(const std::string& fxId) {
-  return addPercentileHistogram(fxId.c_str());
-}
-inline HistogramChart FxmlView::addLatencyChart(const char* fxId) {
+inline LatencyChart FxmlView::addLatencyChart(const char* fxId) {
   auto ptr = hebi_charts_FxmlView_addLatencyChart(ptr_, fxId);
   if (!ptr) {
-    throw Exception("Could not create HistogramChart in FxmlView::addLatencyChart");
+    throw Exception("Could not create LatencyChart in FxmlView::addLatencyChart");
   }
-  return HistogramChart(ptr);
+  return LatencyChart(ptr);
 }
-inline HistogramChart FxmlView::addLatencyChart(const std::string& fxId) {
+inline LatencyChart FxmlView::addLatencyChart(const std::string& fxId) {
   return addLatencyChart(fxId.c_str());
 }
 inline Scene3d FxmlView::addScene3d(const char* fxId) {
@@ -3899,19 +3885,12 @@ inline LineChart GridWindow::addScope(int row, int col, int rowSpan, int colSpan
   }
   return LineChart(ptr);
 }
-inline HistogramChart GridWindow::addPercentileHistogram(int row, int col, int rowSpan, int colSpan) {
-  auto ptr = hebi_charts_GridWindow_addPercentileHistogram(ptr_, row, col, rowSpan, colSpan);
-  if (!ptr) {
-    throw Exception("Could not create HistogramChart in GridWindow::addPercentileHistogram");
-  }
-  return HistogramChart(ptr);
-}
-inline HistogramChart GridWindow::addLatencyChart(int row, int col, int rowSpan, int colSpan) {
+inline LatencyChart GridWindow::addLatencyChart(int row, int col, int rowSpan, int colSpan) {
   auto ptr = hebi_charts_GridWindow_addLatencyChart(ptr_, row, col, rowSpan, colSpan);
   if (!ptr) {
-    throw Exception("Could not create HistogramChart in GridWindow::addLatencyChart");
+    throw Exception("Could not create LatencyChart in GridWindow::addLatencyChart");
   }
-  return HistogramChart(ptr);
+  return LatencyChart(ptr);
 }
 inline Scene3d GridWindow::addScene3d(int row, int col, int rowSpan, int colSpan) {
   auto ptr = hebi_charts_GridWindow_addScene3d(ptr_, row, col, rowSpan, colSpan);
@@ -4926,25 +4905,25 @@ inline XYChart::~XYChart() noexcept {
   cleanup();
 }
 
-// HistogramChart
-inline HistogramTrace HistogramChart::addTrace(const char* name) {
-  auto ptr = hebi_charts_HistogramChart_addTrace(ptr_, name);
+// LatencyChart
+inline LatencyTrace LatencyChart::addTrace(const char* name) {
+  auto ptr = hebi_charts_LatencyChart_addTrace(ptr_, name);
   if (!ptr) {
-    throw Exception("Could not create HistogramTrace in HistogramChart::addTrace");
+    throw Exception("Could not create LatencyTrace in LatencyChart::addTrace");
   }
-  return HistogramTrace(ptr);
+  return LatencyTrace(ptr);
 }
-inline HistogramTrace HistogramChart::addTrace(const std::string& name) {
+inline LatencyTrace LatencyChart::addTrace(const std::string& name) {
   return addTrace(name.c_str());
 }
-inline internal::XYChartPtr HistogramChart::getXYChartPointer(internal::HistogramChartPtr cPointer) noexcept {
-  return hebi_charts_HistogramChart_to_XYChart(cPointer);
+inline internal::XYChartPtr LatencyChart::getXYChartPointer(internal::LatencyChartPtr cPointer) noexcept {
+  return hebi_charts_LatencyChart_to_XYChart(cPointer);
 }
-inline HistogramChart::HistogramChart(internal::HistogramChartPtr cPointer) noexcept : XYChart(getXYChartPointer(cPointer)), ptr_(cPointer) {}
-inline HistogramChart::HistogramChart(HistogramChart&& from) noexcept : XYChart(std::move(from)), ptr_(from.ptr_) {
+inline LatencyChart::LatencyChart(internal::LatencyChartPtr cPointer) noexcept : XYChart(getXYChartPointer(cPointer)), ptr_(cPointer) {}
+inline LatencyChart::LatencyChart(LatencyChart&& from) noexcept : XYChart(std::move(from)), ptr_(from.ptr_) {
   from.ptr_ = nullptr;
 };
-inline HistogramChart& HistogramChart::operator=(HistogramChart&& from) noexcept {
+inline LatencyChart& LatencyChart::operator=(LatencyChart&& from) noexcept {
   XYChart::operator=(std::move(from));
   ptr_ = from.ptr_;
   from.ptr_ = nullptr;
@@ -5047,27 +5026,36 @@ inline XYSeries::~XYSeries() noexcept {
   cleanup();
 }
 
-// HistogramTrace
-inline void HistogramTrace::record(double value) noexcept {
-  hebi_charts_HistogramTrace_record(ptr_, value);
+// LatencyTrace
+inline void LatencyTrace::tic() noexcept {
+  hebi_charts_LatencyTrace_tic(ptr_);
 }
-inline void HistogramTrace::recordWithCount(double value, size_t count) noexcept {
-  hebi_charts_HistogramTrace_recordWithCount(ptr_, value, count);
+inline double LatencyTrace::toc() noexcept {
+  return hebi_charts_LatencyTrace_toc(ptr_);
 }
-inline void HistogramTrace::recordCompensated(double value, double expectedIntervalBetweenValueSamples) noexcept {
-  hebi_charts_HistogramTrace_recordCompensated(ptr_, value, expectedIntervalBetweenValueSamples);
+inline double LatencyTrace::ticToc() noexcept {
+  return hebi_charts_LatencyTrace_ticToc(ptr_);
 }
-inline void HistogramTrace::reset() noexcept {
-  hebi_charts_HistogramTrace_reset(ptr_);
+inline void LatencyTrace::record(double value) noexcept {
+  hebi_charts_LatencyTrace_record(ptr_, value);
 }
-inline internal::XYSeriesPtr HistogramTrace::getXYSeriesPointer(internal::HistogramTracePtr cPointer) noexcept {
-  return hebi_charts_HistogramTrace_to_XYSeries(cPointer);
+inline void LatencyTrace::recordWithCount(double value, size_t count) noexcept {
+  hebi_charts_LatencyTrace_recordWithCount(ptr_, value, count);
 }
-inline HistogramTrace::HistogramTrace(internal::HistogramTracePtr cPointer) noexcept : XYSeries(getXYSeriesPointer(cPointer)), ptr_(cPointer) {}
-inline HistogramTrace::HistogramTrace(HistogramTrace&& from) noexcept : XYSeries(std::move(from)), ptr_(from.ptr_) {
+inline void LatencyTrace::recordCompensated(double value, double expectedIntervalBetweenValueSamples) noexcept {
+  hebi_charts_LatencyTrace_recordCompensated(ptr_, value, expectedIntervalBetweenValueSamples);
+}
+inline void LatencyTrace::reset() noexcept {
+  hebi_charts_LatencyTrace_reset(ptr_);
+}
+inline internal::XYSeriesPtr LatencyTrace::getXYSeriesPointer(internal::LatencyTracePtr cPointer) noexcept {
+  return hebi_charts_LatencyTrace_to_XYSeries(cPointer);
+}
+inline LatencyTrace::LatencyTrace(internal::LatencyTracePtr cPointer) noexcept : XYSeries(getXYSeriesPointer(cPointer)), ptr_(cPointer) {}
+inline LatencyTrace::LatencyTrace(LatencyTrace&& from) noexcept : XYSeries(std::move(from)), ptr_(from.ptr_) {
   from.ptr_ = nullptr;
 };
-inline HistogramTrace& HistogramTrace::operator=(HistogramTrace&& from) noexcept {
+inline LatencyTrace& LatencyTrace::operator=(LatencyTrace&& from) noexcept {
   XYSeries::operator=(std::move(from));
   ptr_ = from.ptr_;
   from.ptr_ = nullptr;
@@ -5184,7 +5172,7 @@ struct Version {
 };
 
 inline Version getHeaderVersion() {
-  return {0, 9, 2, 118};
+  return {0, 9, 3, 119};
 }
 
 inline Version getLibraryVersion() {

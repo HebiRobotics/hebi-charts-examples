@@ -5,8 +5,8 @@ persistent cachedInfo
 if isempty(cachedInfo)
 
     libName = 'hebi_charts';
-    version = '0.9.2';
-    buildNumber = '118';
+    version = '0.9.3';
+    buildNumber = '119';
 
     % Determine appropriate OS parameters
     switch computer('arch')

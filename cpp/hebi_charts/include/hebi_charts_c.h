@@ -37,10 +37,10 @@ typedef struct hebi_charts_RecordingResult_* hebi_charts_RecordingResultPtr;
 typedef struct hebi_charts_Scene3d_* hebi_charts_Scene3dPtr;
 typedef struct hebi_charts_StreamView_* hebi_charts_StreamViewPtr;
 typedef struct hebi_charts_XYChart_* hebi_charts_XYChartPtr;
-typedef struct hebi_charts_HistogramChart_* hebi_charts_HistogramChartPtr;
+typedef struct hebi_charts_LatencyChart_* hebi_charts_LatencyChartPtr;
 typedef struct hebi_charts_LineChart_* hebi_charts_LineChartPtr;
 typedef struct hebi_charts_XYSeries_* hebi_charts_XYSeriesPtr;
-typedef struct hebi_charts_HistogramTrace_* hebi_charts_HistogramTracePtr;
+typedef struct hebi_charts_LatencyTrace_* hebi_charts_LatencyTracePtr;
 typedef struct hebi_charts_Line_* hebi_charts_LinePtr;
 
 typedef enum hebi_charts_CameraView {
@@ -295,8 +295,7 @@ const char* hebi_charts_FxmlView_getSource(hebi_charts_FxmlViewPtr obj);
 int hebi_charts_FxmlView_setSource(hebi_charts_FxmlViewPtr obj, const char* pathOrUrl);
 hebi_charts_LineChartPtr hebi_charts_FxmlView_addLineChart(hebi_charts_FxmlViewPtr obj, const char* fxId);
 hebi_charts_LineChartPtr hebi_charts_FxmlView_addScope(hebi_charts_FxmlViewPtr obj, const char* fxId);
-hebi_charts_HistogramChartPtr hebi_charts_FxmlView_addPercentileHistogram(hebi_charts_FxmlViewPtr obj, const char* fxId);
-hebi_charts_HistogramChartPtr hebi_charts_FxmlView_addLatencyChart(hebi_charts_FxmlViewPtr obj, const char* fxId);
+hebi_charts_LatencyChartPtr hebi_charts_FxmlView_addLatencyChart(hebi_charts_FxmlViewPtr obj, const char* fxId);
 hebi_charts_Scene3dPtr hebi_charts_FxmlView_addScene3d(hebi_charts_FxmlViewPtr obj, const char* fxId);
 hebi_charts_StreamViewPtr hebi_charts_FxmlView_addStreamView(hebi_charts_FxmlViewPtr obj, const char* file, const char* fxId);
 hebi_charts_FxmlViewPtr hebi_charts_FxmlView_addFxmlView(hebi_charts_FxmlViewPtr obj, const char* fxId);
@@ -322,8 +321,7 @@ int hebi_charts_GridWindow_getY(hebi_charts_GridWindowPtr obj);
 void hebi_charts_GridWindow_setY(hebi_charts_GridWindowPtr obj, int y);
 hebi_charts_LineChartPtr hebi_charts_GridWindow_addLineChart(hebi_charts_GridWindowPtr obj, int row, int col, int rowSpan, int colSpan);
 hebi_charts_LineChartPtr hebi_charts_GridWindow_addScope(hebi_charts_GridWindowPtr obj, int row, int col, int rowSpan, int colSpan);
-hebi_charts_HistogramChartPtr hebi_charts_GridWindow_addPercentileHistogram(hebi_charts_GridWindowPtr obj, int row, int col, int rowSpan, int colSpan);
-hebi_charts_HistogramChartPtr hebi_charts_GridWindow_addLatencyChart(hebi_charts_GridWindowPtr obj, int row, int col, int rowSpan, int colSpan);
+hebi_charts_LatencyChartPtr hebi_charts_GridWindow_addLatencyChart(hebi_charts_GridWindowPtr obj, int row, int col, int rowSpan, int colSpan);
 hebi_charts_Scene3dPtr hebi_charts_GridWindow_addScene3d(hebi_charts_GridWindowPtr obj, int row, int col, int rowSpan, int colSpan);
 hebi_charts_StreamViewPtr hebi_charts_GridWindow_addStreamView(hebi_charts_GridWindowPtr obj, const char* file, int row, int col, int rowSpan, int colSpan);
 hebi_charts_FxmlViewPtr hebi_charts_GridWindow_addFxmlView(hebi_charts_GridWindowPtr obj, int row, int col, int rowSpan, int colSpan);
@@ -552,9 +550,9 @@ hebi_charts_CursorPtr hebi_charts_XYChart_addXCursor(hebi_charts_XYChartPtr obj)
 hebi_charts_CursorPtr hebi_charts_XYChart_addYCursor(hebi_charts_XYChartPtr obj);
 void hebi_charts_XYChart_release(hebi_charts_XYChartPtr obj);
 
-// ==== HistogramChart ====
-hebi_charts_HistogramTracePtr hebi_charts_HistogramChart_addTrace(hebi_charts_HistogramChartPtr obj, const char* name);
-hebi_charts_XYChartPtr hebi_charts_HistogramChart_to_XYChart(hebi_charts_HistogramChartPtr ptr);
+// ==== LatencyChart ====
+hebi_charts_LatencyTracePtr hebi_charts_LatencyChart_addTrace(hebi_charts_LatencyChartPtr obj, const char* name);
+hebi_charts_XYChartPtr hebi_charts_LatencyChart_to_XYChart(hebi_charts_LatencyChartPtr ptr);
 
 // ==== LineChart ====
 hebi_charts_LinePtr hebi_charts_LineChart_addLine(hebi_charts_LineChartPtr obj, const char* label);
@@ -579,12 +577,15 @@ int hebi_charts_XYSeries_isVisible(hebi_charts_XYSeriesPtr obj);
 void hebi_charts_XYSeries_setVisible(hebi_charts_XYSeriesPtr obj, int visible);
 void hebi_charts_XYSeries_release(hebi_charts_XYSeriesPtr obj);
 
-// ==== HistogramTrace ====
-void hebi_charts_HistogramTrace_record(hebi_charts_HistogramTracePtr obj, double value);
-void hebi_charts_HistogramTrace_recordWithCount(hebi_charts_HistogramTracePtr obj, double value, size_t count);
-void hebi_charts_HistogramTrace_recordCompensated(hebi_charts_HistogramTracePtr obj, double value, double expectedIntervalBetweenValueSamples);
-void hebi_charts_HistogramTrace_reset(hebi_charts_HistogramTracePtr obj);
-hebi_charts_XYSeriesPtr hebi_charts_HistogramTrace_to_XYSeries(hebi_charts_HistogramTracePtr ptr);
+// ==== LatencyTrace ====
+void hebi_charts_LatencyTrace_tic(hebi_charts_LatencyTracePtr obj);
+double hebi_charts_LatencyTrace_toc(hebi_charts_LatencyTracePtr obj);
+double hebi_charts_LatencyTrace_ticToc(hebi_charts_LatencyTracePtr obj);
+void hebi_charts_LatencyTrace_record(hebi_charts_LatencyTracePtr obj, double value);
+void hebi_charts_LatencyTrace_recordWithCount(hebi_charts_LatencyTracePtr obj, double value, size_t count);
+void hebi_charts_LatencyTrace_recordCompensated(hebi_charts_LatencyTracePtr obj, double value, double expectedIntervalBetweenValueSamples);
+void hebi_charts_LatencyTrace_reset(hebi_charts_LatencyTracePtr obj);
+hebi_charts_XYSeriesPtr hebi_charts_LatencyTrace_to_XYSeries(hebi_charts_LatencyTracePtr ptr);
 
 // ==== Line ====
 size_t hebi_charts_Line_getMaxPointCount(hebi_charts_LinePtr obj);
@@ -611,8 +612,8 @@ void hebi_charts_getLibraryVersion(int* major, int* minor, int* patch, int* buil
 void hebi_charts_getHeaderVersion(int* major, int* minor, int* patch, int* build) {
     *major = 0;
     *minor = 9;
-    *patch = 2;
-    *build = 118;
+    *patch = 3;
+    *build = 119;
 }
 
 

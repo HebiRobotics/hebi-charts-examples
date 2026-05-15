@@ -70,23 +70,8 @@ classdef (Sealed) FxmlView < handle & matlab.mixin.SetGet
             obj = hebi_charts.LineChart(ptr_, varargin{:});
         end
 
-        function obj = addPercentileHistogram(this, fxId, varargin)
-            % Creates a percentile histogram with the given size
-            %
-            %   Inputs:
-            %       fxId
-            %
-            %   Throws:
-            %       Error on internal errors
-            ptr_ = hebi_charts_native('hebi_charts_FxmlView_addPercentileHistogram', this.ptr, fxId);
-            if isempty(ptr_)
-                error(['Failed to create hebi_charts.HistogramChart in FxmlView.addPercentileHistogram' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
-            obj = hebi_charts.HistogramChart(ptr_, varargin{:});
-        end
-
         function obj = addLatencyChart(this, fxId, varargin)
-            % Utility for creating a percentile histogram for measuring latency in [s]
+            % Creates a latency chart for displaying latency measurements [s]
             %
             %   Inputs:
             %       fxId
@@ -95,9 +80,9 @@ classdef (Sealed) FxmlView < handle & matlab.mixin.SetGet
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_FxmlView_addLatencyChart', this.ptr, fxId);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.HistogramChart in FxmlView.addLatencyChart' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error(['Failed to create hebi_charts.LatencyChart in FxmlView.addLatencyChart' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
             end
-            obj = hebi_charts.HistogramChart(ptr_, varargin{:});
+            obj = hebi_charts.LatencyChart(ptr_, varargin{:});
         end
 
         function obj = addScene3d(this, fxId, varargin)

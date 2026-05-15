@@ -8,8 +8,8 @@ from typing import Sequence, Tuple, Any
 # Load the shared library relative to this file
 def load_library():
     lib_name = 'hebi_charts'
-    version = '0.9.2'
-    build_number = '118'
+    version = '0.9.3'
+    build_number = '119'
 
     architecture = platform.architecture()[0]  # gets '64bit' or '32bit'
     os_name = platform.system()  # gets 'Windows', 'Linux', 'Darwin'
@@ -200,9 +200,9 @@ class struct_XYChart_(Structure):
     pass
 XYChartPtr = POINTER(struct_XYChart_)
 
-class struct_HistogramChart_(Structure):
+class struct_LatencyChart_(Structure):
     pass
-HistogramChartPtr = POINTER(struct_HistogramChart_)
+LatencyChartPtr = POINTER(struct_LatencyChart_)
 
 class struct_LineChart_(Structure):
     pass
@@ -212,9 +212,9 @@ class struct_XYSeries_(Structure):
     pass
 XYSeriesPtr = POINTER(struct_XYSeries_)
 
-class struct_HistogramTrace_(Structure):
+class struct_LatencyTrace_(Structure):
     pass
-HistogramTracePtr = POINTER(struct_HistogramTrace_)
+LatencyTracePtr = POINTER(struct_LatencyTrace_)
 
 class struct_Line_(Structure):
     pass
@@ -391,10 +391,8 @@ libhebi_charts.hebi_charts_FxmlView_addLineChart.argtypes = [FxmlViewPtr, c_char
 libhebi_charts.hebi_charts_FxmlView_addLineChart.restype = LineChartPtr
 libhebi_charts.hebi_charts_FxmlView_addScope.argtypes = [FxmlViewPtr, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addScope.restype = LineChartPtr
-libhebi_charts.hebi_charts_FxmlView_addPercentileHistogram.argtypes = [FxmlViewPtr, c_char_p]
-libhebi_charts.hebi_charts_FxmlView_addPercentileHistogram.restype = HistogramChartPtr
 libhebi_charts.hebi_charts_FxmlView_addLatencyChart.argtypes = [FxmlViewPtr, c_char_p]
-libhebi_charts.hebi_charts_FxmlView_addLatencyChart.restype = HistogramChartPtr
+libhebi_charts.hebi_charts_FxmlView_addLatencyChart.restype = LatencyChartPtr
 libhebi_charts.hebi_charts_FxmlView_addScene3d.argtypes = [FxmlViewPtr, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addScene3d.restype = Scene3dPtr
 libhebi_charts.hebi_charts_FxmlView_addStreamView.argtypes = [FxmlViewPtr, c_char_p, c_char_p]
@@ -443,10 +441,8 @@ libhebi_charts.hebi_charts_GridWindow_addLineChart.argtypes = [GridWindowPtr, c_
 libhebi_charts.hebi_charts_GridWindow_addLineChart.restype = LineChartPtr
 libhebi_charts.hebi_charts_GridWindow_addScope.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addScope.restype = LineChartPtr
-libhebi_charts.hebi_charts_GridWindow_addPercentileHistogram.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
-libhebi_charts.hebi_charts_GridWindow_addPercentileHistogram.restype = HistogramChartPtr
 libhebi_charts.hebi_charts_GridWindow_addLatencyChart.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
-libhebi_charts.hebi_charts_GridWindow_addLatencyChart.restype = HistogramChartPtr
+libhebi_charts.hebi_charts_GridWindow_addLatencyChart.restype = LatencyChartPtr
 libhebi_charts.hebi_charts_GridWindow_addScene3d.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addScene3d.restype = Scene3dPtr
 libhebi_charts.hebi_charts_GridWindow_addStreamView.argtypes = [GridWindowPtr, c_char_p, c_int, c_int, c_int, c_int]
@@ -872,11 +868,11 @@ libhebi_charts.hebi_charts_XYChart_addYCursor.restype = CursorPtr
 libhebi_charts.hebi_charts_XYChart_release.argtypes = [XYChartPtr]
 libhebi_charts.hebi_charts_XYChart_release.restype = None
 
-# ==== HistogramChart ====
-libhebi_charts.hebi_charts_HistogramChart_addTrace.argtypes = [HistogramChartPtr, c_char_p]
-libhebi_charts.hebi_charts_HistogramChart_addTrace.restype = HistogramTracePtr
-libhebi_charts.hebi_charts_HistogramChart_to_XYChart.argtypes = [HistogramChartPtr]
-libhebi_charts.hebi_charts_HistogramChart_to_XYChart.restype = XYChartPtr
+# ==== LatencyChart ====
+libhebi_charts.hebi_charts_LatencyChart_addTrace.argtypes = [LatencyChartPtr, c_char_p]
+libhebi_charts.hebi_charts_LatencyChart_addTrace.restype = LatencyTracePtr
+libhebi_charts.hebi_charts_LatencyChart_to_XYChart.argtypes = [LatencyChartPtr]
+libhebi_charts.hebi_charts_LatencyChart_to_XYChart.restype = XYChartPtr
 
 # ==== LineChart ====
 libhebi_charts.hebi_charts_LineChart_addLine.argtypes = [LineChartPtr, c_char_p]
@@ -920,17 +916,23 @@ libhebi_charts.hebi_charts_XYSeries_setVisible.restype = None
 libhebi_charts.hebi_charts_XYSeries_release.argtypes = [XYSeriesPtr]
 libhebi_charts.hebi_charts_XYSeries_release.restype = None
 
-# ==== HistogramTrace ====
-libhebi_charts.hebi_charts_HistogramTrace_record.argtypes = [HistogramTracePtr, c_double]
-libhebi_charts.hebi_charts_HistogramTrace_record.restype = None
-libhebi_charts.hebi_charts_HistogramTrace_recordWithCount.argtypes = [HistogramTracePtr, c_double, c_size_t]
-libhebi_charts.hebi_charts_HistogramTrace_recordWithCount.restype = None
-libhebi_charts.hebi_charts_HistogramTrace_recordCompensated.argtypes = [HistogramTracePtr, c_double, c_double]
-libhebi_charts.hebi_charts_HistogramTrace_recordCompensated.restype = None
-libhebi_charts.hebi_charts_HistogramTrace_reset.argtypes = [HistogramTracePtr]
-libhebi_charts.hebi_charts_HistogramTrace_reset.restype = None
-libhebi_charts.hebi_charts_HistogramTrace_to_XYSeries.argtypes = [HistogramTracePtr]
-libhebi_charts.hebi_charts_HistogramTrace_to_XYSeries.restype = XYSeriesPtr
+# ==== LatencyTrace ====
+libhebi_charts.hebi_charts_LatencyTrace_tic.argtypes = [LatencyTracePtr]
+libhebi_charts.hebi_charts_LatencyTrace_tic.restype = None
+libhebi_charts.hebi_charts_LatencyTrace_toc.argtypes = [LatencyTracePtr]
+libhebi_charts.hebi_charts_LatencyTrace_toc.restype = c_double
+libhebi_charts.hebi_charts_LatencyTrace_ticToc.argtypes = [LatencyTracePtr]
+libhebi_charts.hebi_charts_LatencyTrace_ticToc.restype = c_double
+libhebi_charts.hebi_charts_LatencyTrace_record.argtypes = [LatencyTracePtr, c_double]
+libhebi_charts.hebi_charts_LatencyTrace_record.restype = None
+libhebi_charts.hebi_charts_LatencyTrace_recordWithCount.argtypes = [LatencyTracePtr, c_double, c_size_t]
+libhebi_charts.hebi_charts_LatencyTrace_recordWithCount.restype = None
+libhebi_charts.hebi_charts_LatencyTrace_recordCompensated.argtypes = [LatencyTracePtr, c_double, c_double]
+libhebi_charts.hebi_charts_LatencyTrace_recordCompensated.restype = None
+libhebi_charts.hebi_charts_LatencyTrace_reset.argtypes = [LatencyTracePtr]
+libhebi_charts.hebi_charts_LatencyTrace_reset.restype = None
+libhebi_charts.hebi_charts_LatencyTrace_to_XYSeries.argtypes = [LatencyTracePtr]
+libhebi_charts.hebi_charts_LatencyTrace_to_XYSeries.restype = XYSeriesPtr
 
 # ==== Line ====
 libhebi_charts.hebi_charts_Line_getMaxPointCount.argtypes = [LinePtr]
@@ -1905,39 +1907,8 @@ class FxmlView:
         if yunit is not None: obj_.yunit = yunit
         return obj_
 
-    def add_percentile_histogram(self, fx_id: str, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> HistogramChart:
-        """Creates a percentile histogram with the given size
-        
-        Args:
-            fx_id: 
-        
-        Raises:
-            Exception: on internal errors
-        """
-        if fx_id is not None and not isinstance(fx_id, c_char_p):
-            fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
-        ptr_ = libhebi_charts.hebi_charts_FxmlView_addPercentileHistogram(self.ptr, fx_id)
-        if not ptr_:
-            raise RuntimeError(f'Failed to create HistogramChart in FxmlView::add_percentile_histogram ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = HistogramChart(ptr_)
-        if title is not None: obj_.title = title
-        if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
-        if xauto is not None: obj_.xauto = xauto
-        if xlabel is not None: obj_.xlabel = xlabel
-        if xlim is not None: obj_.xlim = xlim
-        if xmax is not None: obj_.xmax = xmax
-        if xmin is not None: obj_.xmin = xmin
-        if xunit is not None: obj_.xunit = xunit
-        if yauto is not None: obj_.yauto = yauto
-        if ylabel is not None: obj_.ylabel = ylabel
-        if ylim is not None: obj_.ylim = ylim
-        if ymax is not None: obj_.ymax = ymax
-        if ymin is not None: obj_.ymin = ymin
-        if yunit is not None: obj_.yunit = yunit
-        return obj_
-
-    def add_latency_chart(self, fx_id: str, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> HistogramChart:
-        """Utility for creating a percentile histogram for measuring latency in [s]
+    def add_latency_chart(self, fx_id: str, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LatencyChart:
+        """Creates a latency chart for displaying latency measurements [s]
         
         Args:
             fx_id: 
@@ -1949,8 +1920,8 @@ class FxmlView:
             fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
         ptr_ = libhebi_charts.hebi_charts_FxmlView_addLatencyChart(self.ptr, fx_id)
         if not ptr_:
-            raise RuntimeError(f'Failed to create HistogramChart in FxmlView::add_latency_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = HistogramChart(ptr_)
+            raise RuntimeError(f'Failed to create LatencyChart in FxmlView::add_latency_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        obj_ = LatencyChart(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -2263,40 +2234,8 @@ class GridWindow:
         if yunit is not None: obj_.yunit = yunit
         return obj_
 
-    def add_percentile_histogram(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> HistogramChart:
-        """Creates a percentile histogram with the given size
-        
-        Args:
-            row: 
-            col: 
-            row_span: 
-            col_span: 
-        
-        Raises:
-            Exception: on internal errors
-        """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_addPercentileHistogram(self.ptr, row, col, row_span, col_span)
-        if not ptr_:
-            raise RuntimeError(f'Failed to create HistogramChart in GridWindow::add_percentile_histogram ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = HistogramChart(ptr_)
-        if title is not None: obj_.title = title
-        if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
-        if xauto is not None: obj_.xauto = xauto
-        if xlabel is not None: obj_.xlabel = xlabel
-        if xlim is not None: obj_.xlim = xlim
-        if xmax is not None: obj_.xmax = xmax
-        if xmin is not None: obj_.xmin = xmin
-        if xunit is not None: obj_.xunit = xunit
-        if yauto is not None: obj_.yauto = yauto
-        if ylabel is not None: obj_.ylabel = ylabel
-        if ylim is not None: obj_.ylim = ylim
-        if ymax is not None: obj_.ymax = ymax
-        if ymin is not None: obj_.ymin = ymin
-        if yunit is not None: obj_.yunit = yunit
-        return obj_
-
-    def add_latency_chart(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> HistogramChart:
-        """Utility for creating a percentile histogram for measuring latency in [s]
+    def add_latency_chart(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LatencyChart:
+        """Creates a latency chart for recording latency measurements in [s]
         
         Args:
             row: 
@@ -2309,8 +2248,8 @@ class GridWindow:
         """
         ptr_ = libhebi_charts.hebi_charts_GridWindow_addLatencyChart(self.ptr, row, col, row_span, col_span)
         if not ptr_:
-            raise RuntimeError(f'Failed to create HistogramChart in GridWindow::add_latency_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = HistogramChart(ptr_)
+            raise RuntimeError(f'Failed to create LatencyChart in GridWindow::add_latency_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        obj_ = LatencyChart(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -2707,7 +2646,7 @@ class HdrHistogramTrace:
         return libhebi_charts.hebi_charts_HdrHistogramTrace_toc(self.ptr)
 
     def tic_toc(self) -> float:
-        """Calls tic and toc in one call.  Returns the recorded value in [s]"""
+        """Calls tic and toc in one call. Returns the recorded value in [s]"""
         return libhebi_charts.hebi_charts_HdrHistogramTrace_ticToc(self.ptr)
 
     def record_value(self, value: float) -> None:
@@ -4384,25 +4323,25 @@ class XYChart:
         return obj_
 
 
-class HistogramChart(XYChart):
-    """Shows HdrHistogram percentile data for latency measurements"""
+class LatencyChart(XYChart):
+    """Shows latency measurements in HdrHistogram percentile format"""
 
-    __slots__ = ('ref_HistogramChart',)
+    __slots__ = ('ref_LatencyChart',)
 
-    def __init__(self, ref_HistogramChart: HistogramChartPtr):
-        if not isinstance(ref_HistogramChart, HistogramChartPtr):
-            raise TypeError(f'Expected HistogramChartPtr, got {type(ref_HistogramChart).__name__}')
-        self.ref_HistogramChart = ref_HistogramChart
-        super().__init__(libhebi_charts.hebi_charts_HistogramChart_to_XYChart(ref_HistogramChart))
+    def __init__(self, ref_LatencyChart: LatencyChartPtr):
+        if not isinstance(ref_LatencyChart, LatencyChartPtr):
+            raise TypeError(f'Expected LatencyChartPtr, got {type(ref_LatencyChart).__name__}')
+        self.ref_LatencyChart = ref_LatencyChart
+        super().__init__(libhebi_charts.hebi_charts_LatencyChart_to_XYChart(ref_LatencyChart))
 
     def __del__(self):
         super().__del__()
-        self.ref_HistogramChart = None
+        self.ref_LatencyChart = None
 
     def __repr__(self):
         return f"{self.__class__.__name__}(title={self.title!r}, x_assume_sorted={self.x_assume_sorted!r}, xauto={self.xauto!r}, xlabel={self.xlabel!r}, xmax={self.xmax!r}, xmin={self.xmin!r}, xunit={self.xunit!r}, yauto={self.yauto!r}, ylabel={self.ylabel!r}, ymax={self.ymax!r}, ymin={self.ymin!r}, yunit={self.yunit!r})"
 
-    def add_trace(self, name: str, *, color: Color = None, label: str = None, line_style: LineStyle = None, line_width: float = None, marker_size: float = None, marker_type: MarkerType = None, show_in_legend: bool = None, visible: bool = None) -> HistogramTrace:
+    def add_trace(self, name: str, *, color: Color = None, label: str = None, line_style: LineStyle = None, line_width: float = None, marker_size: float = None, marker_type: MarkerType = None, show_in_legend: bool = None, visible: bool = None) -> LatencyTrace:
         """Creates a new hdr histogram dataset
         
         Args:
@@ -4413,10 +4352,10 @@ class HistogramChart(XYChart):
         """
         if name is not None and not isinstance(name, c_char_p):
             name = c_char_p(name.encode('utf-8') if isinstance(name, str) else name)
-        ptr_ = libhebi_charts.hebi_charts_HistogramChart_addTrace(self.ref_HistogramChart, name)
+        ptr_ = libhebi_charts.hebi_charts_LatencyChart_addTrace(self.ref_LatencyChart, name)
         if not ptr_:
-            raise RuntimeError(f'Failed to create HistogramTrace in HistogramChart::add_trace ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = HistogramTrace(ptr_)
+            raise RuntimeError(f'Failed to create LatencyTrace in LatencyChart::add_trace ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        obj_ = LatencyTrace(ptr_)
         if color is not None: obj_.color = color
         if label is not None: obj_.label = label
         if line_style is not None: obj_.line_style = line_style
@@ -4606,23 +4545,35 @@ class XYSeries:
         libhebi_charts.hebi_charts_XYSeries_setVisible(self.ptr, visible)
 
 
-class HistogramTrace(XYSeries):
+class LatencyTrace(XYSeries):
     """Represents a latency measurement that records latency values in the form of an HdrHistogram"""
 
-    __slots__ = ('ref_HistogramTrace',)
+    __slots__ = ('ref_LatencyTrace',)
 
-    def __init__(self, ref_HistogramTrace: HistogramTracePtr):
-        if not isinstance(ref_HistogramTrace, HistogramTracePtr):
-            raise TypeError(f'Expected HistogramTracePtr, got {type(ref_HistogramTrace).__name__}')
-        self.ref_HistogramTrace = ref_HistogramTrace
-        super().__init__(libhebi_charts.hebi_charts_HistogramTrace_to_XYSeries(ref_HistogramTrace))
+    def __init__(self, ref_LatencyTrace: LatencyTracePtr):
+        if not isinstance(ref_LatencyTrace, LatencyTracePtr):
+            raise TypeError(f'Expected LatencyTracePtr, got {type(ref_LatencyTrace).__name__}')
+        self.ref_LatencyTrace = ref_LatencyTrace
+        super().__init__(libhebi_charts.hebi_charts_LatencyTrace_to_XYSeries(ref_LatencyTrace))
 
     def __del__(self):
         super().__del__()
-        self.ref_HistogramTrace = None
+        self.ref_LatencyTrace = None
 
     def __repr__(self):
         return f"{self.__class__.__name__}(color={self.color!r}, label={self.label!r}, line_style={self.line_style!r}, line_width={self.line_width!r}, marker_size={self.marker_size!r}, marker_type={self.marker_type!r}, show_in_legend={self.show_in_legend!r}, visible={self.visible!r})"
+
+    def tic(self) -> None:
+        """Sets a timestamp for subsequent toc calls"""
+        libhebi_charts.hebi_charts_LatencyTrace_tic(self.ref_LatencyTrace)
+
+    def toc(self) -> float:
+        """Records the elapsed time since the last tic call. Returns the recorded value in [s]"""
+        return libhebi_charts.hebi_charts_LatencyTrace_toc(self.ref_LatencyTrace)
+
+    def tic_toc(self) -> float:
+        """Calls tic and toc in one call. Returns the recorded value in [s]"""
+        return libhebi_charts.hebi_charts_LatencyTrace_ticToc(self.ref_LatencyTrace)
 
     def record(self, value: float) -> None:
         """Record a latency value in the histogram
@@ -4630,7 +4581,7 @@ class HistogramTrace(XYSeries):
         Args:
             value: the value to be recorded in [s]
         """
-        libhebi_charts.hebi_charts_HistogramTrace_record(self.ref_HistogramTrace, value)
+        libhebi_charts.hebi_charts_LatencyTrace_record(self.ref_LatencyTrace, value)
 
     def record_with_count(self, value: float, count: int) -> None:
         """Record a value in the histogram (adding to the value's current count)
@@ -4639,7 +4590,7 @@ class HistogramTrace(XYSeries):
             value: the value to be recorded in [s]
             count: the number of occurrences of this value to record
         """
-        libhebi_charts.hebi_charts_HistogramTrace_recordWithCount(self.ref_HistogramTrace, value, count)
+        libhebi_charts.hebi_charts_LatencyTrace_recordWithCount(self.ref_LatencyTrace, value, count)
 
     def record_compensated(self, value: float, expected_interval_between_value_samples: float) -> None:
         """[EXPERIMENTAL - specific to HdrHistogram]
@@ -4654,10 +4605,10 @@ class HistogramTrace(XYSeries):
         zero, an auto-generated value records as appropriate if value
         is larger than expectedIntervalBetweenValueSamples
         """
-        libhebi_charts.hebi_charts_HistogramTrace_recordCompensated(self.ref_HistogramTrace, value, expected_interval_between_value_samples)
+        libhebi_charts.hebi_charts_LatencyTrace_recordCompensated(self.ref_LatencyTrace, value, expected_interval_between_value_samples)
 
     def reset(self) -> None:
-        libhebi_charts.hebi_charts_HistogramTrace_reset(self.ref_HistogramTrace)
+        libhebi_charts.hebi_charts_LatencyTrace_reset(self.ref_LatencyTrace)
 
 
 class Line(XYSeries):
