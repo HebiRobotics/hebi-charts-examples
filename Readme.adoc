@@ -257,11 +257,8 @@ A LineChart with a pre-configured X-axis for monotonically increasing time in se
 .Example 02 - Sine Wave
 image::docs/images/python_sinewave.png[align="center"]
 
-=== PercentileHistogram
-Visualizes data distribution using percentiles (e.g., p50, p95, p99).
-
 === LatencyChart
-A PercentileHistogram pre-configured for high-resolution timing data.
+A PercentileHistogram pre-configured for high-resolution timing data (e.g., p50, p95, p99).
 
 image::docs/images/latency_chart.png[align="center"]
 
@@ -522,7 +519,7 @@ hdrHistogram.saveAsHgrm('overhead_matlab.hgrm', 1e9)
 
 int main() {
     auto hdrHistogram = hebi::charts::HdrHistogramTrace::createLocal();
-    for (int i = 0; i < 100 * 1000 * 1000; i++) {
+    for (int i = 0; i < 100'000'000; i++) {
         hdrHistogram.ticToc();
     }
     hdrHistogram.saveAsHgrm("overhead_cpp.hgrm", 1e9);
@@ -574,6 +571,28 @@ recorder.stop_recording()
 // *Azul HistogramLogAnalyzer*
 //
 // image::docs/images/HdrHistogram_hlog.png[align="center"]
+
+=== Live HdrHistogram
+
+The `LoopTimer` and `HdrHistogramRecorder` live in separate memory regions (isolates) and are allocation-free in steady state, so they are completely independent of any rendering and feature the lowest amount of jitter.
+
+The live `LatencyChart` lives in the shared global isolate, so it is subject to a small amount of jitter due to allocations in the rendering thread causing incremental (~0.4-0.8ms) GCs. You can benchmark your local system with the snippet below.
+
+[source,python]
+----
+# Live chart of the Python system latency
+window = hebi_charts.GridWindow(size=(1200, 800))
+chart = window.add_latency_chart(title="Python Plot Latency")
+line = chart.add_trace("tic_toc")
+
+window.show()
+while window.is_showing():
+    line.tic()
+    for _ in range(10_000_000):
+        line.tic_toc()
+----
+
+image::docs/images/python_live_histogram.png[align="center"]
 
 == Experimental Features
 
