@@ -226,50 +226,8 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             obj = hebi_charts.LineChart(ptr_, varargin{:});
         end
 
-        function obj = addPercentileHistogram(this, varargin)
-            % Creates a percentile histogram with the given size
-            %
-            %   Inputs:
-            %       row
-            %       col
-            %       rowSpan
-            %       colSpan
-            %
-            %   Throws:
-            %       Error on internal errors
-            row = 0;
-            if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
-                row = varargin{1};
-                varargin(1) = [];
-            end
-            col = 0;
-            if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
-                col = varargin{1};
-                varargin(1) = [];
-            end
-            rowSpan = 1;
-            if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
-                rowSpan = varargin{1};
-                varargin(1) = [];
-            end
-            colSpan = 1;
-            if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
-                colSpan = varargin{1};
-                varargin(1) = [];
-            end
-            % Switch to zero-based indexing. We can't distinguish between the default and
-            % a user-set zero, but that likely results in the user-intended behavior anyways.
-            if row > 0, row = row - 1; else, row = 0; end
-            if col > 0, col = col - 1; else, col = 0; end
-            ptr_ = hebi_charts_native('hebi_charts_GridWindow_addPercentileHistogram', this.ptr, row, col, rowSpan, colSpan);
-            if isempty(ptr_)
-                error(['Failed to create hebi_charts.HistogramChart in GridWindow.addPercentileHistogram' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
-            obj = hebi_charts.HistogramChart(ptr_, varargin{:});
-        end
-
         function obj = addLatencyChart(this, varargin)
-            % Utility for creating a percentile histogram for measuring latency in [s]
+            % Creates a latency chart for recording latency measurements in [s]
             %
             %   Inputs:
             %       row
@@ -305,9 +263,9 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             if col > 0, col = col - 1; else, col = 0; end
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_addLatencyChart', this.ptr, row, col, rowSpan, colSpan);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.HistogramChart in GridWindow.addLatencyChart' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error(['Failed to create hebi_charts.LatencyChart in GridWindow.addLatencyChart' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
             end
-            obj = hebi_charts.HistogramChart(ptr_, varargin{:});
+            obj = hebi_charts.LatencyChart(ptr_, varargin{:});
         end
 
         function obj = addScene3d(this, varargin)

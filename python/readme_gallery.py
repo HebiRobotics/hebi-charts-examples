@@ -164,6 +164,18 @@ def control_panel():
             window.hide()
 
 
+def latency_chart_jitter():
+    window = GridWindow(size=(1200, 800))
+    chart = window.add_latency_chart(title="Python Plot Latency")
+    line = chart.add_trace("tic_toc")
+
+    window.show()
+    while window.is_showing():
+        line.tic()
+        for _ in range(10_000_000):
+            line.tic_toc()
+
+
 def record_video():
     window = GridWindow(size=size, title="3D Lissajous Figure")
     scene = window.add_scene3d()
@@ -238,6 +250,7 @@ def main():
     robot_3d()
     panda_control()
     control_panel()
+    latency_chart_jitter()
     record_video()
     HdrHistogram_hgrm()
     HdrHistogram_hlog()

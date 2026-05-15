@@ -89,7 +89,7 @@ classdef (Sealed) HdrHistogramTrace < handle & matlab.mixin.SetGet
         end
 
         function result = ticToc(this)
-            % Calls tic and toc in one call.  Returns the recorded value in [s]
+            % Calls tic and toc in one call. Returns the recorded value in [s]
             result = hebi_charts_native('hebi_charts_HdrHistogramTrace_ticToc', this.ptr);
         end
 

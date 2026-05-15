@@ -715,13 +715,6 @@ MEX_EXPORT void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
             if (nlhs > 0) plhs[0] = createMexPointer(_value);
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_FxmlView_addPercentileHistogram") */ 2704115735: {
-            static auto hebi_charts_FxmlView_addPercentileHistogram = libLoader.getFunc<void*(*)(void*, const char*)>("hebi_charts_FxmlView_addPercentileHistogram");
-            MatlabString fxId(prhs[2]);
-            void* _value = hebi_charts_FxmlView_addPercentileHistogram(getPtr<void*>(prhs[1]), fxId);
-            if (nlhs > 0) plhs[0] = createMexPointer(_value);
-            break;
-        }
         case /* hash32_fnv1a("hebi_charts_FxmlView_addLatencyChart") */ 2361709490: {
             static auto hebi_charts_FxmlView_addLatencyChart = libLoader.getFunc<void*(*)(void*, const char*)>("hebi_charts_FxmlView_addLatencyChart");
             MatlabString fxId(prhs[2]);
@@ -881,16 +874,6 @@ MEX_EXPORT void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
             int rowSpan = getScalar<int>(prhs[4]);
             int colSpan = getScalar<int>(prhs[5]);
             void* _value = hebi_charts_GridWindow_addScope(getPtr<void*>(prhs[1]), row, col, rowSpan, colSpan);
-            if (nlhs > 0) plhs[0] = createMexPointer(_value);
-            break;
-        }
-        case /* hash32_fnv1a("hebi_charts_GridWindow_addPercentileHistogram") */ 4036169577: {
-            static auto hebi_charts_GridWindow_addPercentileHistogram = libLoader.getFunc<void*(*)(void*, int, int, int, int)>("hebi_charts_GridWindow_addPercentileHistogram");
-            int row = getScalar<int>(prhs[2]);
-            int col = getScalar<int>(prhs[3]);
-            int rowSpan = getScalar<int>(prhs[4]);
-            int colSpan = getScalar<int>(prhs[5]);
-            void* _value = hebi_charts_GridWindow_addPercentileHistogram(getPtr<void*>(prhs[1]), row, col, rowSpan, colSpan);
             if (nlhs > 0) plhs[0] = createMexPointer(_value);
             break;
         }
@@ -2190,17 +2173,17 @@ MEX_EXPORT void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
             break;
         }
 
-        // HistogramChart
-        case /* hash32_fnv1a("hebi_charts_HistogramChart_addTrace") */ 3706745141: {
-            static auto hebi_charts_HistogramChart_addTrace = libLoader.getFunc<void*(*)(void*, const char*)>("hebi_charts_HistogramChart_addTrace");
+        // LatencyChart
+        case /* hash32_fnv1a("hebi_charts_LatencyChart_addTrace") */ 2363952669: {
+            static auto hebi_charts_LatencyChart_addTrace = libLoader.getFunc<void*(*)(void*, const char*)>("hebi_charts_LatencyChart_addTrace");
             MatlabString name(prhs[2]);
-            void* _value = hebi_charts_HistogramChart_addTrace(getPtr<void*>(prhs[1]), name);
+            void* _value = hebi_charts_LatencyChart_addTrace(getPtr<void*>(prhs[1]), name);
             if (nlhs > 0) plhs[0] = createMexPointer(_value);
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_HistogramChart_to_XYChart") */ 3227424970: {
-            static auto hebi_charts_HistogramChart_to_XYChart = libLoader.getFunc<void*(*)(void*)>("hebi_charts_HistogramChart_to_XYChart");
-            if (nlhs > 0) plhs[0] = createMexPointer(hebi_charts_HistogramChart_to_XYChart(getPtr<void*>(prhs[1])));
+        case /* hash32_fnv1a("hebi_charts_LatencyChart_to_XYChart") */ 1611720866: {
+            static auto hebi_charts_LatencyChart_to_XYChart = libLoader.getFunc<void*(*)(void*)>("hebi_charts_LatencyChart_to_XYChart");
+            if (nlhs > 0) plhs[0] = createMexPointer(hebi_charts_LatencyChart_to_XYChart(getPtr<void*>(prhs[1])));
             break;
         }
 
@@ -2321,35 +2304,52 @@ MEX_EXPORT void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
             break;
         }
 
-        // HistogramTrace
-        case /* hash32_fnv1a("hebi_charts_HistogramTrace_record") */ 3723645591: {
-            static auto hebi_charts_HistogramTrace_record = libLoader.getFunc<void(*)(void*, double)>("hebi_charts_HistogramTrace_record");
-            double value = getScalar<double>(prhs[2]);
-            hebi_charts_HistogramTrace_record(getPtr<void*>(prhs[1]), value);
+        // LatencyTrace
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_tic") */ 3312694110: {
+            static auto hebi_charts_LatencyTrace_tic = libLoader.getFunc<void(*)(void*)>("hebi_charts_LatencyTrace_tic");
+            hebi_charts_LatencyTrace_tic(getPtr<void*>(prhs[1]));
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_HistogramTrace_recordWithCount") */ 491303238: {
-            static auto hebi_charts_HistogramTrace_recordWithCount = libLoader.getFunc<void(*)(void*, double, size_t)>("hebi_charts_HistogramTrace_recordWithCount");
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_toc") */ 3447209252: {
+            static auto hebi_charts_LatencyTrace_toc = libLoader.getFunc<double(*)(void*)>("hebi_charts_LatencyTrace_toc");
+            double _value = hebi_charts_LatencyTrace_toc(getPtr<void*>(prhs[1]));
+            if (nlhs > 0) plhs[0] = createMexScalar(_value);
+            break;
+        }
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_ticToc") */ 893458976: {
+            static auto hebi_charts_LatencyTrace_ticToc = libLoader.getFunc<double(*)(void*)>("hebi_charts_LatencyTrace_ticToc");
+            double _value = hebi_charts_LatencyTrace_ticToc(getPtr<void*>(prhs[1]));
+            if (nlhs > 0) plhs[0] = createMexScalar(_value);
+            break;
+        }
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_record") */ 289077951: {
+            static auto hebi_charts_LatencyTrace_record = libLoader.getFunc<void(*)(void*, double)>("hebi_charts_LatencyTrace_record");
+            double value = getScalar<double>(prhs[2]);
+            hebi_charts_LatencyTrace_record(getPtr<void*>(prhs[1]), value);
+            break;
+        }
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_recordWithCount") */ 3013829598: {
+            static auto hebi_charts_LatencyTrace_recordWithCount = libLoader.getFunc<void(*)(void*, double, size_t)>("hebi_charts_LatencyTrace_recordWithCount");
             double value = getScalar<double>(prhs[2]);
             size_t count = getScalar<size_t>(prhs[3]);
-            hebi_charts_HistogramTrace_recordWithCount(getPtr<void*>(prhs[1]), value, count);
+            hebi_charts_LatencyTrace_recordWithCount(getPtr<void*>(prhs[1]), value, count);
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_HistogramTrace_recordCompensated") */ 2466621328: {
-            static auto hebi_charts_HistogramTrace_recordCompensated = libLoader.getFunc<void(*)(void*, double, double)>("hebi_charts_HistogramTrace_recordCompensated");
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_recordCompensated") */ 2071056952: {
+            static auto hebi_charts_LatencyTrace_recordCompensated = libLoader.getFunc<void(*)(void*, double, double)>("hebi_charts_LatencyTrace_recordCompensated");
             double value = getScalar<double>(prhs[2]);
             double expectedIntervalBetweenValueSamples = getScalar<double>(prhs[3]);
-            hebi_charts_HistogramTrace_recordCompensated(getPtr<void*>(prhs[1]), value, expectedIntervalBetweenValueSamples);
+            hebi_charts_LatencyTrace_recordCompensated(getPtr<void*>(prhs[1]), value, expectedIntervalBetweenValueSamples);
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_HistogramTrace_reset") */ 2395299077: {
-            static auto hebi_charts_HistogramTrace_reset = libLoader.getFunc<void(*)(void*)>("hebi_charts_HistogramTrace_reset");
-            hebi_charts_HistogramTrace_reset(getPtr<void*>(prhs[1]));
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_reset") */ 2834722861: {
+            static auto hebi_charts_LatencyTrace_reset = libLoader.getFunc<void(*)(void*)>("hebi_charts_LatencyTrace_reset");
+            hebi_charts_LatencyTrace_reset(getPtr<void*>(prhs[1]));
             break;
         }
-        case /* hash32_fnv1a("hebi_charts_HistogramTrace_to_XYSeries") */ 1313009026: {
-            static auto hebi_charts_HistogramTrace_to_XYSeries = libLoader.getFunc<void*(*)(void*)>("hebi_charts_HistogramTrace_to_XYSeries");
-            if (nlhs > 0) plhs[0] = createMexPointer(hebi_charts_HistogramTrace_to_XYSeries(getPtr<void*>(prhs[1])));
+        case /* hash32_fnv1a("hebi_charts_LatencyTrace_to_XYSeries") */ 2481743194: {
+            static auto hebi_charts_LatencyTrace_to_XYSeries = libLoader.getFunc<void*(*)(void*)>("hebi_charts_LatencyTrace_to_XYSeries");
+            if (nlhs > 0) plhs[0] = createMexPointer(hebi_charts_LatencyTrace_to_XYSeries(getPtr<void*>(prhs[1])));
             break;
         }
 

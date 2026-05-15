@@ -445,7 +445,7 @@
       }],
     "outputs": [{
         "name": "obj",
-        "type": ["hebi_charts.HistogramChart"]
+        "type": ["hebi_charts.LatencyChart"]
       }]
   },
   "hebi_charts.FxmlView.addLineChart": {
@@ -516,76 +516,6 @@
     "outputs": [{
         "name": "obj",
         "type": ["hebi_charts.LineChart"]
-      }]
-  },
-  "hebi_charts.FxmlView.addPercentileHistogram": {
-    "inputs": [{
-        "name": "this",
-        "type": "hebi_charts.FxmlView"
-      }, {
-        "kind": "required",
-        "name": "fxId",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "title",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "xAssumeSorted",
-        "type": ["logical"]
-      }, {
-        "kind": "namevalue",
-        "name": "xauto",
-        "type": ["logical"]
-      }, {
-        "kind": "namevalue",
-        "name": "xlabel",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "xlim",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "xmax",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "xmin",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "xunit",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "yauto",
-        "type": ["logical"]
-      }, {
-        "kind": "namevalue",
-        "name": "ylabel",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "ylim",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "ymax",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "ymin",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "yunit",
-        "type": ["char"]
-      }],
-    "outputs": [{
-        "name": "obj",
-        "type": ["hebi_charts.HistogramChart"]
       }]
   },
   "hebi_charts.FxmlView.addScene3d": {
@@ -886,7 +816,7 @@
       }],
     "outputs": [{
         "name": "obj",
-        "type": ["hebi_charts.HistogramChart"]
+        "type": ["hebi_charts.LatencyChart"]
       }]
   },
   "hebi_charts.GridWindow.addLineChart": {
@@ -969,88 +899,6 @@
     "outputs": [{
         "name": "obj",
         "type": ["hebi_charts.LineChart"]
-      }]
-  },
-  "hebi_charts.GridWindow.addPercentileHistogram": {
-    "inputs": [{
-        "name": "this",
-        "type": "hebi_charts.GridWindow"
-      }, {
-        "kind": "ordered",
-        "name": "row",
-        "type": ["numeric"]
-      }, {
-        "kind": "ordered",
-        "name": "col",
-        "type": ["numeric"]
-      }, {
-        "kind": "ordered",
-        "name": "rowSpan",
-        "type": ["numeric"]
-      }, {
-        "kind": "ordered",
-        "name": "colSpan",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "title",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "xAssumeSorted",
-        "type": ["logical"]
-      }, {
-        "kind": "namevalue",
-        "name": "xauto",
-        "type": ["logical"]
-      }, {
-        "kind": "namevalue",
-        "name": "xlabel",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "xlim",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "xmax",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "xmin",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "xunit",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "yauto",
-        "type": ["logical"]
-      }, {
-        "kind": "namevalue",
-        "name": "ylabel",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "ylim",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "ymax",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "ymin",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "yunit",
-        "type": ["char"]
-      }],
-    "outputs": [{
-        "name": "obj",
-        "type": ["hebi_charts.HistogramChart"]
       }]
   },
   "hebi_charts.GridWindow.addScene3d": {
@@ -1547,96 +1395,6 @@
         "type": "hebi_charts.HdrHistogramTrace"
       }]
   },
-  "hebi_charts.HistogramChart.addTrace": {
-    "inputs": [{
-        "name": "this",
-        "type": "hebi_charts.HistogramChart"
-      }, {
-        "kind": "required",
-        "name": "name",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "color",
-        "type": ["hebi_charts.Color", "choices={'Default', 'Black', 'White', 'Gray', 'Red', 'Green', 'Blue', 'Yellow', 'Magenta'}"]
-      }, {
-        "kind": "namevalue",
-        "name": "label",
-        "type": ["char"]
-      }, {
-        "kind": "namevalue",
-        "name": "lineStyle",
-        "type": ["hebi_charts.LineStyle", "choices={'Default', 'Solid', 'Dashed', 'Points'}"]
-      }, {
-        "kind": "namevalue",
-        "name": "lineWidth",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "markerSize",
-        "type": ["numeric"]
-      }, {
-        "kind": "namevalue",
-        "name": "markerType",
-        "type": ["hebi_charts.MarkerType", "choices={'Default', 'Rectangle', 'Rectangle1', 'Rectangle2', 'Circle', 'Circle1', 'Circle2', 'Plus', 'Cross', 'Diamond', 'Diamond1', 'Diamond2'}"]
-      }, {
-        "kind": "namevalue",
-        "name": "showInLegend",
-        "type": ["logical"]
-      }, {
-        "kind": "namevalue",
-        "name": "visible",
-        "type": ["logical"]
-      }],
-    "outputs": [{
-        "name": "obj",
-        "type": ["hebi_charts.HistogramTrace"]
-      }]
-  },
-  "hebi_charts.HistogramTrace.record": {
-    "inputs": [{
-        "name": "this",
-        "type": "hebi_charts.HistogramTrace"
-      }, {
-        "kind": "required",
-        "name": "value",
-        "type": ["numeric"]
-      }]
-  },
-  "hebi_charts.HistogramTrace.recordCompensated": {
-    "inputs": [{
-        "name": "this",
-        "type": "hebi_charts.HistogramTrace"
-      }, {
-        "kind": "required",
-        "name": "value",
-        "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "expectedIntervalBetweenValueSamples",
-        "type": ["numeric"]
-      }]
-  },
-  "hebi_charts.HistogramTrace.recordWithCount": {
-    "inputs": [{
-        "name": "this",
-        "type": "hebi_charts.HistogramTrace"
-      }, {
-        "kind": "required",
-        "name": "value",
-        "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "count",
-        "type": ["numeric"]
-      }]
-  },
-  "hebi_charts.HistogramTrace.reset": {
-    "inputs": [{
-        "name": "this",
-        "type": "hebi_charts.HistogramTrace"
-      }]
-  },
   "hebi_charts.ImageStream.saveToFile": {
     "inputs": [{
         "name": "this",
@@ -1707,6 +1465,114 @@
     "outputs": [{
         "name": "obj",
         "type": ["logical"]
+      }]
+  },
+  "hebi_charts.LatencyChart.addTrace": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyChart"
+      }, {
+        "kind": "required",
+        "name": "name",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "color",
+        "type": ["hebi_charts.Color", "choices={'Default', 'Black', 'White', 'Gray', 'Red', 'Green', 'Blue', 'Yellow', 'Magenta'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "label",
+        "type": ["char"]
+      }, {
+        "kind": "namevalue",
+        "name": "lineStyle",
+        "type": ["hebi_charts.LineStyle", "choices={'Default', 'Solid', 'Dashed', 'Points'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "lineWidth",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "markerSize",
+        "type": ["numeric"]
+      }, {
+        "kind": "namevalue",
+        "name": "markerType",
+        "type": ["hebi_charts.MarkerType", "choices={'Default', 'Rectangle', 'Rectangle1', 'Rectangle2', 'Circle', 'Circle1', 'Circle2', 'Plus', 'Cross', 'Diamond', 'Diamond1', 'Diamond2'}"]
+      }, {
+        "kind": "namevalue",
+        "name": "showInLegend",
+        "type": ["logical"]
+      }, {
+        "kind": "namevalue",
+        "name": "visible",
+        "type": ["logical"]
+      }],
+    "outputs": [{
+        "name": "obj",
+        "type": ["hebi_charts.LatencyTrace"]
+      }]
+  },
+  "hebi_charts.LatencyTrace.record": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.LatencyTrace.recordCompensated": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "expectedIntervalBetweenValueSamples",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.LatencyTrace.recordWithCount": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyTrace"
+      }, {
+        "kind": "required",
+        "name": "value",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "count",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.LatencyTrace.reset": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyTrace"
+      }]
+  },
+  "hebi_charts.LatencyTrace.tic": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyTrace"
+      }]
+  },
+  "hebi_charts.LatencyTrace.ticToc": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyTrace"
+      }]
+  },
+  "hebi_charts.LatencyTrace.toc": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.LatencyTrace"
       }]
   },
   "hebi_charts.Line.addPoint": {

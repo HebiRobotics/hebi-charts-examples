@@ -114,9 +114,16 @@ import random
 import hebi_charts
 
 # Build Layout (blocking)
-window = hebi_charts.GridWindow(title="Python", size=(800, 600))
-chart = window.add_line_chart(title="Random Walk", xlabel="sample", ylabel="rnd(x)")
-line = chart.add_line("walk", line_style=hebi_charts.LineStyle.SOLID)
+window = hebi_charts.GridWindow(
+    title="Python",
+    size=(800, 600)
+)
+chart = window.add_line_chart(
+    title="Random Walk",
+    xlabel="sample",
+    ylabel="rnd(x)"
+)
+line = chart.add_line("walk")
 
 # Live Update
 x, y = 0, 0
@@ -135,9 +142,16 @@ while window.is_showing():
 [source,matlab]
 ----
 % Build Layout (blocking)
-window = hebi_charts.GridWindow(title='MATLAB', size=[800 600]);
-chart = window.addLineChart(title='Random Walk', xlabel='sample', ylabel='rnd(x)');
-line = chart.addLine('walk', lineStyle='Solid');
+window = hebi_charts.GridWindow( ...
+    title='MATLAB', ...
+    size=[800 600] ...
+    );
+chart = window.addLineChart( ...
+    title='Random Walk', ...
+    xlabel='sample', ...
+    ylabel='rnd(x)' ...
+    );
+line = chart.addLine('walk');
 
 % Live Update
 x = 0;
@@ -172,7 +186,6 @@ chart.setXLabel("sample");
 chart.setYLabel("rnd(x)");
 
 auto line = chart.addLine("walk");
-line.setLineStyle(hebi::charts::LineStyle::Solid);
 
 // Live Update
 window.show();
@@ -188,7 +201,7 @@ while (window.isShowing()) {
 }
 ----
 
-The window contents can be exported as PNG using `ctrl + c` to copy to clipboard, and `ctrl + s` to save to disk.
+The window contents can be exported as PNG using `Ctrl/Cmd + c` to copy to clipboard, and `Ctrl/Cmd + s` to save to disk.
 
 == macOS: Starting Cocoa
 
@@ -244,11 +257,8 @@ A LineChart with a pre-configured X-axis for monotonically increasing time in se
 .Example 02 - Sine Wave
 image::docs/images/python_sinewave.png[align="center"]
 
-=== PercentileHistogram
-Visualizes data distribution using percentiles (e.g., p50, p95, p99).
-
 === LatencyChart
-A PercentileHistogram pre-configured for high-resolution timing data.
+A PercentileHistogram pre-configured for high-resolution timing data (e.g., p50, p95, p99).
 
 image::docs/images/latency_chart.png[align="center"]
 
@@ -307,7 +317,11 @@ The API is purely polling-based to integrate seamlessly with linear control loop
 [source,python]
 ----
 # Create a slider for a control variable
-kp = controls.add_slider(label="Kp (Proportional)", limits=(0.0, 100.0), value=5.0)
+kp = controls.add_slider(
+    label="Kp (Proportional)",
+    limits=(0.0, 100.0),
+    value=5.0
+)
 
 # Read state in the loop without extra state variables
 while True:
@@ -505,7 +519,7 @@ hdrHistogram.saveAsHgrm('overhead_matlab.hgrm', 1e9)
 
 int main() {
     auto hdrHistogram = hebi::charts::HdrHistogramTrace::createLocal();
-    for (int i = 0; i < 100 * 1000 * 1000; i++) {
+    for (int i = 0; i < 100'000'000; i++) {
         hdrHistogram.ticToc();
     }
     hdrHistogram.saveAsHgrm("overhead_cpp.hgrm", 1e9);
@@ -557,6 +571,28 @@ recorder.stop_recording()
 // *Azul HistogramLogAnalyzer*
 //
 // image::docs/images/HdrHistogram_hlog.png[align="center"]
+
+=== Live HdrHistogram
+
+The `LoopTimer` and `HdrHistogramRecorder` live in separate memory regions (isolates) and are allocation-free in steady state, so they are completely independent of any rendering and feature the lowest amount of jitter.
+
+The live `LatencyChart` lives in the shared global isolate, so it is subject to a small amount of jitter due to allocations in the rendering thread causing incremental (~0.4-0.8ms) GCs. You can benchmark your local system with the snippet below.
+
+[source,python]
+----
+# Live chart of the Python system latency
+window = hebi_charts.GridWindow(size=(1200, 800))
+chart = window.add_latency_chart(title="Python Plot Latency")
+line = chart.add_trace("tic_toc")
+
+window.show()
+while window.is_showing():
+    line.tic()
+    for _ in range(10_000_000):
+        line.tic_toc()
+----
+
+image::docs/images/python_live_histogram.png[align="center"]
 
 == Experimental Features
 
