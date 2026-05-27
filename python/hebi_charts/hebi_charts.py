@@ -9,7 +9,7 @@ from typing import Sequence, Tuple, Any
 def load_library():
     lib_name = 'hebi_charts'
     version = '0.9.3'
-    build_number = '119'
+    build_number = '120'
 
     architecture = platform.architecture()[0]  # gets '64bit' or '32bit'
     os_name = platform.system()  # gets 'Windows', 'Linux', 'Darwin'
