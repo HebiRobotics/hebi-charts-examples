@@ -13,7 +13,7 @@ int application_main(int argc, char **argv) {
 
     // 3x1 Grid: Top 2/3 = 3D robot view, Bottom 1/3 = Scope
     hebi::charts::GridWindow window(3);
-    window.setTitle("Python Robot");
+    window.setTitle("C++ Robot");
     window.setSize(1200, 800);
 
     // 3D Robot

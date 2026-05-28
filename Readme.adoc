@@ -648,3 +648,29 @@ print(record) # statistics on frame rate, skipped frames, etc.
 print(record.get_ffmpeg_command(hebi_charts.VideoOutputFormat.H264))
 print(record.run_ffmpeg(hebi_charts.VideoOutputFormat.H264, delete_directory=True))
 ----
+
+=== Cache Directories
+
+Downloaded platform-binaries and 3D models are automatically cached in the following locations:
+
+.Shared Cache Directories
+[cols="1,2,2", options="header"]
+|====
+| OS | Binaries | 3D Models
+
+| Windows
+| `%LOCALAPPDATA%\hebi_charts`
+| `%LOCALAPPDATA%\HEBI\webcache`
+
+| macOS
+| `~/Library/Caches/hebi_charts`
+| `~/Library/Caches/HEBI/webcache`
+
+| Linux
+|
+`${XDG_CACHE_HOME}/hebi_charts`
+or `~/.cache/hebi_charts`
+| `${XDG_CACHE_HOME}/HEBI/webcache`
+or `~/.cache/HEBI/webcache`
+
+|====
