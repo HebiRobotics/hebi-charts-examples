@@ -9,7 +9,7 @@ from typing import Sequence, Tuple, Any
 def load_library():
     lib_name = 'hebi_charts'
     version = '0.9.3'
-    build_number = '120'
+    build_number = '123'
 
     architecture = platform.architecture()[0]  # gets '64bit' or '32bit'
     os_name = platform.system()  # gets 'Windows', 'Linux', 'Darwin'
@@ -58,13 +58,21 @@ def load_library():
             print(f"Downloading {url}")
             os.makedirs(download_dir, exist_ok=True)
             zip_path = os.path.join(download_dir, dl_name)
-            urllib.request.urlretrieve(
-                url,
-                zip_path,
-                lambda count, block_size, total_size: print(
-                    f"\rDownloading... {int(count * block_size * 100 / total_size)}% ", end="")
-            )
-            print('')
+
+            # Some platforms (e.g. macOS via brew) do not include SSL certificates and may
+            # fail, so we provide a curl fallback that should be available on most systems.
+            try:
+                urllib.request.urlretrieve(
+                    url,
+                    zip_path,
+                    lambda count, block_size, total_size: print(
+                        f"\rDownloading... {int(count * block_size * 100 / total_size)}% ", end="")
+                )
+                print('')
+            except Exception as e:
+                print(f"\nurllib download failed ({e}), retrying with curl...")
+                import subprocess
+                subprocess.run(["curl", "-L", "-f", "-o", zip_path, url], check=True)
 
             # Extract the entire archive
             print(f'Extracting to {download_dir}')
