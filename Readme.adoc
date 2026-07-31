@@ -66,7 +66,7 @@ State updates still look immediate, so property accessors like `slider.value += 
 
 == Installation
 
-HEBI Charts features zero-configuration installation. Using the headers or running any example automatically fetches the correct platform-specific binaries and stores them in a shared system cache. Dedicated `pip` and MATLAB package distributions are under active development.
+HEBI Charts features zero-configuration installation. Using the headers or running any example automatically fetches the correct platform-specific binaries and stores them in a shared system cache. Python users can also use `pip install hebi-charts`.
 
 Currently, the target system must support local rendering and hardware GPU acceleration. Software mode and headless rendering support may be added in the future.
 

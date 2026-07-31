@@ -4,9 +4,14 @@ This directory contains the HEBI Charts examples for link:https://www.python.org
 
 == Installation
 
-HEBI Charts provides a zero-configuration setup via link:./hebi_charts/hebi_charts.py[hebi_charts.py], which automatically fetches platform-specific binaries and manages them in a shared local system cache upon running examples. A dedicated native `pip` package distribution is currently in development.
+You can download the latest pip package using
 
-While no external dependencies are required for base functionality, https://pypi.org/project/numpy/[NumPy] is needed for bulk array methods, with a native pip package currently in development.
+* `pip install hebi-charts` (latest stable build)
+* `pip install -i https://test.pypi.org/simple/ hebi-charts` (latest snapshot build)
+
+Alternatively, you can copy the link:./hebi_charts/hebi_charts.py[hebi_charts.py] file into your project, and it will automatically fetch the matching platform-specific binaries and manage them in a shared local system cache after the first call.
+
+While no external dependencies are required for base functionality, https://pypi.org/project/numpy/[NumPy] is needed for bulk array methods.
 
 // ======= sections that are the same across all language =======
 

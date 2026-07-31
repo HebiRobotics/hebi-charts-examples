@@ -612,8 +612,8 @@ void hebi_charts_getLibraryVersion(int* major, int* minor, int* patch, int* buil
 void hebi_charts_getHeaderVersion(int* major, int* minor, int* patch, int* build) {
     *major = 0;
     *minor = 9;
-    *patch = 3;
-    *build = 123;
+    *patch = 4;
+    *build = 127;
 }
 
 
