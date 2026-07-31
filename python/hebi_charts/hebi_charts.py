@@ -8,8 +8,8 @@ from typing import Sequence, Tuple, Any
 # Load the shared library relative to this file
 def load_library():
     lib_name = 'hebi_charts'
-    version = '0.9.3'
-    build_number = '123'
+    version = '0.9.4'
+    build_number = '127'
 
     architecture = platform.architecture()[0]  # gets '64bit' or '32bit'
     os_name = platform.system()  # gets 'Windows', 'Linux', 'Darwin'
@@ -59,8 +59,8 @@ def load_library():
             os.makedirs(download_dir, exist_ok=True)
             zip_path = os.path.join(download_dir, dl_name)
 
-            # Some platforms (e.g. macOS via brew) do not include SSL certificates and may
-            # fail, so we provide a curl fallback that should be available on most systems.
+            # urllib may fail on some platforms due to missing SSL certificates (e.g. macOS brew),
+            # so we provide a curl fallback that should be available on most systems.
             try:
                 urllib.request.urlretrieve(
                     url,
