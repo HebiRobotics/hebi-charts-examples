@@ -31,10 +31,7 @@ classdef (Sealed) Camera < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Camera_applyRotation', this.ptr, qx, qy, qz, qw);
-            if status_ ~= 0
-                error(['Encountered error in Camera.applyRotation' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Camera_applyRotation', this.ptr, qx, qy, qz, qw);
         end
 
         function setDistance(this, distanceInMeters)
@@ -45,10 +42,7 @@ classdef (Sealed) Camera < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Camera_setDistance', this.ptr, distanceInMeters);
-            if status_ ~= 0
-                error(['Encountered error in Camera.setDistance' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Camera_setDistance', this.ptr, distanceInMeters);
         end
 
         function setPan(this, x, y, z)
@@ -65,10 +59,7 @@ classdef (Sealed) Camera < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Camera_setPan', this.ptr, x, y, z);
-            if status_ ~= 0
-                error(['Encountered error in Camera.setPan' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Camera_setPan', this.ptr, x, y, z);
         end
 
         function setControlsVisible(this, value)
@@ -83,8 +74,8 @@ classdef (Sealed) Camera < handle & matlab.mixin.SetGet
 
     methods(Access = public, Hidden = true)
         function this = Camera(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('Camera constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('Camera instances are created by the library');
             end
             this.ptr = ptr;
 

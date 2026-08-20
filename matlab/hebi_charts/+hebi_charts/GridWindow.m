@@ -151,14 +151,17 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %       rowSpan
             %       colSpan
             %
+            %   Outputs:
+            %       Represents an XY line chart
+            %
             %   Throws:
             %       Error on internal errors
-            row = 0;
+            row = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 row = varargin{1};
                 varargin(1) = [];
             end
-            col = 0;
+            col = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 col = varargin{1};
                 varargin(1) = [];
@@ -173,13 +176,11 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
                 colSpan = varargin{1};
                 varargin(1) = [];
             end
-            % Switch to zero-based indexing. We can't distinguish between the default and
-            % a user-set zero, but that likely results in the user-intended behavior anyways.
-            if row > 0, row = row - 1; else, row = 0; end
-            if col > 0, col = col - 1; else, col = 0; end
+            row = row - 1;
+            col = col - 1;
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_addLineChart', this.ptr, row, col, rowSpan, colSpan);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.LineChart in GridWindow.addLineChart' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.LineChart in GridWindow.addLineChart');
             end
             obj = hebi_charts.LineChart(ptr_, varargin{:});
         end
@@ -193,14 +194,17 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %       rowSpan
             %       colSpan
             %
+            %   Outputs:
+            %       Represents an XY line chart
+            %
             %   Throws:
             %       Error on internal errors
-            row = 0;
+            row = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 row = varargin{1};
                 varargin(1) = [];
             end
-            col = 0;
+            col = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 col = varargin{1};
                 varargin(1) = [];
@@ -215,13 +219,11 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
                 colSpan = varargin{1};
                 varargin(1) = [];
             end
-            % Switch to zero-based indexing. We can't distinguish between the default and
-            % a user-set zero, but that likely results in the user-intended behavior anyways.
-            if row > 0, row = row - 1; else, row = 0; end
-            if col > 0, col = col - 1; else, col = 0; end
+            row = row - 1;
+            col = col - 1;
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_addScope', this.ptr, row, col, rowSpan, colSpan);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.LineChart in GridWindow.addScope' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.LineChart in GridWindow.addScope');
             end
             obj = hebi_charts.LineChart(ptr_, varargin{:});
         end
@@ -235,14 +237,17 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %       rowSpan
             %       colSpan
             %
+            %   Outputs:
+            %       Shows latency measurements in HdrHistogram percentile format
+            %
             %   Throws:
             %       Error on internal errors
-            row = 0;
+            row = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 row = varargin{1};
                 varargin(1) = [];
             end
-            col = 0;
+            col = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 col = varargin{1};
                 varargin(1) = [];
@@ -257,13 +262,11 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
                 colSpan = varargin{1};
                 varargin(1) = [];
             end
-            % Switch to zero-based indexing. We can't distinguish between the default and
-            % a user-set zero, but that likely results in the user-intended behavior anyways.
-            if row > 0, row = row - 1; else, row = 0; end
-            if col > 0, col = col - 1; else, col = 0; end
+            row = row - 1;
+            col = col - 1;
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_addLatencyChart', this.ptr, row, col, rowSpan, colSpan);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.LatencyChart in GridWindow.addLatencyChart' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.LatencyChart in GridWindow.addLatencyChart');
             end
             obj = hebi_charts.LatencyChart(ptr_, varargin{:});
         end
@@ -277,14 +280,17 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %       rowSpan
             %       colSpan
             %
+            %   Outputs:
+            %       Represents a 3d scene that can render a variety of objects in 3d space
+            %
             %   Throws:
             %       Error on internal errors
-            row = 0;
+            row = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 row = varargin{1};
                 varargin(1) = [];
             end
-            col = 0;
+            col = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 col = varargin{1};
                 varargin(1) = [];
@@ -299,13 +305,11 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
                 colSpan = varargin{1};
                 varargin(1) = [];
             end
-            % Switch to zero-based indexing. We can't distinguish between the default and
-            % a user-set zero, but that likely results in the user-intended behavior anyways.
-            if row > 0, row = row - 1; else, row = 0; end
-            if col > 0, col = col - 1; else, col = 0; end
+            row = row - 1;
+            col = col - 1;
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_addScene3d', this.ptr, row, col, rowSpan, colSpan);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Scene3d in GridWindow.addScene3d' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Scene3d in GridWindow.addScene3d');
             end
             obj = hebi_charts.Scene3d(ptr_, varargin{:});
         end
@@ -320,13 +324,16 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %       rowSpan
             %       colSpan
             %
+            %   Outputs:
+            %       Shows a shared-memory stream generated by hebi-video tools.
+            %
             %   Throws:
             %       Error on internal errors
             if nargin < 3
-                row = 0;
+                row = 1;
             end
             if nargin < 4
-                col = 0;
+                col = 1;
             end
             if nargin < 5
                 rowSpan = 1;
@@ -334,13 +341,11 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             if nargin < 6
                 colSpan = 1;
             end
-            % Switch to zero-based indexing. We can't distinguish between the default and
-            % a user-set zero, but that likely results in the user-intended behavior anyways.
-            if row > 0, row = row - 1; else, row = 0; end
-            if col > 0, col = col - 1; else, col = 0; end
+            row = row - 1;
+            col = col - 1;
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_addStreamView', this.ptr, file, row, col, rowSpan, colSpan);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.StreamView in GridWindow.addStreamView' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.StreamView in GridWindow.addStreamView');
             end
             obj = hebi_charts.StreamView(ptr_);
         end
@@ -354,14 +359,17 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %       rowSpan
             %       colSpan
             %
+            %   Outputs:
+            %       A completely customizable view that is defined by FXML.
+            %
             %   Throws:
             %       Error on internal errors
-            row = 0;
+            row = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 row = varargin{1};
                 varargin(1) = [];
             end
-            col = 0;
+            col = 1;
             if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
                 col = varargin{1};
                 varargin(1) = [];
@@ -376,13 +384,11 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
                 colSpan = varargin{1};
                 varargin(1) = [];
             end
-            % Switch to zero-based indexing. We can't distinguish between the default and
-            % a user-set zero, but that likely results in the user-intended behavior anyways.
-            if row > 0, row = row - 1; else, row = 0; end
-            if col > 0, col = col - 1; else, col = 0; end
+            row = row - 1;
+            col = col - 1;
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_addFxmlView', this.ptr, row, col, rowSpan, colSpan);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.FxmlView in GridWindow.addFxmlView' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.FxmlView in GridWindow.addFxmlView');
             end
             obj = hebi_charts.FxmlView(ptr_, varargin{:});
         end
@@ -399,10 +405,7 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             if nargin < 3
                 autoReload = false;
             end
-            status_ = hebi_charts_native('hebi_charts_GridWindow_addStylesheet', this.ptr, pathOrUrl, autoReload);
-            if status_ ~= 0
-                error(['Encountered error in GridWindow.addStylesheet' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_GridWindow_addStylesheet', this.ptr, pathOrUrl, autoReload);
         end
 
         function show(this)
@@ -415,10 +418,7 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_GridWindow_showOffScreen', this.ptr);
-            if status_ ~= 0
-                error(['Encountered error in GridWindow.showOffScreen' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_GridWindow_showOffScreen', this.ptr);
         end
 
         function hide(this)
@@ -436,20 +436,20 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error when called from the FX thread
-            status_ = hebi_charts_native('hebi_charts_GridWindow_waitUntilClosed', this.ptr);
-            if status_ ~= 0
-                error(['Encountered error in GridWindow.waitUntilClosed' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_GridWindow_waitUntilClosed', this.ptr);
         end
 
         function obj = getControlPanel(this, varargin)
             % Returns a fixed-size panel on the side of the window that can be used for interactive controls
             %
+            %   Outputs:
+            %       A panel containing a list of interactive controls like buttons, sliders, and labels
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_getControlPanel', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.ControlPanel in GridWindow.getControlPanel' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.ControlPanel in GridWindow.getControlPanel');
             end
             obj = hebi_charts.ControlPanel(ptr_, varargin{:});
         end
@@ -458,11 +458,20 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             % [EXPERIMENTAL API]
             %   Creates an image stream that continuously stores the content as images.
             %
+            %   Outputs:
+            %       [EXPERIMENTAL API]
+            %   Represents a stream of images with an accessible pixel buffer. This class
+            %   is not thread-safe and should only be used from one thread. Buffers and metadata
+            %   for an image are only valid in between successful next() calls.
+            %
+            %   The stream reuses multiple buffers internally and provides efficient access to the raw memory.
+            %
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_GridWindow_createImageStream', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.ImageStream in GridWindow.createImageStream' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.ImageStream in GridWindow.createImageStream');
             end
             obj = hebi_charts.ImageStream(ptr_, varargin{:});
         end
@@ -504,21 +513,31 @@ classdef (Sealed) GridWindow < handle & matlab.mixin.SetGet
             %       rows
             %       cols
             %
+            %   Outputs:
+            %       Represents a window containing an equally sized row/col grid
+            %
             %   Throws:
             %       Error on internal errors
-            rows = 1;
-            if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
-                rows = varargin{1};
+
+            % A uint64 scalar is a handle the library created
+            if nargin >= 1 && isa(varargin{1}, 'uint64') && isscalar(varargin{1})
+                ptr_ = varargin{1};
                 varargin(1) = [];
-            end
-            cols = 1;
-            if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
-                cols = varargin{1};
-                varargin(1) = [];
-            end
-            ptr_ = hebi_charts_native('hebi_charts_GridWindow_create', rows, cols);
-            if isempty(ptr_)
-                error(['Failed to create hebi_charts.GridWindow in GridWindow.GridWindow' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+            else
+                rows = 1;
+                if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
+                    rows = varargin{1};
+                    varargin(1) = [];
+                end
+                cols = 1;
+                if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstring(varargin{1})
+                    cols = varargin{1};
+                    varargin(1) = [];
+                end
+                ptr_ = hebi_charts_native('hebi_charts_GridWindow_create', rows, cols);
+                if isempty(ptr_)
+                    error('Failed to create hebi_charts.GridWindow in GridWindow.GridWindow');
+                end
             end
             this.ptr = ptr_;
             if numel(varargin) > 0

@@ -22,10 +22,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setFrequency', this.ptr, frequency);
-            if status_ ~= 0
-                error(['Encountered error in HdrHistogramRecorder.set.frequency']);
-            end
+            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setFrequency', this.ptr, frequency);
         end
 
         function result = get.max(this)
@@ -40,10 +37,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMax', this.ptr, value);
-            if status_ ~= 0
-                error(['Encountered error in HdrHistogramRecorder.set.max']);
-            end
+            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMax', this.ptr, value);
         end
 
         function result = get.min(this)
@@ -58,10 +52,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMin', this.ptr, value);
-            if status_ ~= 0
-                error(['Encountered error in HdrHistogramRecorder.set.min']);
-            end
+            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setMin', this.ptr, value);
         end
 
         function result = get.significantDigits(this)
@@ -76,10 +67,7 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_setSignificantDigits', this.ptr, significantDigits);
-            if status_ ~= 0
-                error(['Encountered error in HdrHistogramRecorder.set.significantDigits']);
-            end
+            hebi_charts_native('hebi_charts_HdrHistogramRecorder_setSignificantDigits', this.ptr, significantDigits);
         end
 
         function obj = addTrace(this, tag)
@@ -87,9 +75,12 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
             %
             %   Inputs:
             %       tag
+            %
+            %   Outputs:
+            %       A wait-free single-writer HdrHistogram record
             ptr_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_addTrace', this.ptr, tag);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.HdrHistogramTrace in HdrHistogramRecorder.addTrace']);
+                error('Failed to create hebi_charts.HdrHistogramTrace in HdrHistogramRecorder.addTrace');
             end
             obj = hebi_charts.HdrHistogramTrace(ptr_);
         end
@@ -114,9 +105,15 @@ classdef (Sealed) HdrHistogramRecorder < handle & matlab.mixin.SetGet
 
     methods(Access = public)
         function this = HdrHistogramRecorder(varargin)
-            ptr_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_create');
-            if isempty(ptr_)
-                error(['Failed to create hebi_charts.HdrHistogramRecorder in HdrHistogramRecorder.HdrHistogramRecorder']);
+            % A uint64 scalar is a handle the library created
+            if nargin >= 1 && isa(varargin{1}, 'uint64') && isscalar(varargin{1})
+                ptr_ = varargin{1};
+                varargin(1) = [];
+            else
+                ptr_ = hebi_charts_native('hebi_charts_HdrHistogramRecorder_create');
+                if isempty(ptr_)
+                    error('Failed to create hebi_charts.HdrHistogramRecorder in HdrHistogramRecorder.HdrHistogramRecorder');
+                end
             end
             this.ptr = ptr_;
             if numel(varargin) > 0

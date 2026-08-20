@@ -122,8 +122,8 @@ classdef XYSeries < handle & matlab.mixin.SetGet
 
     methods(Access = public, Hidden = true)
         function this = XYSeries(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('XYSeries constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('XYSeries instances are created by the library');
             end
             this.ptr = ptr;
 

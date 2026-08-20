@@ -30,7 +30,7 @@ classdef (Sealed) Robot < hebi_charts.Object3d
             result = hebi_charts_native('hebi_charts_Robot_getDof', this.ref_Robot);
         end
 
-        function setPositions(this, positions, length)
+        function setPositions(this, positions)
             % Updates the robot model configuration (kinematics) using a vector of joint positions.
             %
             %   Units:
@@ -38,22 +38,15 @@ classdef (Sealed) Robot < hebi_charts.Object3d
             %     - Prismatic joints: [m]
             %
             %   The order of the vector must match the joint definitions in the underlying model.
-            %   The 'length' parameter must exactly match the number of degrees of freedom (DOF)
+            %   The number of positions must exactly match the number of degrees of freedom (DOF)
             %   returned by getDof().
             %
             %   Inputs:
-            %       positions - pointer to an array of joint positions
-            %       length - number of joints (must match getDof)
+            %       positions - joint positions (size must match getDof)
             %
             %   Throws:
             %       Error if position vector length does not match number of joints.
-            if nargin < 3
-                length = numel(positions);
-            end
-            status_ = hebi_charts_native('hebi_charts_Robot_setPositions', this.ref_Robot, positions, length);
-            if status_ ~= 0
-                error(['Encountered error in Robot.setPositions' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Robot_setPositions', this.ref_Robot, positions);
         end
 
     end

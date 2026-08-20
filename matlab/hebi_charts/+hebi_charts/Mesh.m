@@ -54,6 +54,58 @@ classdef (Sealed) Mesh < hebi_charts.Object3d
             hebi_charts_native('hebi_charts_Mesh_setDisplayStyle', this.ref_Mesh, hebi_charts.DisplayStyle.toNativeValue(style));
         end
 
+        function setMeshTransform4x4(this, matrix)
+            % Sets a fixed mesh-to-object pre-transform as a 4x4 matrix of the form
+            %
+            %       R R R x
+            %       R R R y
+            %       R R R z
+            %       0 0 0 1
+            %
+            %   The composition order is
+            %
+            %       rendered = objectPose * meshTransform * (centered and scaled mesh)
+            %
+            %   so the pre-transform is meant to be set once after loading to correct
+            %   for the frame the mesh was exported in (e.g. rotating a Y-up mesh to
+            %   Z-up), while the pose methods keep animating on top of it.
+            %
+            %   The transform needs to reference 16 elements and include the
+            %   bottom row. The translation units are in meters.
+            %   The input is not verified.
+            %
+            %   Inputs:
+            %       matrix - 4x4 transform matrix
+            %
+            %   Throws:
+            %       Error on internal errors
+            hebi_charts_native('hebi_charts_Mesh_setMeshTransform4x4', this.ref_Mesh, matrix);
+        end
+
+        function setMeshPoseRPY(this, x, y, z, roll, pitch, yaw)
+            % Sets the fixed mesh-to-object pre-transform using a translation and
+            %   Roll, Pitch, and Yaw (radians). Follows the ROS/REP-103 convention
+            %   (Extrinsic / Fixed-Axis XYZ):
+            %
+            %       orientation = Rz(yaw)*Ry(pitch)*Rx(roll)
+            %
+            %   This is a convenience for the common case of correcting the frame the
+            %   mesh was exported in (e.g. a Y-up mesh needs a roll of pi/2), while
+            %   the pose methods keep animating on top of it. The input is not verified!
+            %
+            %   Inputs:
+            %       x - position x [m]
+            %       y - position y [m]
+            %       z - position z [m]
+            %       roll - angle in [rad]
+            %       pitch - angle in [rad]
+            %       yaw - angle in [rad]
+            %
+            %   Throws:
+            %       Error on internal errors
+            hebi_charts_native('hebi_charts_Mesh_setMeshPoseRPY', this.ref_Mesh, x, y, z, roll, pitch, yaw);
+        end
+
     end
 
     methods(Access = public, Hidden = true)

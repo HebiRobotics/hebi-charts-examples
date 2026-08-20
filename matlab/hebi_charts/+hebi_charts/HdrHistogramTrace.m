@@ -11,6 +11,9 @@ classdef (Sealed) HdrHistogramTrace < handle & matlab.mixin.SetGet
             %       numberOfSignificantDigits
             %       minSeconds
             %       maxSeconds
+            %
+            %   Outputs:
+            %       A wait-free single-writer HdrHistogram record
             if nargin < 1
                 numberOfSignificantDigits = 2;
             end
@@ -22,7 +25,7 @@ classdef (Sealed) HdrHistogramTrace < handle & matlab.mixin.SetGet
             end
             ptr_ = hebi_charts_native('hebi_charts_HdrHistogramTrace_createLocal', numberOfSignificantDigits, minSeconds, maxSeconds);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.HdrHistogramTrace in HdrHistogramTrace.createLocal']);
+                error('Failed to create hebi_charts.HdrHistogramTrace in HdrHistogramTrace.createLocal');
             end
             obj = hebi_charts.HdrHistogramTrace(ptr_);
         end
@@ -158,8 +161,8 @@ classdef (Sealed) HdrHistogramTrace < handle & matlab.mixin.SetGet
 
     methods(Access = public, Hidden = true)
         function this = HdrHistogramTrace(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('HdrHistogramTrace constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('HdrHistogramTrace instances are created by the library');
             end
             this.ptr = ptr;
 

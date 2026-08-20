@@ -31,36 +31,30 @@ classdef (Sealed) Line < hebi_charts.XYSeries
             hebi_charts_native('hebi_charts_Line_clear', this.ref_Line);
         end
 
-        function setData(this, x, y, length)
+        function setData(this, x, y)
             % Replaces the entire dataset with the provided X and Y content. This
             %   operation copies the input data, so the caller retains ownership of
             %   the memory. Sets the buffer capacity to match the input length and
-            %   clears any previous rolling history.
+            %   clears any previous rolling history. Mismatched input lengths get
+            %   truncated to the shorter one.
             %
             %   Inputs:
             %       x - points
             %       y - points
-            %       length - number of x/y points
-            if nargin < 4
-                length = min(numel(x),numel(y));
-            end
-            hebi_charts_native('hebi_charts_Line_setData', this.ref_Line, x, y, length);
+            hebi_charts_native('hebi_charts_Line_setData', this.ref_Line, x, y);
         end
 
-        function addPoints(this, x, y, length)
+        function addPoints(this, x, y)
             % Appends multiple data points to the end of the internal rolling buffer.
             %   This operation copies the input data, so the caller retains ownership
             %   of the memory. If the total number of points exceeds the current capacity,
-            %   the oldest points are overwritten.
+            %   the oldest points are overwritten. Mismatched input lengths get
+            %   truncated to the shorter one.
             %
             %   Inputs:
             %       x - points
             %       y - points
-            %       length - number of x/y points
-            if nargin < 4
-                length = min(numel(x),numel(y));
-            end
-            hebi_charts_native('hebi_charts_Line_addPoints', this.ref_Line, x, y, length);
+            hebi_charts_native('hebi_charts_Line_addPoints', this.ref_Line, x, y);
         end
 
         function addPoint(this, x, y)

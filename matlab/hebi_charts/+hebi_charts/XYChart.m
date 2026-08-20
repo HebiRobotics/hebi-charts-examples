@@ -90,10 +90,7 @@ classdef XYChart < handle & matlab.mixin.SetGet
                 min = xlim(1);
                 max = xlim(2);
             end
-            status_ = hebi_charts_native('hebi_charts_XYChart_setXLim', this.ptr, min, max);
-            if status_ ~= 0
-                error(['Encountered error in XYChart.set.xlim' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_XYChart_setXLim', this.ptr, min, max);
         end
 
         function result = get.xmax(this)
@@ -220,18 +217,24 @@ classdef XYChart < handle & matlab.mixin.SetGet
 
         function obj = addXCursor(this, varargin)
             % Adds a draggable cursor to the X-axis
+            %
+            %   Outputs:
+            %       A vertical or horizontal cursor to measure or mark an axis value. Can be draggable.
             ptr_ = hebi_charts_native('hebi_charts_XYChart_addXCursor', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Cursor in XYChart.addXCursor' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Cursor in XYChart.addXCursor');
             end
             obj = hebi_charts.Cursor(ptr_, varargin{:});
         end
 
         function obj = addYCursor(this, varargin)
             % Adds a draggable cursor to the Y-axis
+            %
+            %   Outputs:
+            %       A vertical or horizontal cursor to measure or mark an axis value. Can be draggable.
             ptr_ = hebi_charts_native('hebi_charts_XYChart_addYCursor', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Cursor in XYChart.addYCursor' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Cursor in XYChart.addYCursor');
             end
             obj = hebi_charts.Cursor(ptr_, varargin{:});
         end
@@ -240,8 +243,8 @@ classdef XYChart < handle & matlab.mixin.SetGet
 
     methods(Access = public, Hidden = true)
         function this = XYChart(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('XYChart constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('XYChart instances are created by the library');
             end
             this.ptr = ptr;
 

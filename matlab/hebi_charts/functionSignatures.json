@@ -1601,10 +1601,6 @@
         "kind": "required",
         "name": "y",
         "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "length",
-        "type": ["numeric"]
       }]
   },
   "hebi_charts.Line.clear": {
@@ -1624,10 +1620,6 @@
       }, {
         "kind": "required",
         "name": "y",
-        "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "length",
         "type": ["numeric"]
       }]
   },
@@ -1665,10 +1657,6 @@
         "kind": "required",
         "name": "z",
         "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "length",
-        "type": ["numeric"]
       }]
   },
   "hebi_charts.Line3d.clear": {
@@ -1692,10 +1680,6 @@
       }, {
         "kind": "required",
         "name": "z",
-        "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "length",
         "type": ["numeric"]
       }]
   },
@@ -1850,6 +1834,46 @@
         "type": ["numeric"]
       }]
   },
+  "hebi_charts.Mesh.setMeshPoseRPY": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Mesh"
+      }, {
+        "kind": "required",
+        "name": "x",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "y",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "z",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "roll",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "pitch",
+        "type": ["numeric"]
+      }, {
+        "kind": "required",
+        "name": "yaw",
+        "type": ["numeric"]
+      }]
+  },
+  "hebi_charts.Mesh.setMeshTransform4x4": {
+    "inputs": [{
+        "name": "this",
+        "type": "hebi_charts.Mesh"
+      }, {
+        "kind": "required",
+        "name": "matrix",
+        "type": ["numeric"]
+      }]
+  },
   "hebi_charts.Object3d.setOrientation": {
     "inputs": [{
         "name": "this",
@@ -1932,10 +1956,6 @@
         "kind": "required",
         "name": "matrix",
         "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "ordering",
-        "type": ["hebi_charts.MatrixOrdering", "choices={'RowMajor', 'ColumnMajor'}"]
       }]
   },
   "hebi_charts.Object3d.setTranslation": {
@@ -1990,10 +2010,6 @@
         "kind": "required",
         "name": "z",
         "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "length",
-        "type": ["numeric"]
       }]
   },
   "hebi_charts.Points3d.clear": {
@@ -2017,10 +2033,6 @@
       }, {
         "kind": "required",
         "name": "z",
-        "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "length",
         "type": ["numeric"]
       }]
   },
@@ -2078,10 +2090,6 @@
         "kind": "required",
         "name": "positions",
         "type": ["numeric"]
-      }, {
-        "kind": "required",
-        "name": "length",
-        "type": ["numeric"]
       }]
   },
   "hebi_charts.Runtime.closeAll": {
@@ -2090,32 +2098,11 @@
   "hebi_charts.Runtime.collect": {
     "inputs": []
   },
-  "hebi_charts.Runtime.getLastErrorString": {
-    "inputs": [],
-    "outputs": [{
-        "name": "obj",
-        "type": ["char"]
-      }]
-  },
-  "hebi_charts.Runtime.printLastErrorDetails": {
-    "inputs": []
-  },
   "hebi_charts.Runtime.printThreadInfo": {
     "inputs": [{
         "kind": "required",
         "name": "name",
         "type": ["char"]
-      }]
-  },
-  "hebi_charts.Runtime.runOnUiThread": {
-    "inputs": [{
-        "kind": "required",
-        "name": "func",
-        "type": ["any"]
-      }, {
-        "kind": "required",
-        "name": "userData",
-        "type": ["any"]
       }]
   },
   "hebi_charts.Runtime.setAutoCloseWindows": {

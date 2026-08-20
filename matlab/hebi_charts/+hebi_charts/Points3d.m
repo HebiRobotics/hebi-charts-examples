@@ -78,38 +78,32 @@ classdef (Sealed) Points3d < hebi_charts.Series3d
             hebi_charts_native('hebi_charts_Points3d_clear', this.ref_Points3d);
         end
 
-        function setData(this, x, y, z, length)
+        function setData(this, x, y, z)
             % Replaces the entire dataset with the provided X/Y/Z content. This
             %   operation copies the input data, so the caller retains ownership of
             %   the memory. Sets the buffer capacity to match the input length and
-            %   clears any previous rolling history.
+            %   clears any previous rolling history. Mismatched input lengths get
+            %   truncated to the shortest one.
             %
             %   Inputs:
             %       x - points
             %       y - points
             %       z - points
-            %       length - number of x/y/z points
-            if nargin < 5
-                length = min(numel(x),numel(y),numel(z));
-            end
-            hebi_charts_native('hebi_charts_Points3d_setData', this.ref_Points3d, x, y, z, length);
+            hebi_charts_native('hebi_charts_Points3d_setData', this.ref_Points3d, x, y, z);
         end
 
-        function addPoints(this, x, y, z, length)
+        function addPoints(this, x, y, z)
             % Appends multiple data points to the end of the internal rolling buffer.
             %   This operation copies the input data, so the caller retains ownership
             %   of the memory. If the total number of points exceeds the current capacity,
-            %   the oldest points are overwritten.
+            %   the oldest points are overwritten. Mismatched input lengths get
+            %   truncated to the shortest one.
             %
             %   Inputs:
             %       x - points
             %       y - points
             %       z - points
-            %       length - number of x/y/z points
-            if nargin < 5
-                length = min(numel(x),numel(y),numel(z));
-            end
-            hebi_charts_native('hebi_charts_Points3d_addPoints', this.ref_Points3d, x, y, z, length);
+            hebi_charts_native('hebi_charts_Points3d_addPoints', this.ref_Points3d, x, y, z);
         end
 
         function addPoint(this, x, y, z)

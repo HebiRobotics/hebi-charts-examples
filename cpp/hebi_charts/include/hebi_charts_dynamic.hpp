@@ -1,11 +1,11 @@
 #pragma once
 
-#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -17,18 +17,6 @@
 
 namespace hebi {
 namespace charts {
-
-class Exception : public std::exception {
-public:
-  Exception(const char* message) noexcept : msg_(message) {}
-  Exception(const std::string& message) noexcept : msg_(message) {}
-  virtual ~Exception() noexcept {}
-  const char* what() const noexcept override {
-    return msg_.c_str();
-  }
-protected:
-  std::string msg_;
-};
 
 enum class CameraView : int32_t {
   ISOMETRIC = 0,
@@ -87,11 +75,6 @@ enum class MarkerType : int32_t {
   Diamond = 9,
   Diamond1 = 10,
   Diamond2 = 11
-};
-
-enum class MatrixOrdering : int32_t {
-  RowMajor = 0,
-  ColumnMajor = 1
 };
 
 enum class PixelFormat : int32_t {
@@ -166,7 +149,6 @@ class LineChart;
 class XYSeries;
 class LatencyTrace;
 class Line;
-using UserCallbackFunction = void (*)(void* userData);
 
 namespace internal {
 using CameraPtr = struct Camera_*;
@@ -200,6 +182,45 @@ using LineChartPtr = struct LineChart_*;
 using XYSeriesPtr = struct XYSeries_*;
 using LatencyTracePtr = struct LatencyTrace_*;
 using LinePtr = struct Line_*;
+struct DoubleSpan {
+  const double* data;
+  size_t length;
+};
+struct Transform4x4 {
+  const double* data;
+  int32_t ordering;
+};
+struct ErrorInfo {
+  const char* message;
+  const char* id;
+  int32_t code;
+};
+}
+
+using UserCallbackFunction = void (*)(void* userData);
+
+class Exception : public std::runtime_error {
+public:
+  explicit Exception(const char* message) : std::runtime_error(message) {}
+  Exception(const char* message, const char* id) : std::runtime_error(message), id_(id) {}
+  virtual ~Exception() noexcept = default;
+  const char* id() const noexcept { return id_.c_str(); } // Kind of failure, e.g., bindings:Generic
+private:
+  std::string id_;
+};
+
+inline void checkError(const internal::ErrorInfo& error) {
+  if (error.code != 0) {
+    const char* message = error.message != nullptr ? error.message : "unknown error";
+    const char* id = error.id != nullptr ? error.id : "";
+    throw Exception(message, id);
+  }
+}
+
+inline void checkNotNull(const void* ptr, const char* message) {
+  if (!ptr) {
+    throw Exception(message);
+  }
 }
 
 // ==== Class Wrappers ====
@@ -214,7 +235,7 @@ public:
   /**
    * @brief Sets the view point to a predefined standard view
    *
-   * @param view 
+   * @param view
    */
   void setView(CameraView view) noexcept;
 
@@ -224,10 +245,10 @@ public:
   void reset() noexcept;
 
   /**
-   * @details 
+   * @details
    * Applies an incremental rotation to the current camera view using a unit quaternion (x, y, z, w).
    * This follows the ROS/REP-103 convention where the scalar component 'w' is last.
-   * 
+   *
    * This rotation is multiplied by the current camera orientation.
    * The input is not verified!
    *
@@ -248,10 +269,10 @@ public:
   void setDistance(double distanceInMeters);
 
   /**
-   * @details 
+   * @details
    * Sets the 3D pan offset (panning) of the camera.
    * This slides the entire scene relative to the camera view.
-   * 
+   *
    * To center the camera on a specific object, use this to offset
    * the world origin.
    *
@@ -265,7 +286,7 @@ public:
   /**
    * @brief Shows or hides the on-screen navigation UI controls (buttons/overlays).
    *
-   * @param value 
+   * @param value
    */
   void setControlsVisible(bool value) noexcept;
   Camera(Camera&& from) noexcept;
@@ -292,7 +313,7 @@ public:
   /**
    * @brief Sets the disabled state of this node
    *
-   * @param enabled 
+   * @param enabled
    */
   void setEnabled(bool enabled) noexcept;
 
@@ -304,7 +325,7 @@ public:
   /**
    * @brief Sets the name or descriptor of the control in the left column
    *
-   * @param name 
+   * @param name
    */
   void setLabel(const char* name) noexcept;
   void setLabel(const std::string& name) noexcept;
@@ -317,7 +338,7 @@ public:
   /**
    * @brief Sets the tooltip
    *
-   * @param tooltip 
+   * @param tooltip
    */
   void setTooltip(const char* tooltip) noexcept;
   void setTooltip(const std::string& tooltip) noexcept;
@@ -330,7 +351,7 @@ public:
   /**
    * @brief Sets the visibility of this node
    *
-   * @param visible 
+   * @param visible
    */
   void setVisible(bool visible) noexcept;
   Control(Control&& from) noexcept;
@@ -359,7 +380,7 @@ public:
   /**
    * @brief Sets the text of this button
    *
-   * @param text 
+   * @param text
    */
   void setText(const char* text) noexcept;
   void setText(const std::string& text) noexcept;
@@ -370,7 +391,7 @@ public:
   bool isPressed() noexcept;
 
   /**
-   * @details 
+   * @details
    * Returns whether the button was pressed at least once since the last call and
    * resets the flag. Toggling visibility or enabled states also reset the flag.
    */
@@ -394,8 +415,8 @@ public:
   /**
    * @brief Sets the list of available options
    *
-   * @param options 
-   * @param count 
+   * @param options
+   * @param count
    */
   void setOptions(const char** options, size_t count) noexcept;
   void setOptions(const std::vector<std::string>& options) noexcept;
@@ -408,20 +429,20 @@ public:
   /**
    * @brief Sets the selected index
    *
-   * @param index 
+   * @param index
    */
   void setSelectedIndex(int index) noexcept;
 
   /**
    * @brief Adds an option to the list
    *
-   * @param option 
+   * @param option
    */
   void addOption(const char* option) noexcept;
   void addOption(const std::string& option) noexcept;
 
   /**
-   * @details 
+   * @details
    * Returns whether the control value has changed since the last call and
    * resets the flag. Toggling visibility or enabled states also reset the flag.
    */
@@ -450,7 +471,7 @@ public:
   /**
    * @brief Sets the text of this status label
    *
-   * @param text 
+   * @param text
    */
   void setText(const char* text) noexcept;
   void setText(const std::string& text) noexcept;
@@ -463,7 +484,7 @@ public:
   /**
    * @brief Sets the numeric value of this label using a standard engineering format
    *
-   * @param value 
+   * @param value
    */
   void setValue(double value) noexcept;
   Label(Label&& from) noexcept;
@@ -485,8 +506,8 @@ public:
   /**
    * @brief Sets the possible range of the slider [min, max]
    *
-   * @param min 
-   * @param max 
+   * @param min
+   * @param max
    */
   void setLimits(double min, double max) noexcept;
 
@@ -498,7 +519,7 @@ public:
   /**
    * @brief Sets the maximum value of the slider range. Must be greater than min.
    *
-   * @param max 
+   * @param max
    */
   void setMax(double max) noexcept;
 
@@ -510,7 +531,7 @@ public:
   /**
    * @brief Sets the minimum value of the slider range. Must be less than max.
    *
-   * @param min 
+   * @param min
    */
   void setMin(double min) noexcept;
 
@@ -522,12 +543,12 @@ public:
   /**
    * @brief Sets the value of this slider
    *
-   * @param value 
+   * @param value
    */
   void setValue(double value) noexcept;
 
   /**
-   * @details 
+   * @details
    * Returns whether the control value has changed since the last call and
    * resets the flag. Toggling visibility or enabled states also reset the flag.
    */
@@ -556,12 +577,12 @@ public:
   /**
    * @brief Sets the toggle state
    *
-   * @param selected 
+   * @param selected
    */
   void setSelected(bool selected) noexcept;
 
   /**
-   * @details 
+   * @details
    * Returns whether the control value has changed since the last call and
    * resets the flag. Toggling visibility or enabled states also reset the flag.
    */
@@ -590,7 +611,7 @@ public:
   /**
    * @brief Sets the title
    *
-   * @param title 
+   * @param title
    */
   void setTitle(const char* title) noexcept;
   void setTitle(const std::string& title) noexcept;
@@ -603,14 +624,14 @@ public:
   /**
    * @brief Sets the desired width
    *
-   * @param width 
+   * @param width
    */
   void setWidth(double width) noexcept;
 
   /**
    * @brief Starts a new section with the given header
    *
-   * @param title 
+   * @param title
    * @throw on internal errors
    */
   void addSection(const char* title);
@@ -618,42 +639,56 @@ public:
 
   /**
    * @brief Adds a label for displaying text to the control panel
+   *
+   * @return A control that displays some text or value
    * @throw on internal errors
    */
   Label addLabel();
 
   /**
    * @brief Adds a button to the control panel
+   *
+   * @return A button control
    * @throw on internal errors
    */
   Button addButton();
 
   /**
    * @brief Adds a 'start'-style button to the control panel
+   *
+   * @return A button control
    * @throw on internal errors
    */
   Button addStartButton();
 
   /**
    * @brief Adds a 'stop'-style (red) button to the control panel
+   *
+   * @return A button control
    * @throw on internal errors
    */
   Button addStopButton();
 
   /**
    * @brief Adds a slider to the control panel
+   *
+   * @return A slider control for numeric input
    * @throw on internal errors
    */
   Slider addSlider();
 
   /**
    * @brief Adds a toggle to the control panel
+   *
+   * @return A boolean toggle switch for on/off states
    * @throw on internal errors
    */
   Toggle addToggle();
 
   /**
    * @brief Adds a dropdown choice selector to the control panel
+   *
+   * @return A dropdown selection control for switching between discrete modes
    * @throw on internal errors
    */
   Dropdown addDropdown();
@@ -682,7 +717,7 @@ public:
   /**
    * @brief Editable indicators can be dragged around by users
    *
-   * @param editable 
+   * @param editable
    */
   void setEditable(bool editable) noexcept;
 
@@ -694,7 +729,7 @@ public:
   /**
    * @brief Sets the indicator label. Empty or null hides the label.
    *
-   * @param label 
+   * @param label
    */
   void setLabel(const char* label) noexcept;
   void setLabel(const std::string& label) noexcept;
@@ -707,7 +742,7 @@ public:
   /**
    * @brief Sets the indicated value. NaN hides the indicator.
    *
-   * @param value 
+   * @param value
    */
   void setValue(double value) noexcept;
 
@@ -719,7 +754,7 @@ public:
   /**
    * @brief Sets the visibility in the chart
    *
-   * @param visible 
+   * @param visible
    */
   void setVisible(bool visible) noexcept;
   Cursor(Cursor&& from) noexcept;
@@ -747,7 +782,7 @@ public:
   /**
    * @brief Sets the auto-reload state
    *
-   * @param enableAutoReload 
+   * @param enableAutoReload
    */
   void setAutoReload(bool enableAutoReload) noexcept;
 
@@ -768,7 +803,8 @@ public:
   /**
    * @brief Creates a 2d line chart with the given size
    *
-   * @param fxId 
+   * @param fxId
+   * @return Represents an XY line chart
    * @throw on internal errors
    */
   LineChart addLineChart(const char* fxId);
@@ -777,7 +813,8 @@ public:
   /**
    * @brief Creates a line chart with a pre-set time axis in [s]
    *
-   * @param fxId 
+   * @param fxId
+   * @return Represents an XY line chart
    * @throw on internal errors
    */
   LineChart addScope(const char* fxId);
@@ -786,7 +823,8 @@ public:
   /**
    * @brief Creates a latency chart for displaying latency measurements [s]
    *
-   * @param fxId 
+   * @param fxId
+   * @return Shows latency measurements in HdrHistogram percentile format
    * @throw on internal errors
    */
   LatencyChart addLatencyChart(const char* fxId);
@@ -795,7 +833,8 @@ public:
   /**
    * @brief Creates a 3d chart with the given size
    *
-   * @param fxId 
+   * @param fxId
+   * @return Represents a 3d scene that can render a variety of objects in 3d space
    * @throw on internal errors
    */
   Scene3d addScene3d(const char* fxId);
@@ -804,8 +843,9 @@ public:
   /**
    * @brief Shows a shared-memory stream generated by hebi-video tools
    *
-   * @param file 
-   * @param fxId 
+   * @param file
+   * @param fxId
+   * @return Shows a shared-memory stream generated by hebi-video tools.
    * @throw on internal errors
    */
   StreamView addStreamView(const char* file, const char* fxId);
@@ -814,7 +854,8 @@ public:
   /**
    * @brief Shows a panel for interactive controls
    *
-   * @param fxId 
+   * @param fxId
+   * @return A completely customizable view that is defined by FXML.
    * @throw on internal errors
    */
   FxmlView addFxmlView(const char* fxId);
@@ -838,8 +879,9 @@ public:
   /**
    * @brief Creates a grid of equally sized rows and columns
    *
-   * @param rows 
-   * @param cols 
+   * @param rows
+   * @param cols
+   * @return Represents a window containing an equally sized row/col grid
    * @throw on internal errors
    */
   GridWindow(int rows = 1, int cols = 1);
@@ -852,7 +894,7 @@ public:
   /**
    * @brief Enters or exits fullscreen mode. Does not apply to off screen windows
    *
-   * @param fullScreen 
+   * @param fullScreen
    */
   void setFullScreen(bool fullScreen) noexcept;
 
@@ -864,7 +906,7 @@ public:
   /**
    * @brief Sets the content height in display points
    *
-   * @param height 
+   * @param height
    */
   void setHeight(int height) noexcept;
 
@@ -876,23 +918,23 @@ public:
   /**
    * @brief Keeps the window open after the destructor gets called
    *
-   * @param keepOpen 
+   * @param keepOpen
    */
   void setKeepOpen(bool keepOpen) noexcept;
 
   /**
    * @brief Sets the window's screen location in pixels (x, y)
    *
-   * @param xOffset 
-   * @param yOffset 
+   * @param xOffset
+   * @param yOffset
    */
   void setLocation(int xOffset, int yOffset) noexcept;
 
   /**
    * @brief Sets the content size in display points (width, height), excluding the title bar.
    *
-   * @param width 
-   * @param height 
+   * @param width
+   * @param height
    */
   void setSize(int width, int height) noexcept;
 
@@ -904,7 +946,7 @@ public:
   /**
    * @brief Sets the title of the window header bar
    *
-   * @param title 
+   * @param title
    */
   void setTitle(const char* title) noexcept;
   void setTitle(const std::string& title) noexcept;
@@ -917,7 +959,7 @@ public:
   /**
    * @brief Sets the content width in display points
    *
-   * @param width 
+   * @param width
    */
   void setWidth(int width) noexcept;
 
@@ -929,7 +971,7 @@ public:
   /**
    * @brief Sets the window's horizontal screen location in pixels
    *
-   * @param x 
+   * @param x
    */
   void setX(int x) noexcept;
 
@@ -941,17 +983,18 @@ public:
   /**
    * @brief Sets the window's vertical screen location in pixels
    *
-   * @param y 
+   * @param y
    */
   void setY(int y) noexcept;
 
   /**
    * @brief Creates a 2d line chart with the given size
    *
-   * @param row 
-   * @param col 
-   * @param rowSpan 
-   * @param colSpan 
+   * @param row
+   * @param col
+   * @param rowSpan
+   * @param colSpan
+   * @return Represents an XY line chart
    * @throw on internal errors
    */
   LineChart addLineChart(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
@@ -959,10 +1002,11 @@ public:
   /**
    * @brief Creates a line chart with a pre-set time axis in [s]
    *
-   * @param row 
-   * @param col 
-   * @param rowSpan 
-   * @param colSpan 
+   * @param row
+   * @param col
+   * @param rowSpan
+   * @param colSpan
+   * @return Represents an XY line chart
    * @throw on internal errors
    */
   LineChart addScope(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
@@ -970,10 +1014,11 @@ public:
   /**
    * @brief Creates a latency chart for recording latency measurements in [s]
    *
-   * @param row 
-   * @param col 
-   * @param rowSpan 
-   * @param colSpan 
+   * @param row
+   * @param col
+   * @param rowSpan
+   * @param colSpan
+   * @return Shows latency measurements in HdrHistogram percentile format
    * @throw on internal errors
    */
   LatencyChart addLatencyChart(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
@@ -981,10 +1026,11 @@ public:
   /**
    * @brief Creates a 3d chart with the given size
    *
-   * @param row 
-   * @param col 
-   * @param rowSpan 
-   * @param colSpan 
+   * @param row
+   * @param col
+   * @param rowSpan
+   * @param colSpan
+   * @return Represents a 3d scene that can render a variety of objects in 3d space
    * @throw on internal errors
    */
   Scene3d addScene3d(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
@@ -992,11 +1038,12 @@ public:
   /**
    * @brief Shows a shared-memory stream generated by hebi-video tools
    *
-   * @param file 
-   * @param row 
-   * @param col 
-   * @param rowSpan 
-   * @param colSpan 
+   * @param file
+   * @param row
+   * @param col
+   * @param rowSpan
+   * @param colSpan
+   * @return Shows a shared-memory stream generated by hebi-video tools.
    * @throw on internal errors
    */
   StreamView addStreamView(const char* file, int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
@@ -1005,10 +1052,11 @@ public:
   /**
    * @brief Shows a panel for interactive controls
    *
-   * @param row 
-   * @param col 
-   * @param rowSpan 
-   * @param colSpan 
+   * @param row
+   * @param col
+   * @param rowSpan
+   * @param colSpan
+   * @return A completely customizable view that is defined by FXML.
    * @throw on internal errors
    */
   FxmlView addFxmlView(int row = 0, int col = 0, int rowSpan = 1, int colSpan = 1);
@@ -1052,42 +1100,52 @@ public:
 
   /**
    * @brief Returns a fixed-size panel on the side of the window that can be used for interactive controls
+   *
+   * @return A panel containing a list of interactive controls like buttons, sliders, and labels
    * @throw on internal errors
    */
   ControlPanel getControlPanel();
 
   /**
-   * @details 
+   * @details
    * [EXPERIMENTAL API]
    * Creates an image stream that continuously stores the content as images.
+   *
+   * @return [EXPERIMENTAL API]
+  Represents a stream of images with an accessible pixel buffer. This class
+  is not thread-safe and should only be used from one thread. Buffers and metadata
+  for an image are only valid in between successful next() calls.
+
+  The stream reuses multiple buffers internally and provides efficient access to the raw memory.
+
    * @throw on internal errors
    */
   ImageStream createImageStream();
 
   /**
-   * @details 
+   * @details
    * [EXPERIMENTAL API]
    * Injects a mouse event into this window
    *
-   * @param action 
-   * @param button 
-   * @param downMask 
-   * @param modifiers 
-   * @param x 
-   * @param y 
+   * @param action
+   * @param button
+   * @param downMask
+   * @param modifiers
+   * @param x
+   * @param y
    */
   void dispatchMouseEvent(int action, int button, int downMask, int modifiers, double x, double y) noexcept;
 
   /**
-   * @details 
+   * @details
    * [EXPERIMENTAL API]
    * Injects a mouse event into this window
    *
-   * @param x 
-   * @param y 
-   * @param delta_x 
-   * @param delta_y 
-   * @param modifiers 
+   * @param x
+   * @param y
+   * @param delta_x
+   * @param delta_y
+   * @param modifiers
    */
   void dispatchScrollEvent(double x, double y, double delta_x, double delta_y, int modifiers) noexcept;
   GridWindow(GridWindow&& from) noexcept;
@@ -1095,6 +1153,7 @@ public:
   ~GridWindow() noexcept;
 private:
   void cleanup() noexcept;
+  explicit GridWindow(internal::GridWindowPtr cPointer) noexcept : ptr_(cPointer) {}
   internal::GridWindowPtr ptr_{};
 };
 
@@ -1137,7 +1196,7 @@ public:
   /**
    * @brief Sets the number of significant decimal digits to maintain (1-5).
    *
-   * @param significantDigits 
+   * @param significantDigits
    * @throw on internal errors
    */
   void setSignificantDigits(int significantDigits);
@@ -1145,7 +1204,8 @@ public:
   /**
    * @brief Creates a new single-writer trace that gets recorded in intervals.
    *
-   * @param tag 
+   * @param tag
+   * @return A wait-free single-writer HdrHistogram record
    */
   HdrHistogramTrace addTrace(const char* tag) noexcept;
   HdrHistogramTrace addTrace(const std::string& tag) noexcept;
@@ -1168,6 +1228,7 @@ public:
   ~HdrHistogramRecorder() noexcept;
 private:
   void cleanup() noexcept;
+  explicit HdrHistogramRecorder(internal::HdrHistogramRecorderPtr cPointer) noexcept : ptr_(cPointer) {}
   internal::HdrHistogramRecorderPtr ptr_{};
 };
 
@@ -1210,20 +1271,21 @@ public:
   size_t getTotalCount() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Creates an unattached and untagged histogram. The local version removes
    * all synchronization overhead, but is not thread-safe.
    *
-   * @param numberOfSignificantDigits 
-   * @param minSeconds 
-   * @param maxSeconds 
+   * @param numberOfSignificantDigits
+   * @param minSeconds
+   * @param maxSeconds
+   * @return A wait-free single-writer HdrHistogram record
    */
   static HdrHistogramTrace createLocal(int numberOfSignificantDigits = 2, double minSeconds = 1e-9, double maxSeconds = 3600) noexcept;
 
   /**
    * @brief Returns the value at a specific percentile (0-100) in [s].
    *
-   * @param percentile 
+   * @param percentile
    */
   double getValueAtPercentile(double percentile) const noexcept;
 
@@ -1243,7 +1305,7 @@ public:
   double ticToc() noexcept;
 
   /**
-   * @details 
+   * @details
    * Records a single latency value in seconds. Values outside the
    * min/max range are clamped. Returns the recorded value in [s]
    *
@@ -1260,7 +1322,7 @@ public:
   void recordValueWithCount(double value, size_t count) noexcept;
 
   /**
-   * @details 
+   * @details
    * Records a value in seconds with Coordinated Omission compensation.
    * If the value is larger than the expected interval, additional samples
    * are auto-generated to fill the gap.
@@ -1283,11 +1345,11 @@ public:
   std::string toHgrmString(double outputUnitsPerSecond = 1e6) const noexcept;
 
   /**
-   * @details 
+   * @details
    * Saves the percentile distribution as an .hgrm file in the desired output units. This
    * can be loaded into standard hgrm plotting tools. Returns the absolute path to the output.
    *
-   * @param fileName 
+   * @param fileName
    * @param outputUnitsPerSecond output scale (ms=1e3, us=1e6, ns=1e9
    * @throw on internal errors
    */
@@ -1304,12 +1366,12 @@ private:
 
 
 /**
- * @details 
+ * @details
  * [EXPERIMENTAL API]
  * Represents a stream of images with an accessible pixel buffer. This class
  * is not thread-safe and should only be used from one thread. Buffers and metadata
  * for an image are only valid in between successful next() calls.
- * 
+ *
  * The stream reuses multiple buffers internally and provides efficient access to the raw memory.
  */
 class ImageStream {
@@ -1337,53 +1399,53 @@ public:
   int getHeight() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Represents the pixel format of the current buffer. The native and most
    * performant format is BGRA_PRE, which stores pixels in adjacent bytes
    * with premultiplied alpha components.
-   * 
+   *
    * Other convenience formats may be added in the future, but as of this point
    * the others are all experimental.
-   * 
+   *
    * [Memory Layout (BGRA_PRE)]
    * Bytes are stored in order of increasing index: Blue, Green, Red, Alpha
-   * 
+   *
    * [Compatibility]
    * With an Alpha of 255 BGRA_PRE is identical to BGRA and is binary-compatible with the following:
-   * 
+   *
    *     OpenCV:    CV_8UC4
-   * 
+   *
    *     wxWidgets: BitmapBufferFormat_ARGB32
    *                BitmapBufferFormat_RGB32
-   * 
+   *
    *     Qt:        Format_ARGB32 (on little endian)
    *                Format_BGRA8888
-   * 
+   *
    * Alpha less than 255 would show the image as darker or distorted, in which case
    * the channels would need to be un-multiplied first.
-   * 
+   *
    * [Usage]
    * Pixels in this format can be decoded using the following sample code:
-   * 
+   *
    *     int i = rowstart + x * 4;
    *     int blue  = buffer[i + 0] & 0xff;
    *     int green = buffer[i + 1] & 0xff;
    *     int red   = buffer[i + 2] & 0xff;
    *     int alpha = buffer[i + 3] & 0xff;
-   * 
+   *
    * @return the pixel format of the current frame
    */
   PixelFormat getPixelFormat() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Sets the desired pixel format for future frames. The stream starts
    * with the default of BGRA_PRE. Setting Unknown also reverts back to
    * the default.
-   * 
+   *
    * All other formats are considered experimental.
    *
-   * @param pixelFormat 
+   * @param pixelFormat
    */
   void setPixelFormat(PixelFormat pixelFormat) const noexcept;
 
@@ -1409,7 +1471,7 @@ public:
   /**
    * @brief Sets the number of threads used for encoding individual frames
    *
-   * @param numThreads 
+   * @param numThreads
    * @throw on internal errors
    */
   void setRecorderThreads(size_t numThreads);
@@ -1441,7 +1503,7 @@ public:
   size_t getSequence() const noexcept;
 
   /**
-   * @details 
+   * @details
    * @return the number of bytes from the start of one row to the next.
    * This includes any padding for memory alignment.
    */
@@ -1460,19 +1522,19 @@ public:
   /**
    * @brief Sets the resolution for future snapshots. Defaults to the initial resolution. Set 0 to auto-size.
    *
-   * @param width 
-   * @param height 
+   * @param width
+   * @param height
    * @throw on internal errors
    */
   void setResolution(int width, int height);
 
   /**
-   * @details 
+   * @details
    * Waits until there is a new image, and flips internal buffers
    * as needed. Similar in behavior, but more efficient than.
-   * 
+   *
    *     while (!tryGetNext() && !timeout) yield();
-   * 
+   *
    * @return true if a new image is available
    *
    * @param maxTimeoutMillis zero waits forever
@@ -1481,20 +1543,20 @@ public:
   bool waitForNext(size_t maxTimeoutMillis);
 
   /**
-   * @details 
+   * @details
    * Checks whether there is a new image, and flips
    * internal buffers as needed. Any metadata is only
    * valid until the next call.
-   * 
+   *
    * @return true if a new image is available
    */
   bool tryGetNext() noexcept;
 
   /**
-   * @details 
+   * @details
    * [EXPERIMENTAL API]
    * Losslessly records individual frames to disk in a way that ffmpeg can convert.
-   * 
+   *
    * The base name represents the file name without the extension. Images get stored
    * in dir/<base>/*.png and the result will be in dir/<base>.<extension>.
    *
@@ -1507,6 +1569,11 @@ public:
 
   /**
    * @brief [EXPERIMENTAL API] Blocking call that stops recording and returns the result.
+   *
+   * @return [EXPERIMENTAL API]
+  Represents the result of a recording. Can be used to
+  get various statistics and/or trigger FFMpeg.
+
    * @throw on internal errors
    */
   RecordingResult stopRecording();
@@ -1514,7 +1581,7 @@ public:
   /**
    * @brief Saves the image to a file
    *
-   * @param fileName 
+   * @param fileName
    * @throw on internal errors
    */
   void saveToFile(const char* fileName) const;
@@ -1530,7 +1597,7 @@ private:
 
 
 /**
- * @details 
+ * @details
  * Provides various time related functionality for timing, benchmarking,
  * and scheduling loops. On Windows, using any method will request an
  * interrupt timer of 1ms - beginTimePeriod(1).
@@ -1561,7 +1628,7 @@ public:
   void setPeriod(double seconds) noexcept;
 
   /**
-   * @details 
+   * @details
    * Resets the internal start time offset to now. This gets
    * used to determine the elapsed time and the starting point
    * for periodic ticks.
@@ -1584,7 +1651,7 @@ public:
   double ticToc() noexcept;
 
   /**
-   * @details 
+   * @details
    * Waits until the next periodic tick counting from the starting point. For
    * example, if the start time is 12 with a period of 5, this call will wait
    * until the next tick (17, 22, 27, 32, ...) that occurs after the current
@@ -1595,7 +1662,7 @@ public:
   void waitForNextTick() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Returns the remaining time in seconds until the next periodic tick counting
    * from the starting point. For example, if the start time is 12 with a period
    * of 5, this call returns the time to the next tick (17, 22, 27, 32, ...) that
@@ -1605,7 +1672,7 @@ public:
   double getSecondsToNextTick() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Returns the remaining time in nanoseconds until the next periodic tick counting
    * from the starting point. For example, if the start time is 12 with a period
    * of 5, this call returns the time to the next tick (17, 22, 27, 32, ...) that
@@ -1625,7 +1692,7 @@ public:
   static size_t timeNanos() noexcept;
 
   /**
-   * @details 
+   * @details
    * Experimental (may be removed in the future):
    * Attempts to sleep for the given number of nanoseconds using Thread::sleep. Results are
    * best effort and depend on the platform. Threads might spuriously wake up early or be late.
@@ -1635,7 +1702,7 @@ public:
   static void sleepNanos(size_t nanos) noexcept;
 
   /**
-   * @details 
+   * @details
    * Experimental (may be removed in the future):
    * Attempts to sleep for the given number of nanoseconds using LockSupport::park. Results are
    * best effort and depend on the platform. Threads might spuriously wake up early or be late.
@@ -1645,7 +1712,7 @@ public:
   static void parkNanos(size_t nanos) noexcept;
 
   /**
-   * @details 
+   * @details
    * Experimental (may be removed in the future):
    * Attempts to sleep for the given number of nanoseconds using Object::wait. Results are
    * best effort and depend on the platform. Threads might spuriously wake up early or be late.
@@ -1655,7 +1722,7 @@ public:
   static void waitNanos(size_t nanos) noexcept;
 
   /**
-   * @details 
+   * @details
    * Experimental (may be removed in the future):
    * Attempts to "sleep" for the given number of nanoseconds using tiered spin methods for a more
    * accurate result in exchange for higher CPU cost. Results are best effort and depend on the
@@ -1669,6 +1736,7 @@ public:
   ~LoopTimer() noexcept;
 private:
   void cleanup() noexcept;
+  explicit LoopTimer(internal::LoopTimerPtr cPointer) noexcept : ptr_(cPointer) {}
   internal::LoopTimerPtr ptr_{};
 };
 
@@ -1687,12 +1755,12 @@ public:
   /**
    * @brief Sets visibility for this object. Hidden objects are not removed from the SceneGraph
    *
-   * @param visible 
+   * @param visible
    */
   void setVisible(bool visible) noexcept;
 
   /**
-   * @details 
+   * @details
    * Sets the orientation of the object using a unit quaternion (x, y, z, w).
    * This follows the ROS/REP-103 convention where the scalar component 'w' is last.
    * The input is not verified!
@@ -1706,12 +1774,12 @@ public:
   void setOrientation(double qx, double qy, double qz, double qw);
 
   /**
-   * @details 
+   * @details
    * Sets the orientation of the object using Roll, Pitch, and Yaw (radians).
    * Follows the ROS/REP-103 convention (Extrinsic / Fixed-Axis XYZ):
-   * 
+   *
    *     orientation = Rz(yaw)*Ry(pitch)*Rx(roll)
-   * 
+   *
    * This method preserves the current translation. The input is not verified!
    *
    * @param roll angle in [rad]
@@ -1732,11 +1800,11 @@ public:
   void setTranslation(double x, double y, double z);
 
   /**
-   * @details 
+   * @details
    * Sets the full pose (position and orientation) of the object in a
    * single atomic update. This follows the ROS/REP-103 convention
    * (Position + Quaternion).
-   * 
+   *
    * Units: Translation in [m], Quaternion (x, y, z, w).
    * The input is not verified!
    *
@@ -1752,24 +1820,23 @@ public:
   void setPose(double x, double y, double z, double qx, double qy, double qz, double qw);
 
   /**
-   * @details 
+   * @details
    * Sets a 4x4 transform matrix of the form
-   * 
+   *
    *     R R R x
    *     R R R y
    *     R R R z
    *     0 0 0 1
-   * 
-   * The transform needs to be of size=16 and include the
+   *
+   * The transform needs to reference 16 elements and include the
    * bottom row. The translation units are in meters.
    * The input is not verified.
    *
-   * @param matrix pointer to 16 double elements
-   * @param ordering corresponding memory layout of the 4x4 matrix
+   * @param matrix 4x4 transform matrix
    * @throw on internal errors
    */
-  void setTransform4x4(const double* matrix, MatrixOrdering ordering);
-  void setTransform4x4(const std::vector<double>& matrix, MatrixOrdering ordering = MatrixOrdering::RowMajor);
+  void setTransform4x4(internal::Transform4x4 matrix);
+  void setTransform4x4(const std::array<double, 16>& matrix);
   Object3d(Object3d&& from) noexcept;
   Object3d& operator=(Object3d&& from) noexcept;
   virtual ~Object3d() noexcept;
@@ -1811,7 +1878,7 @@ public:
   /**
    * @brief Moves the origin to the center of the mesh.
    *
-   * @param centered 
+   * @param centered
    */
   void setCentered(bool centered) noexcept;
 
@@ -1821,12 +1888,12 @@ public:
   double getScale() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Sets the scaling factor applied to the mesh. The internal
    * units are mm, so a mesh in meters would need to be scaled
    * by 1e-3 to render correctly.
    *
-   * @param scaleUnitsToMillimeters 
+   * @param scaleUnitsToMillimeters
    */
   void setScale(double scaleUnitsToMillimeters) noexcept;
 
@@ -1836,9 +1903,9 @@ public:
   DisplayStyle getDisplayStyle() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Updates the visual representation of the mesh model.
-   * 
+   *
    * This is typically used to visually distinguish between multiple states of
    * the same mesh, such as overlaying a semi-transparent 'Ghosted' target
    * pose over the 'Original' pose.
@@ -1846,6 +1913,55 @@ public:
    * @param style sets the display style
    */
   void setDisplayStyle(DisplayStyle style) noexcept;
+
+  /**
+   * @details
+   * Sets a fixed mesh-to-object pre-transform as a 4x4 matrix of the form
+   *
+   *     R R R x
+   *     R R R y
+   *     R R R z
+   *     0 0 0 1
+   *
+   * The composition order is
+   *
+   *     rendered = objectPose * meshTransform * (centered and scaled mesh)
+   *
+   * so the pre-transform is meant to be set once after loading to correct
+   * for the frame the mesh was exported in (e.g. rotating a Y-up mesh to
+   * Z-up), while the pose methods keep animating on top of it.
+   *
+   * The transform needs to reference 16 elements and include the
+   * bottom row. The translation units are in meters.
+   * The input is not verified.
+   *
+   * @param matrix 4x4 transform matrix
+   * @throw on internal errors
+   */
+  void setMeshTransform4x4(internal::Transform4x4 matrix);
+  void setMeshTransform4x4(const std::array<double, 16>& matrix);
+
+  /**
+   * @details
+   * Sets the fixed mesh-to-object pre-transform using a translation and
+   * Roll, Pitch, and Yaw (radians). Follows the ROS/REP-103 convention
+   * (Extrinsic / Fixed-Axis XYZ):
+   *
+   *     orientation = Rz(yaw)*Ry(pitch)*Rx(roll)
+   *
+   * This is a convenience for the common case of correcting the frame the
+   * mesh was exported in (e.g. a Y-up mesh needs a roll of pi/2), while
+   * the pose methods keep animating on top of it. The input is not verified!
+   *
+   * @param x position x [m]
+   * @param y position y [m]
+   * @param z position z [m]
+   * @param roll angle in [rad]
+   * @param pitch angle in [rad]
+   * @param yaw angle in [rad]
+   * @throw on internal errors
+   */
+  void setMeshPoseRPY(double x, double y, double z, double roll, double pitch, double yaw);
   Mesh(Mesh&& from) noexcept;
   Mesh& operator=(Mesh&& from) noexcept;
 private:
@@ -1868,9 +1984,9 @@ public:
   DisplayStyle getDisplayStyle() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Updates the visual representation of the robot model.
-   * 
+   *
    * This is typically used to visually distinguish between multiple states of
    * the same robot, such as overlaying a semi-transparent 'Ghosted' target
    * pose over the 'Original' pose.
@@ -1885,22 +2001,21 @@ public:
   size_t getDof() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Updates the robot model configuration (kinematics) using a vector of joint positions.
-   * 
+   *
    * Units:
    *   - Revolute joints: [rad]
    *   - Prismatic joints: [m]
-   * 
+   *
    * The order of the vector must match the joint definitions in the underlying model.
-   * The 'length' parameter must exactly match the number of degrees of freedom (DOF)
+   * The number of positions must exactly match the number of degrees of freedom (DOF)
    * returned by getDof().
    *
-   * @param positions pointer to an array of joint positions
-   * @param length number of joints (must match getDof)
+   * @param positions joint positions (size must match getDof)
    * @throw if position vector length does not match number of joints.
    */
-  void setPositions(const double* positions, size_t length);
+  void setPositions(internal::DoubleSpan positions);
   void setPositions(const std::vector<double>& positions);
   Robot(Robot&& from) noexcept;
   Robot& operator=(Robot&& from) noexcept;
@@ -1925,7 +2040,7 @@ public:
   /**
    * @brief Sets the dataset color
    *
-   * @param color 
+   * @param color
    */
   void setColor(Color color) noexcept;
   Series3d(Series3d&& from) noexcept;
@@ -1939,7 +2054,7 @@ private:
 
 
 /**
- * @details 
+ * @details
  * Represents a line in 3d space. Note that there are currently no
  * line primitives, so the rendering is platform dependent and the
  * performance is limited.
@@ -1949,7 +2064,7 @@ class Line3d : public Series3d {
 public:
 
   /**
-   * @details 
+   * @details
    * Sets the internal maximum point count for incrementally
    * adding points. May clear existing data.
    *
@@ -1963,43 +2078,43 @@ public:
   void clear() noexcept;
 
   /**
-   * @details 
+   * @details
    * Replaces the entire dataset with the provided X/Y/Z content. This
    * operation copies the input data, so the caller retains ownership of
    * the memory. Sets the buffer capacity to match the input length and
-   * clears any previous rolling history.
+   * clears any previous rolling history. Mismatched input lengths get
+   * truncated to the shortest one.
    *
    * @param x points
    * @param y points
    * @param z points
-   * @param length number of x/y/z points
    */
-  void setData(const double* x, const double* y, const double* z, size_t length) noexcept;
+  void setData(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept;
   void setData(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept;
 
   /**
-   * @details 
+   * @details
    * Appends multiple data points to the end of the internal rolling buffer.
    * This operation copies the input data, so the caller retains ownership
    * of the memory. If the total number of points exceeds the current capacity,
-   * the oldest points are overwritten.
+   * the oldest points are overwritten. Mismatched input lengths get
+   * truncated to the shortest one.
    *
    * @param x points
    * @param y points
    * @param z points
-   * @param length number of x/y/z points
    */
-  void addPoints(const double* x, const double* y, const double* z, size_t length) noexcept;
+  void addPoints(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept;
   void addPoints(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept;
 
   /**
-   * @details 
+   * @details
    * Adds one point to an internal rolling buffer. Once the maximum
    * point count is reached, it will overwrite the earliest data.
    *
-   * @param x 
-   * @param y 
-   * @param z 
+   * @param x
+   * @param y
+   * @param z
    */
   void addPoint(double x, double y, double z) noexcept;
   Line3d(Line3d&& from) noexcept;
@@ -2012,7 +2127,7 @@ private:
 
 
 /**
- * @details 
+ * @details
  * Represents points in 3d space. Each point gets rendered as
  * the specified marker shape. This is intended for markers
  * and is not appropriate for large scale lidar point clouds.
@@ -2029,7 +2144,7 @@ public:
   /**
    * @brief Sets the geometry used to represent each point in the series
    *
-   * @param shape 
+   * @param shape
    */
   void setMarkerShape(MarkerShape shape) noexcept;
 
@@ -2053,7 +2168,7 @@ public:
   /**
    * @brief Self illumination makes the shapes glow without an external light source (defaults to true)
    *
-   * @param value 
+   * @param value
    */
   void setSelfIllumination(bool value) noexcept;
 
@@ -2065,12 +2180,12 @@ public:
   /**
    * @brief Vertex sharing reduces the complexity, but can result in poor lighting
    *
-   * @param value 
+   * @param value
    */
   void setVertexSharing(bool value) noexcept;
 
   /**
-   * @details 
+   * @details
    * Sets the internal maximum point count for incrementally
    * adding points. May clear existing data.
    *
@@ -2084,43 +2199,43 @@ public:
   void clear() noexcept;
 
   /**
-   * @details 
+   * @details
    * Replaces the entire dataset with the provided X/Y/Z content. This
    * operation copies the input data, so the caller retains ownership of
    * the memory. Sets the buffer capacity to match the input length and
-   * clears any previous rolling history.
+   * clears any previous rolling history. Mismatched input lengths get
+   * truncated to the shortest one.
    *
    * @param x points
    * @param y points
    * @param z points
-   * @param length number of x/y/z points
    */
-  void setData(const double* x, const double* y, const double* z, size_t length) noexcept;
+  void setData(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept;
   void setData(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept;
 
   /**
-   * @details 
+   * @details
    * Appends multiple data points to the end of the internal rolling buffer.
    * This operation copies the input data, so the caller retains ownership
    * of the memory. If the total number of points exceeds the current capacity,
-   * the oldest points are overwritten.
+   * the oldest points are overwritten. Mismatched input lengths get
+   * truncated to the shortest one.
    *
    * @param x points
    * @param y points
    * @param z points
-   * @param length number of x/y/z points
    */
-  void addPoints(const double* x, const double* y, const double* z, size_t length) noexcept;
+  void addPoints(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept;
   void addPoints(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept;
 
   /**
-   * @details 
+   * @details
    * Adds one point to an internal rolling buffer. Once the maximum
    * point count is reached, it will overwrite the earliest data.
    *
-   * @param x 
-   * @param y 
-   * @param z 
+   * @param x
+   * @param y
+   * @param z
    */
   void addPoint(double x, double y, double z) noexcept;
   Points3d(Points3d&& from) noexcept;
@@ -2133,7 +2248,7 @@ private:
 
 
 /**
- * @details 
+ * @details
  * [EXPERIMENTAL API]
  * Represents the result of a recording. Can be used to
  * get various statistics and/or trigger FFMpeg.
@@ -2185,14 +2300,14 @@ public:
   size_t getTotalFrames() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Generates an FFmpeg command that converts the stored PNG files into the specified video format.
    * The file name is the directory name w/ extension one level up. For example, an h264 format would
    * map as follows:
-   * 
+   *
    *     input: experiments/test17/*.png
    *     output: experiments/test17.mp4
-   * 
+   *
    * The delete directory flag appends a command that delete the input directory after a successful conversion.
    *
    * @param outputFormat target format
@@ -2202,14 +2317,14 @@ public:
   std::string getFfmpegCommand(VideoOutputFormat outputFormat, bool deleteDirectory = false) const;
 
   /**
-   * @details 
+   * @details
    * Runs an FFmpeg command that converts the stored PNG files into the specified video format.
    * The file name is the directory name w/ extension one level up. For example, an h264 format would
    * map as follows:
-   * 
+   *
    *     input: experiments/test17/*.png
    *     output: experiments/test17.mp4
-   * 
+   *
    * The delete directory flag appends a command that delete the input directory after a successful conversion.
    *
    * @param outputFormat target format
@@ -2255,7 +2370,7 @@ public:
   /**
    * @brief Sets the maximum X boundary of the 3D grid cage in [m]
    *
-   * @param val 
+   * @param val
    */
   void setMaxX(double val) noexcept;
 
@@ -2267,7 +2382,7 @@ public:
   /**
    * @brief Sets the maximum Y boundary of the 3D grid cage in [m]
    *
-   * @param val 
+   * @param val
    */
   void setMaxY(double val) noexcept;
 
@@ -2279,7 +2394,7 @@ public:
   /**
    * @brief Sets the maximum Z boundary of the 3D grid cage in [m]
    *
-   * @param val 
+   * @param val
    */
   void setMaxZ(double val) noexcept;
 
@@ -2291,7 +2406,7 @@ public:
   /**
    * @brief Sets the minimum X boundary of the 3D grid cage in [m]
    *
-   * @param val 
+   * @param val
    */
   void setMinX(double val) noexcept;
 
@@ -2303,7 +2418,7 @@ public:
   /**
    * @brief Sets the minimum Y boundary of the 3D grid cage in [m]
    *
-   * @param val 
+   * @param val
    */
   void setMinY(double val) noexcept;
 
@@ -2315,7 +2430,7 @@ public:
   /**
    * @brief Sets the minimum Z boundary of the 3D grid cage in [m]
    *
-   * @param val 
+   * @param val
    */
   void setMinZ(double val) noexcept;
 
@@ -2333,6 +2448,8 @@ public:
 
   /**
    * @brief Returns the camera of this 3d chart
+   *
+   * @return Represents a view point looking at a 3d scene
    */
   Camera getCamera() noexcept;
 
@@ -2340,6 +2457,7 @@ public:
    * @brief Adds a robot from a description file (.hrdf)
    *
    * @param pathOrUrl file path or web-url to a description file
+   * @return Represents robot kinematics
    * @throw on internal errors
    */
   Robot addRobot(const char* pathOrUrl);
@@ -2349,6 +2467,7 @@ public:
    * @brief Adds a 3d mesh from a file (.obj)
    *
    * @param pathOrUrl file path or web-url to an .obj file
+   * @return Represents a static 3d mesh
    * @throw on internal errors
    */
   Mesh addMesh(const char* pathOrUrl);
@@ -2358,18 +2477,29 @@ public:
    * @brief Adds a triad that represents a right-handed coordinate frame
    *
    * @param lengthInMeters length of each axis in [m]
+   * @return A triad that represents a frame
    * @throw on internal errors
    */
   Frame addFrame(double lengthInMeters = 0.03);
 
   /**
    * @brief Adds a 3D data series rendered as a continuous line
+   *
+   * @return Represents a line in 3d space. Note that there are currently no
+  line primitives, so the rendering is platform dependent and the
+  performance is limited.
+
    * @throw on internal errors
    */
   Line3d addLine();
 
   /**
    * @brief Adds a 3D data series rendered as individual mesh objects
+   *
+   * @return Represents points in 3d space. Each point gets rendered as
+  the specified marker shape. This is intended for markers
+  and is not appropriate for large scale lidar point clouds.
+
    * @throw on internal errors
    */
   Points3d addPoints();
@@ -2414,7 +2544,7 @@ public:
   /**
    * @brief Sets the title shown in the chart titlebar
    *
-   * @param title 
+   * @param title
    */
   void setTitle(const char* title) noexcept;
   void setTitle(const std::string& title) noexcept;
@@ -2427,7 +2557,7 @@ public:
   /**
    * @brief Enable to speed up rendering of large datasets. Must be disabled for paths that 'wrap back' or loops.
    *
-   * @param xAssumeSorted 
+   * @param xAssumeSorted
    */
   void setXAssumeSorted(bool xAssumeSorted) noexcept;
 
@@ -2439,7 +2569,7 @@ public:
   /**
    * @brief Enables/disables auto SI-prefix scaling for X-axis (e.g., 0.001s -> 1ms)
    *
-   * @param enabled 
+   * @param enabled
    */
   void setXAutoUnitScaling(bool enabled) noexcept;
 
@@ -2451,7 +2581,7 @@ public:
   /**
    * @brief Sets the X-axis label text
    *
-   * @param label 
+   * @param label
    */
   void setXLabel(const char* label) noexcept;
   void setXLabel(const std::string& label) noexcept;
@@ -2459,8 +2589,8 @@ public:
   /**
    * @brief Sets the X-axis limits. Set nan for auto-ranging.
    *
-   * @param min 
-   * @param max 
+   * @param min
+   * @param max
    * @throw on internal errors
    */
   void setXLim(double min, double max);
@@ -2473,7 +2603,7 @@ public:
   /**
    * @brief Sets the X-axis maximum limit
    *
-   * @param max 
+   * @param max
    */
   void setXMax(double max) noexcept;
 
@@ -2485,7 +2615,7 @@ public:
   /**
    * @brief Sets the X-axis minimum limit
    *
-   * @param min 
+   * @param min
    */
   void setXMin(double min) noexcept;
 
@@ -2497,7 +2627,7 @@ public:
   /**
    * @brief Sets the X-axis unit (e.g., 's')
    *
-   * @param unit 
+   * @param unit
    */
   void setXUnit(const char* unit) noexcept;
   void setXUnit(const std::string& unit) noexcept;
@@ -2510,7 +2640,7 @@ public:
   /**
    * @brief Enables/disables auto SI-prefix scaling for Y-axis
    *
-   * @param enabled 
+   * @param enabled
    */
   void setYAutoUnitScaling(bool enabled) noexcept;
 
@@ -2522,7 +2652,7 @@ public:
   /**
    * @brief Sets the Y-axis label text
    *
-   * @param label 
+   * @param label
    */
   void setYLabel(const char* label) noexcept;
   void setYLabel(const std::string& label) noexcept;
@@ -2530,8 +2660,8 @@ public:
   /**
    * @brief Sets the Y-axis limits. Set nan for auto-ranging.
    *
-   * @param min 
-   * @param max 
+   * @param min
+   * @param max
    */
   void setYLim(double min, double max) noexcept;
 
@@ -2543,7 +2673,7 @@ public:
   /**
    * @brief Sets the Y-axis maximum limit
    *
-   * @param max 
+   * @param max
    */
   void setYMax(double max) noexcept;
 
@@ -2555,7 +2685,7 @@ public:
   /**
    * @brief Sets the Y-axis minimum limit
    *
-   * @param min 
+   * @param min
    */
   void setYMin(double min) noexcept;
 
@@ -2567,18 +2697,22 @@ public:
   /**
    * @brief Sets the Y-axis unit (e.g., 'V')
    *
-   * @param unit 
+   * @param unit
    */
   void setYUnit(const char* unit) noexcept;
   void setYUnit(const std::string& unit) noexcept;
 
   /**
    * @brief Adds a draggable cursor to the X-axis
+   *
+   * @return A vertical or horizontal cursor to measure or mark an axis value. Can be draggable.
    */
   Cursor addXCursor() noexcept;
 
   /**
    * @brief Adds a draggable cursor to the Y-axis
+   *
+   * @return A vertical or horizontal cursor to measure or mark an axis value. Can be draggable.
    */
   Cursor addYCursor() noexcept;
   XYChart(XYChart&& from) noexcept;
@@ -2603,7 +2737,8 @@ public:
   /**
    * @brief Creates a new hdr histogram dataset
    *
-   * @param name 
+   * @param name
+   * @return Represents a latency measurement that records latency values in the form of an HdrHistogram
    * @throw on internal errors
    */
   LatencyTrace addTrace(const char* name);
@@ -2628,7 +2763,12 @@ public:
   /**
    * @brief Creates a new line series
    *
-   * @param label 
+   * @param label
+   * @return Represents a high-performance 2D line series optimized for real-time
+  telemetry.
+  Uses a double-buffered architecture with bounded rolling buffers to
+  decouple high-frequency data ingestion from the UI rendering pulse.
+
    * @throw on internal errors
    */
   Line addLine(const char* label);
@@ -2656,7 +2796,7 @@ public:
   /**
    * @brief Sets the rendering color
    *
-   * @param color 
+   * @param color
    */
   void setColor(Color color) noexcept;
 
@@ -2668,7 +2808,7 @@ public:
   /**
    * @brief Sets the label shown in the chart legend
    *
-   * @param label 
+   * @param label
    */
   void setLabel(const char* label) noexcept;
   void setLabel(const std::string& label) noexcept;
@@ -2681,7 +2821,7 @@ public:
   /**
    * @brief Sets the rendering style
    *
-   * @param lineStyle 
+   * @param lineStyle
    */
   void setLineStyle(LineStyle lineStyle) noexcept;
 
@@ -2705,7 +2845,7 @@ public:
   /**
    * @brief Sets the marker size
    *
-   * @param markerSize 
+   * @param markerSize
    */
   void setMarkerSize(double markerSize) noexcept;
 
@@ -2717,7 +2857,7 @@ public:
   /**
    * @brief Sets the marker type
    *
-   * @param markerType 
+   * @param markerType
    */
   void setMarkerType(MarkerType markerType) noexcept;
 
@@ -2729,7 +2869,7 @@ public:
   /**
    * @brief Shows or hides this data set from the legend
    *
-   * @param showInLegend 
+   * @param showInLegend
    */
   void setShowInLegend(bool showInLegend) noexcept;
 
@@ -2741,7 +2881,7 @@ public:
   /**
    * @brief Sets the visibility in the chart
    *
-   * @param visible 
+   * @param visible
    */
   void setVisible(bool visible) noexcept;
   XYSeries(XYSeries&& from) noexcept;
@@ -2793,7 +2933,7 @@ public:
   void recordWithCount(double value, size_t count) noexcept;
 
   /**
-   * @details 
+   * @details
    * [EXPERIMENTAL - specific to HdrHistogram]
    * Record a value in the histogram.
    * To compensate for the loss of sampled values when a recorded value is larger than the expected interval
@@ -2804,7 +2944,7 @@ public:
    * @param expectedIntervalBetweenValueSamples If expectedIntervalBetweenValueSamples in [s] is larger than
   zero, an auto-generated value records as appropriate if value
   is larger than expectedIntervalBetweenValueSamples
-  
+
    */
   void recordCompensated(double value, double expectedIntervalBetweenValueSamples) noexcept;
   void reset() noexcept;
@@ -2818,7 +2958,7 @@ private:
 
 
 /**
- * @details 
+ * @details
  * Represents a high-performance 2D line series optimized for real-time
  * telemetry.
  * Uses a double-buffered architecture with bounded rolling buffers to
@@ -2834,7 +2974,7 @@ public:
   size_t getMaxPointCount() const noexcept;
 
   /**
-   * @details 
+   * @details
    * Sets the maximum number of points the rolling buffer can hold.
    * Note: Changing the capacity clears all existing data. If the
    * new capacity matches the current value, this operation is a
@@ -2850,40 +2990,40 @@ public:
   void clear() noexcept;
 
   /**
-   * @details 
+   * @details
    * Replaces the entire dataset with the provided X and Y content. This
    * operation copies the input data, so the caller retains ownership of
    * the memory. Sets the buffer capacity to match the input length and
-   * clears any previous rolling history.
+   * clears any previous rolling history. Mismatched input lengths get
+   * truncated to the shorter one.
    *
    * @param x points
    * @param y points
-   * @param length number of x/y points
    */
-  void setData(const double* x, const double* y, size_t length) noexcept;
+  void setData(internal::DoubleSpan x, internal::DoubleSpan y) noexcept;
   void setData(const std::vector<double>& x, const std::vector<double>& y) noexcept;
 
   /**
-   * @details 
+   * @details
    * Appends multiple data points to the end of the internal rolling buffer.
    * This operation copies the input data, so the caller retains ownership
    * of the memory. If the total number of points exceeds the current capacity,
-   * the oldest points are overwritten.
+   * the oldest points are overwritten. Mismatched input lengths get
+   * truncated to the shorter one.
    *
    * @param x points
    * @param y points
-   * @param length number of x/y points
    */
-  void addPoints(const double* x, const double* y, size_t length) noexcept;
+  void addPoints(internal::DoubleSpan x, internal::DoubleSpan y) noexcept;
   void addPoints(const std::vector<double>& x, const std::vector<double>& y) noexcept;
 
   /**
-   * @details 
+   * @details
    * Adds one point to an internal rolling buffer. Once the maximum
    * point count is reached, it will overwrite the earliest data.
    *
-   * @param x 
-   * @param y 
+   * @param x
+   * @param y
    */
   void addPoint(double x, double y) noexcept;
   Line(Line&& from) noexcept;
@@ -2896,7 +3036,7 @@ private:
 
 
 /**
- * @details 
+ * @details
  * Contains utility methods for working with the runtime. Some methods
  * are experimental and may change or be removed in the future.
  */
@@ -2905,7 +3045,7 @@ namespace runtime {
 /**
  * @brief Applies runtime options. Needs to be done before any other methods.
  *
- * @param option 
+ * @param option
  * @param value string value depending on the option (e.g. DpiScale='2.0', VerboseGraphics='true')
  * @throw on internal errors
  */
@@ -2915,14 +3055,14 @@ void setOption(RuntimeOption option, const std::string& value);
 /**
  * @brief Sets an AtlantaFX theme for rendering the UI
  *
- * @param theme 
+ * @param theme
  */
 void setTheme(Theme theme) noexcept;
 
 /**
  * @brief Applies a global auto-close behavior, i.e., window::keepOpen
  *
- * @param autoClose 
+ * @param autoClose
  */
 void setAutoCloseWindows(bool autoClose) noexcept;
 
@@ -2945,31 +3085,18 @@ void closeAll() noexcept;
 /**
  * @brief Debug method to run code on the internal UI thread
  *
- * @param func 
- * @param userData 
+ * @param func
+ * @param userData
  */
 void runOnUiThread(UserCallbackFunction func, void* userData) noexcept;
 
 /**
- * @brief Debug method that prints the last exception encountered on the current thread
- */
-void printLastErrorDetails() noexcept;
-
-/**
  * @brief Debug method to print internal thread information. May be removed in the future.
  *
- * @param name 
+ * @param name
  */
 void printThreadInfo(const char* name) noexcept;
 void printThreadInfo(const std::string& name) noexcept;
-
-/**
- * @details 
- * Returns an address to a c string that contains the last error message.
- * This address is only valid until the next call to this method from the
- * same thread. Never returns nullptr. Do not free the address!
- */
-std::string getLastErrorString() noexcept;
 } // namespace runtime
 
 // ==== C Library Lookup ====
@@ -3011,25 +3138,22 @@ inline void Camera::reset() noexcept {
   hebi_charts_Camera_reset(ptr_);
 }
 inline void Camera::applyRotation(double qx, double qy, double qz, double qw) {
-  static auto hebi_charts_Camera_applyRotation = DynamicLookup::instance().getFunc<int(*)(internal::CameraPtr, double, double, double, double)>("hebi_charts_Camera_applyRotation");
-  int status_ = hebi_charts_Camera_applyRotation(ptr_, qx, qy, qz, qw);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Camera::applyRotation");
-  }
+  static auto hebi_charts_Camera_applyRotation = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::CameraPtr, double, double, double, double)>("hebi_charts_Camera_applyRotation");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Camera_applyRotation(&error_, ptr_, qx, qy, qz, qw);
+  checkError(error_);
 }
 inline void Camera::setDistance(double distanceInMeters) {
-  static auto hebi_charts_Camera_setDistance = DynamicLookup::instance().getFunc<int(*)(internal::CameraPtr, double)>("hebi_charts_Camera_setDistance");
-  int status_ = hebi_charts_Camera_setDistance(ptr_, distanceInMeters);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Camera::setDistance");
-  }
+  static auto hebi_charts_Camera_setDistance = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::CameraPtr, double)>("hebi_charts_Camera_setDistance");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Camera_setDistance(&error_, ptr_, distanceInMeters);
+  checkError(error_);
 }
 inline void Camera::setPan(double x, double y, double z) {
-  static auto hebi_charts_Camera_setPan = DynamicLookup::instance().getFunc<int(*)(internal::CameraPtr, double, double, double)>("hebi_charts_Camera_setPan");
-  int status_ = hebi_charts_Camera_setPan(ptr_, x, y, z);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Camera::setPan");
-  }
+  static auto hebi_charts_Camera_setPan = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::CameraPtr, double, double, double)>("hebi_charts_Camera_setPan");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Camera_setPan(&error_, ptr_, x, y, z);
+  checkError(error_);
 }
 inline void Camera::setControlsVisible(bool value) noexcept {
   static auto hebi_charts_Camera_setControlsVisible = DynamicLookup::instance().getFunc<void(*)(internal::CameraPtr, int)>("hebi_charts_Camera_setControlsVisible");
@@ -3329,69 +3453,68 @@ inline void ControlPanel::setWidth(double width) noexcept {
   hebi_charts_ControlPanel_setWidth(ptr_, width);
 }
 inline void ControlPanel::addSection(const char* title) {
-  static auto hebi_charts_ControlPanel_addSection = DynamicLookup::instance().getFunc<int(*)(internal::ControlPanelPtr, const char*)>("hebi_charts_ControlPanel_addSection");
-  int status_ = hebi_charts_ControlPanel_addSection(ptr_, title);
-  if (status_ != 0) {
-    throw Exception("Encountered error in ControlPanel::addSection");
-  }
+  static auto hebi_charts_ControlPanel_addSection = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::ControlPanelPtr, const char*)>("hebi_charts_ControlPanel_addSection");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_ControlPanel_addSection(&error_, ptr_, title);
+  checkError(error_);
 }
 inline void ControlPanel::addSection(const std::string& title) {
   addSection(title.c_str());
 }
 inline Label ControlPanel::addLabel() {
-  static auto hebi_charts_ControlPanel_addLabel = DynamicLookup::instance().getFunc<internal::LabelPtr(*)(internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addLabel");
-  auto ptr = hebi_charts_ControlPanel_addLabel(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Label in ControlPanel::addLabel");
-  }
+  static auto hebi_charts_ControlPanel_addLabel = DynamicLookup::instance().getFunc<internal::LabelPtr(*)(internal::ErrorInfo*, internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addLabel");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ControlPanel_addLabel(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Label in ControlPanel::addLabel");
   return Label(ptr);
 }
 inline Button ControlPanel::addButton() {
-  static auto hebi_charts_ControlPanel_addButton = DynamicLookup::instance().getFunc<internal::ButtonPtr(*)(internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addButton");
-  auto ptr = hebi_charts_ControlPanel_addButton(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Button in ControlPanel::addButton");
-  }
+  static auto hebi_charts_ControlPanel_addButton = DynamicLookup::instance().getFunc<internal::ButtonPtr(*)(internal::ErrorInfo*, internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addButton");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ControlPanel_addButton(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Button in ControlPanel::addButton");
   return Button(ptr);
 }
 inline Button ControlPanel::addStartButton() {
-  static auto hebi_charts_ControlPanel_addStartButton = DynamicLookup::instance().getFunc<internal::ButtonPtr(*)(internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addStartButton");
-  auto ptr = hebi_charts_ControlPanel_addStartButton(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Button in ControlPanel::addStartButton");
-  }
+  static auto hebi_charts_ControlPanel_addStartButton = DynamicLookup::instance().getFunc<internal::ButtonPtr(*)(internal::ErrorInfo*, internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addStartButton");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ControlPanel_addStartButton(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Button in ControlPanel::addStartButton");
   return Button(ptr);
 }
 inline Button ControlPanel::addStopButton() {
-  static auto hebi_charts_ControlPanel_addStopButton = DynamicLookup::instance().getFunc<internal::ButtonPtr(*)(internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addStopButton");
-  auto ptr = hebi_charts_ControlPanel_addStopButton(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Button in ControlPanel::addStopButton");
-  }
+  static auto hebi_charts_ControlPanel_addStopButton = DynamicLookup::instance().getFunc<internal::ButtonPtr(*)(internal::ErrorInfo*, internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addStopButton");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ControlPanel_addStopButton(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Button in ControlPanel::addStopButton");
   return Button(ptr);
 }
 inline Slider ControlPanel::addSlider() {
-  static auto hebi_charts_ControlPanel_addSlider = DynamicLookup::instance().getFunc<internal::SliderPtr(*)(internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addSlider");
-  auto ptr = hebi_charts_ControlPanel_addSlider(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Slider in ControlPanel::addSlider");
-  }
+  static auto hebi_charts_ControlPanel_addSlider = DynamicLookup::instance().getFunc<internal::SliderPtr(*)(internal::ErrorInfo*, internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addSlider");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ControlPanel_addSlider(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Slider in ControlPanel::addSlider");
   return Slider(ptr);
 }
 inline Toggle ControlPanel::addToggle() {
-  static auto hebi_charts_ControlPanel_addToggle = DynamicLookup::instance().getFunc<internal::TogglePtr(*)(internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addToggle");
-  auto ptr = hebi_charts_ControlPanel_addToggle(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Toggle in ControlPanel::addToggle");
-  }
+  static auto hebi_charts_ControlPanel_addToggle = DynamicLookup::instance().getFunc<internal::TogglePtr(*)(internal::ErrorInfo*, internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addToggle");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ControlPanel_addToggle(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Toggle in ControlPanel::addToggle");
   return Toggle(ptr);
 }
 inline Dropdown ControlPanel::addDropdown() {
-  static auto hebi_charts_ControlPanel_addDropdown = DynamicLookup::instance().getFunc<internal::DropdownPtr(*)(internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addDropdown");
-  auto ptr = hebi_charts_ControlPanel_addDropdown(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Dropdown in ControlPanel::addDropdown");
-  }
+  static auto hebi_charts_ControlPanel_addDropdown = DynamicLookup::instance().getFunc<internal::DropdownPtr(*)(internal::ErrorInfo*, internal::ControlPanelPtr)>("hebi_charts_ControlPanel_addDropdown");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ControlPanel_addDropdown(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Dropdown in ControlPanel::addDropdown");
   return Dropdown(ptr);
 }
 inline void ControlPanel::cleanup() noexcept {
@@ -3484,76 +3607,75 @@ inline std::string FxmlView::getSource() const noexcept {
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline void FxmlView::setSource(const char* pathOrUrl) {
-  static auto hebi_charts_FxmlView_setSource = DynamicLookup::instance().getFunc<int(*)(internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_setSource");
-  int status_ = hebi_charts_FxmlView_setSource(ptr_, pathOrUrl);
-  if (status_ != 0) {
-    throw Exception("Encountered error in FxmlView::setSource");
-  }
+  static auto hebi_charts_FxmlView_setSource = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_setSource");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_FxmlView_setSource(&error_, ptr_, pathOrUrl);
+  checkError(error_);
 }
 inline void FxmlView::setSource(const std::string& pathOrUrl) {
   setSource(pathOrUrl.c_str());
 }
 inline LineChart FxmlView::addLineChart(const char* fxId) {
-  static auto hebi_charts_FxmlView_addLineChart = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addLineChart");
-  auto ptr = hebi_charts_FxmlView_addLineChart(ptr_, fxId);
-  if (!ptr) {
-    throw Exception("Could not create LineChart in FxmlView::addLineChart");
-  }
+  static auto hebi_charts_FxmlView_addLineChart = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::ErrorInfo*, internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addLineChart");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_FxmlView_addLineChart(&error_, ptr_, fxId);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create LineChart in FxmlView::addLineChart");
   return LineChart(ptr);
 }
 inline LineChart FxmlView::addLineChart(const std::string& fxId) {
   return addLineChart(fxId.c_str());
 }
 inline LineChart FxmlView::addScope(const char* fxId) {
-  static auto hebi_charts_FxmlView_addScope = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addScope");
-  auto ptr = hebi_charts_FxmlView_addScope(ptr_, fxId);
-  if (!ptr) {
-    throw Exception("Could not create LineChart in FxmlView::addScope");
-  }
+  static auto hebi_charts_FxmlView_addScope = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::ErrorInfo*, internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addScope");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_FxmlView_addScope(&error_, ptr_, fxId);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create LineChart in FxmlView::addScope");
   return LineChart(ptr);
 }
 inline LineChart FxmlView::addScope(const std::string& fxId) {
   return addScope(fxId.c_str());
 }
 inline LatencyChart FxmlView::addLatencyChart(const char* fxId) {
-  static auto hebi_charts_FxmlView_addLatencyChart = DynamicLookup::instance().getFunc<internal::LatencyChartPtr(*)(internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addLatencyChart");
-  auto ptr = hebi_charts_FxmlView_addLatencyChart(ptr_, fxId);
-  if (!ptr) {
-    throw Exception("Could not create LatencyChart in FxmlView::addLatencyChart");
-  }
+  static auto hebi_charts_FxmlView_addLatencyChart = DynamicLookup::instance().getFunc<internal::LatencyChartPtr(*)(internal::ErrorInfo*, internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addLatencyChart");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_FxmlView_addLatencyChart(&error_, ptr_, fxId);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create LatencyChart in FxmlView::addLatencyChart");
   return LatencyChart(ptr);
 }
 inline LatencyChart FxmlView::addLatencyChart(const std::string& fxId) {
   return addLatencyChart(fxId.c_str());
 }
 inline Scene3d FxmlView::addScene3d(const char* fxId) {
-  static auto hebi_charts_FxmlView_addScene3d = DynamicLookup::instance().getFunc<internal::Scene3dPtr(*)(internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addScene3d");
-  auto ptr = hebi_charts_FxmlView_addScene3d(ptr_, fxId);
-  if (!ptr) {
-    throw Exception("Could not create Scene3d in FxmlView::addScene3d");
-  }
+  static auto hebi_charts_FxmlView_addScene3d = DynamicLookup::instance().getFunc<internal::Scene3dPtr(*)(internal::ErrorInfo*, internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addScene3d");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_FxmlView_addScene3d(&error_, ptr_, fxId);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Scene3d in FxmlView::addScene3d");
   return Scene3d(ptr);
 }
 inline Scene3d FxmlView::addScene3d(const std::string& fxId) {
   return addScene3d(fxId.c_str());
 }
 inline StreamView FxmlView::addStreamView(const char* file, const char* fxId) {
-  static auto hebi_charts_FxmlView_addStreamView = DynamicLookup::instance().getFunc<internal::StreamViewPtr(*)(internal::FxmlViewPtr, const char*, const char*)>("hebi_charts_FxmlView_addStreamView");
-  auto ptr = hebi_charts_FxmlView_addStreamView(ptr_, file, fxId);
-  if (!ptr) {
-    throw Exception("Could not create StreamView in FxmlView::addStreamView");
-  }
+  static auto hebi_charts_FxmlView_addStreamView = DynamicLookup::instance().getFunc<internal::StreamViewPtr(*)(internal::ErrorInfo*, internal::FxmlViewPtr, const char*, const char*)>("hebi_charts_FxmlView_addStreamView");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_FxmlView_addStreamView(&error_, ptr_, file, fxId);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create StreamView in FxmlView::addStreamView");
   return StreamView(ptr);
 }
 inline StreamView FxmlView::addStreamView(const std::string& file, const std::string& fxId) {
   return addStreamView(file.c_str(), fxId.c_str());
 }
 inline FxmlView FxmlView::addFxmlView(const char* fxId) {
-  static auto hebi_charts_FxmlView_addFxmlView = DynamicLookup::instance().getFunc<internal::FxmlViewPtr(*)(internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addFxmlView");
-  auto ptr = hebi_charts_FxmlView_addFxmlView(ptr_, fxId);
-  if (!ptr) {
-    throw Exception("Could not create FxmlView in FxmlView::addFxmlView");
-  }
+  static auto hebi_charts_FxmlView_addFxmlView = DynamicLookup::instance().getFunc<internal::FxmlViewPtr(*)(internal::ErrorInfo*, internal::FxmlViewPtr, const char*)>("hebi_charts_FxmlView_addFxmlView");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_FxmlView_addFxmlView(&error_, ptr_, fxId);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create FxmlView in FxmlView::addFxmlView");
   return FxmlView(ptr);
 }
 inline FxmlView FxmlView::addFxmlView(const std::string& fxId) {
@@ -3580,11 +3702,11 @@ inline FxmlView::~FxmlView() noexcept {
 
 // GridWindow
 inline GridWindow::GridWindow(int rows, int cols) {
-  static auto hebi_charts_GridWindow_create = DynamicLookup::instance().getFunc<internal::GridWindowPtr(*)(int, int)>("hebi_charts_GridWindow_create");
-  ptr_ = hebi_charts_GridWindow_create(rows, cols);
-  if (!ptr_) {
-    throw Exception("Could not create GridWindow");
-  }
+  static auto hebi_charts_GridWindow_create = DynamicLookup::instance().getFunc<internal::GridWindowPtr(*)(internal::ErrorInfo*, int, int)>("hebi_charts_GridWindow_create");
+  internal::ErrorInfo error_ = {};
+  ptr_ = hebi_charts_GridWindow_create(&error_, rows, cols);
+  checkError(error_);
+  checkNotNull(ptr_, "Could not create GridWindow");
 }
 inline bool GridWindow::isFullScreen() const noexcept {
   static auto hebi_charts_GridWindow_isFullScreen = DynamicLookup::instance().getFunc<int(*)(internal::GridWindowPtr)>("hebi_charts_GridWindow_isFullScreen");
@@ -3655,62 +3777,61 @@ inline void GridWindow::setY(int y) noexcept {
   hebi_charts_GridWindow_setY(ptr_, y);
 }
 inline LineChart GridWindow::addLineChart(int row, int col, int rowSpan, int colSpan) {
-  static auto hebi_charts_GridWindow_addLineChart = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addLineChart");
-  auto ptr = hebi_charts_GridWindow_addLineChart(ptr_, row, col, rowSpan, colSpan);
-  if (!ptr) {
-    throw Exception("Could not create LineChart in GridWindow::addLineChart");
-  }
+  static auto hebi_charts_GridWindow_addLineChart = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addLineChart");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_addLineChart(&error_, ptr_, row, col, rowSpan, colSpan);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create LineChart in GridWindow::addLineChart");
   return LineChart(ptr);
 }
 inline LineChart GridWindow::addScope(int row, int col, int rowSpan, int colSpan) {
-  static auto hebi_charts_GridWindow_addScope = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addScope");
-  auto ptr = hebi_charts_GridWindow_addScope(ptr_, row, col, rowSpan, colSpan);
-  if (!ptr) {
-    throw Exception("Could not create LineChart in GridWindow::addScope");
-  }
+  static auto hebi_charts_GridWindow_addScope = DynamicLookup::instance().getFunc<internal::LineChartPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addScope");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_addScope(&error_, ptr_, row, col, rowSpan, colSpan);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create LineChart in GridWindow::addScope");
   return LineChart(ptr);
 }
 inline LatencyChart GridWindow::addLatencyChart(int row, int col, int rowSpan, int colSpan) {
-  static auto hebi_charts_GridWindow_addLatencyChart = DynamicLookup::instance().getFunc<internal::LatencyChartPtr(*)(internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addLatencyChart");
-  auto ptr = hebi_charts_GridWindow_addLatencyChart(ptr_, row, col, rowSpan, colSpan);
-  if (!ptr) {
-    throw Exception("Could not create LatencyChart in GridWindow::addLatencyChart");
-  }
+  static auto hebi_charts_GridWindow_addLatencyChart = DynamicLookup::instance().getFunc<internal::LatencyChartPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addLatencyChart");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_addLatencyChart(&error_, ptr_, row, col, rowSpan, colSpan);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create LatencyChart in GridWindow::addLatencyChart");
   return LatencyChart(ptr);
 }
 inline Scene3d GridWindow::addScene3d(int row, int col, int rowSpan, int colSpan) {
-  static auto hebi_charts_GridWindow_addScene3d = DynamicLookup::instance().getFunc<internal::Scene3dPtr(*)(internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addScene3d");
-  auto ptr = hebi_charts_GridWindow_addScene3d(ptr_, row, col, rowSpan, colSpan);
-  if (!ptr) {
-    throw Exception("Could not create Scene3d in GridWindow::addScene3d");
-  }
+  static auto hebi_charts_GridWindow_addScene3d = DynamicLookup::instance().getFunc<internal::Scene3dPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addScene3d");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_addScene3d(&error_, ptr_, row, col, rowSpan, colSpan);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Scene3d in GridWindow::addScene3d");
   return Scene3d(ptr);
 }
 inline StreamView GridWindow::addStreamView(const char* file, int row, int col, int rowSpan, int colSpan) {
-  static auto hebi_charts_GridWindow_addStreamView = DynamicLookup::instance().getFunc<internal::StreamViewPtr(*)(internal::GridWindowPtr, const char*, int, int, int, int)>("hebi_charts_GridWindow_addStreamView");
-  auto ptr = hebi_charts_GridWindow_addStreamView(ptr_, file, row, col, rowSpan, colSpan);
-  if (!ptr) {
-    throw Exception("Could not create StreamView in GridWindow::addStreamView");
-  }
+  static auto hebi_charts_GridWindow_addStreamView = DynamicLookup::instance().getFunc<internal::StreamViewPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr, const char*, int, int, int, int)>("hebi_charts_GridWindow_addStreamView");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_addStreamView(&error_, ptr_, file, row, col, rowSpan, colSpan);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create StreamView in GridWindow::addStreamView");
   return StreamView(ptr);
 }
 inline StreamView GridWindow::addStreamView(const std::string& file, int row, int col, int rowSpan, int colSpan) {
   return addStreamView(file.c_str(), row, col, rowSpan, colSpan);
 }
 inline FxmlView GridWindow::addFxmlView(int row, int col, int rowSpan, int colSpan) {
-  static auto hebi_charts_GridWindow_addFxmlView = DynamicLookup::instance().getFunc<internal::FxmlViewPtr(*)(internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addFxmlView");
-  auto ptr = hebi_charts_GridWindow_addFxmlView(ptr_, row, col, rowSpan, colSpan);
-  if (!ptr) {
-    throw Exception("Could not create FxmlView in GridWindow::addFxmlView");
-  }
+  static auto hebi_charts_GridWindow_addFxmlView = DynamicLookup::instance().getFunc<internal::FxmlViewPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr, int, int, int, int)>("hebi_charts_GridWindow_addFxmlView");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_addFxmlView(&error_, ptr_, row, col, rowSpan, colSpan);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create FxmlView in GridWindow::addFxmlView");
   return FxmlView(ptr);
 }
 inline void GridWindow::addStylesheet(const char* pathOrUrl, bool autoReload) {
-  static auto hebi_charts_GridWindow_addStylesheet = DynamicLookup::instance().getFunc<int(*)(internal::GridWindowPtr, const char*, int)>("hebi_charts_GridWindow_addStylesheet");
-  int status_ = hebi_charts_GridWindow_addStylesheet(ptr_, pathOrUrl, autoReload);
-  if (status_ != 0) {
-    throw Exception("Encountered error in GridWindow::addStylesheet");
-  }
+  static auto hebi_charts_GridWindow_addStylesheet = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::GridWindowPtr, const char*, int)>("hebi_charts_GridWindow_addStylesheet");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_GridWindow_addStylesheet(&error_, ptr_, pathOrUrl, autoReload);
+  checkError(error_);
 }
 inline void GridWindow::addStylesheet(const std::string& pathOrUrl, bool autoReload) {
   addStylesheet(pathOrUrl.c_str(), autoReload);
@@ -3720,11 +3841,10 @@ inline void GridWindow::show() noexcept {
   hebi_charts_GridWindow_show(ptr_);
 }
 inline void GridWindow::showOffScreen() {
-  static auto hebi_charts_GridWindow_showOffScreen = DynamicLookup::instance().getFunc<int(*)(internal::GridWindowPtr)>("hebi_charts_GridWindow_showOffScreen");
-  int status_ = hebi_charts_GridWindow_showOffScreen(ptr_);
-  if (status_ != 0) {
-    throw Exception("Encountered error in GridWindow::showOffScreen");
-  }
+  static auto hebi_charts_GridWindow_showOffScreen = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::GridWindowPtr)>("hebi_charts_GridWindow_showOffScreen");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_GridWindow_showOffScreen(&error_, ptr_);
+  checkError(error_);
 }
 inline void GridWindow::hide() noexcept {
   static auto hebi_charts_GridWindow_hide = DynamicLookup::instance().getFunc<void(*)(internal::GridWindowPtr)>("hebi_charts_GridWindow_hide");
@@ -3735,26 +3855,25 @@ inline bool GridWindow::isShowing() const noexcept {
   return hebi_charts_GridWindow_isShowing(ptr_);
 }
 inline void GridWindow::waitUntilClosed() const {
-  static auto hebi_charts_GridWindow_waitUntilClosed = DynamicLookup::instance().getFunc<int(*)(internal::GridWindowPtr)>("hebi_charts_GridWindow_waitUntilClosed");
-  int status_ = hebi_charts_GridWindow_waitUntilClosed(ptr_);
-  if (status_ != 0) {
-    throw Exception("Encountered error in GridWindow::waitUntilClosed");
-  }
+  static auto hebi_charts_GridWindow_waitUntilClosed = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::GridWindowPtr)>("hebi_charts_GridWindow_waitUntilClosed");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_GridWindow_waitUntilClosed(&error_, ptr_);
+  checkError(error_);
 }
 inline ControlPanel GridWindow::getControlPanel() {
-  static auto hebi_charts_GridWindow_getControlPanel = DynamicLookup::instance().getFunc<internal::ControlPanelPtr(*)(internal::GridWindowPtr)>("hebi_charts_GridWindow_getControlPanel");
-  auto ptr = hebi_charts_GridWindow_getControlPanel(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create ControlPanel in GridWindow::getControlPanel");
-  }
+  static auto hebi_charts_GridWindow_getControlPanel = DynamicLookup::instance().getFunc<internal::ControlPanelPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr)>("hebi_charts_GridWindow_getControlPanel");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_getControlPanel(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create ControlPanel in GridWindow::getControlPanel");
   return ControlPanel(ptr);
 }
 inline ImageStream GridWindow::createImageStream() {
-  static auto hebi_charts_GridWindow_createImageStream = DynamicLookup::instance().getFunc<internal::ImageStreamPtr(*)(internal::GridWindowPtr)>("hebi_charts_GridWindow_createImageStream");
-  auto ptr = hebi_charts_GridWindow_createImageStream(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create ImageStream in GridWindow::createImageStream");
-  }
+  static auto hebi_charts_GridWindow_createImageStream = DynamicLookup::instance().getFunc<internal::ImageStreamPtr(*)(internal::ErrorInfo*, internal::GridWindowPtr)>("hebi_charts_GridWindow_createImageStream");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_GridWindow_createImageStream(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create ImageStream in GridWindow::createImageStream");
   return ImageStream(ptr);
 }
 inline void GridWindow::dispatchMouseEvent(int action, int button, int downMask, int modifiers, double x, double y) noexcept {
@@ -3786,55 +3905,51 @@ inline GridWindow::~GridWindow() noexcept {
 
 // HdrHistogramRecorder
 inline HdrHistogramRecorder::HdrHistogramRecorder() {
-  static auto hebi_charts_HdrHistogramRecorder_create = DynamicLookup::instance().getFunc<internal::HdrHistogramRecorderPtr(*)()>("hebi_charts_HdrHistogramRecorder_create");
-  ptr_ = hebi_charts_HdrHistogramRecorder_create();
-  if (!ptr_) {
-    throw Exception("Could not create HdrHistogramRecorder");
-  }
+  static auto hebi_charts_HdrHistogramRecorder_create = DynamicLookup::instance().getFunc<internal::HdrHistogramRecorderPtr(*)(internal::ErrorInfo*)>("hebi_charts_HdrHistogramRecorder_create");
+  internal::ErrorInfo error_ = {};
+  ptr_ = hebi_charts_HdrHistogramRecorder_create(&error_);
+  checkError(error_);
+  checkNotNull(ptr_, "Could not create HdrHistogramRecorder");
 }
 inline double HdrHistogramRecorder::getFrequency() const noexcept {
   static auto hebi_charts_HdrHistogramRecorder_getFrequency = DynamicLookup::instance().getFunc<double(*)(internal::HdrHistogramRecorderPtr)>("hebi_charts_HdrHistogramRecorder_getFrequency");
   return hebi_charts_HdrHistogramRecorder_getFrequency(ptr_);
 }
 inline void HdrHistogramRecorder::setFrequency(double frequency) {
-  static auto hebi_charts_HdrHistogramRecorder_setFrequency = DynamicLookup::instance().getFunc<int(*)(internal::HdrHistogramRecorderPtr, double)>("hebi_charts_HdrHistogramRecorder_setFrequency");
-  int status_ = hebi_charts_HdrHistogramRecorder_setFrequency(ptr_, frequency);
-  if (status_ != 0) {
-    throw Exception("Encountered error in HdrHistogramRecorder::setFrequency");
-  }
+  static auto hebi_charts_HdrHistogramRecorder_setFrequency = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::HdrHistogramRecorderPtr, double)>("hebi_charts_HdrHistogramRecorder_setFrequency");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_HdrHistogramRecorder_setFrequency(&error_, ptr_, frequency);
+  checkError(error_);
 }
 inline double HdrHistogramRecorder::getMax() const noexcept {
   static auto hebi_charts_HdrHistogramRecorder_getMax = DynamicLookup::instance().getFunc<double(*)(internal::HdrHistogramRecorderPtr)>("hebi_charts_HdrHistogramRecorder_getMax");
   return hebi_charts_HdrHistogramRecorder_getMax(ptr_);
 }
 inline void HdrHistogramRecorder::setMax(double value) {
-  static auto hebi_charts_HdrHistogramRecorder_setMax = DynamicLookup::instance().getFunc<int(*)(internal::HdrHistogramRecorderPtr, double)>("hebi_charts_HdrHistogramRecorder_setMax");
-  int status_ = hebi_charts_HdrHistogramRecorder_setMax(ptr_, value);
-  if (status_ != 0) {
-    throw Exception("Encountered error in HdrHistogramRecorder::setMax");
-  }
+  static auto hebi_charts_HdrHistogramRecorder_setMax = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::HdrHistogramRecorderPtr, double)>("hebi_charts_HdrHistogramRecorder_setMax");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_HdrHistogramRecorder_setMax(&error_, ptr_, value);
+  checkError(error_);
 }
 inline double HdrHistogramRecorder::getMin() const noexcept {
   static auto hebi_charts_HdrHistogramRecorder_getMin = DynamicLookup::instance().getFunc<double(*)(internal::HdrHistogramRecorderPtr)>("hebi_charts_HdrHistogramRecorder_getMin");
   return hebi_charts_HdrHistogramRecorder_getMin(ptr_);
 }
 inline void HdrHistogramRecorder::setMin(double value) {
-  static auto hebi_charts_HdrHistogramRecorder_setMin = DynamicLookup::instance().getFunc<int(*)(internal::HdrHistogramRecorderPtr, double)>("hebi_charts_HdrHistogramRecorder_setMin");
-  int status_ = hebi_charts_HdrHistogramRecorder_setMin(ptr_, value);
-  if (status_ != 0) {
-    throw Exception("Encountered error in HdrHistogramRecorder::setMin");
-  }
+  static auto hebi_charts_HdrHistogramRecorder_setMin = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::HdrHistogramRecorderPtr, double)>("hebi_charts_HdrHistogramRecorder_setMin");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_HdrHistogramRecorder_setMin(&error_, ptr_, value);
+  checkError(error_);
 }
 inline int HdrHistogramRecorder::getSignificantDigits() const noexcept {
   static auto hebi_charts_HdrHistogramRecorder_getSignificantDigits = DynamicLookup::instance().getFunc<int(*)(internal::HdrHistogramRecorderPtr)>("hebi_charts_HdrHistogramRecorder_getSignificantDigits");
   return hebi_charts_HdrHistogramRecorder_getSignificantDigits(ptr_);
 }
 inline void HdrHistogramRecorder::setSignificantDigits(int significantDigits) {
-  static auto hebi_charts_HdrHistogramRecorder_setSignificantDigits = DynamicLookup::instance().getFunc<int(*)(internal::HdrHistogramRecorderPtr, int)>("hebi_charts_HdrHistogramRecorder_setSignificantDigits");
-  int status_ = hebi_charts_HdrHistogramRecorder_setSignificantDigits(ptr_, significantDigits);
-  if (status_ != 0) {
-    throw Exception("Encountered error in HdrHistogramRecorder::setSignificantDigits");
-  }
+  static auto hebi_charts_HdrHistogramRecorder_setSignificantDigits = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::HdrHistogramRecorderPtr, int)>("hebi_charts_HdrHistogramRecorder_setSignificantDigits");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_HdrHistogramRecorder_setSignificantDigits(&error_, ptr_, significantDigits);
+  checkError(error_);
 }
 inline HdrHistogramTrace HdrHistogramRecorder::addTrace(const char* tag) noexcept {
   static auto hebi_charts_HdrHistogramRecorder_addTrace = DynamicLookup::instance().getFunc<internal::HdrHistogramTracePtr(*)(internal::HdrHistogramRecorderPtr, const char*)>("hebi_charts_HdrHistogramRecorder_addTrace");
@@ -3845,8 +3960,10 @@ inline HdrHistogramTrace HdrHistogramRecorder::addTrace(const std::string& tag) 
   return addTrace(tag.c_str());
 }
 inline std::string HdrHistogramRecorder::startRecording(const char* logFile) {
-  static auto hebi_charts_HdrHistogramRecorder_startRecording = DynamicLookup::instance().getFunc<const char*(*)(internal::HdrHistogramRecorderPtr, const char*)>("hebi_charts_HdrHistogramRecorder_startRecording");
-  auto ptr = hebi_charts_HdrHistogramRecorder_startRecording(ptr_, logFile);
+  static auto hebi_charts_HdrHistogramRecorder_startRecording = DynamicLookup::instance().getFunc<const char*(*)(internal::ErrorInfo*, internal::HdrHistogramRecorderPtr, const char*)>("hebi_charts_HdrHistogramRecorder_startRecording");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_HdrHistogramRecorder_startRecording(&error_, ptr_, logFile);
+  checkError(error_);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline std::string HdrHistogramRecorder::startRecording(const std::string& logFile) {
@@ -3944,8 +4061,10 @@ inline std::string HdrHistogramTrace::toHgrmString(double outputUnitsPerSecond) 
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline std::string HdrHistogramTrace::saveAsHgrm(const char* fileName, double outputUnitsPerSecond) const {
-  static auto hebi_charts_HdrHistogramTrace_saveAsHgrm = DynamicLookup::instance().getFunc<const char*(*)(internal::HdrHistogramTracePtr, const char*, double)>("hebi_charts_HdrHistogramTrace_saveAsHgrm");
-  auto ptr = hebi_charts_HdrHistogramTrace_saveAsHgrm(ptr_, fileName, outputUnitsPerSecond);
+  static auto hebi_charts_HdrHistogramTrace_saveAsHgrm = DynamicLookup::instance().getFunc<const char*(*)(internal::ErrorInfo*, internal::HdrHistogramTracePtr, const char*, double)>("hebi_charts_HdrHistogramTrace_saveAsHgrm");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_HdrHistogramTrace_saveAsHgrm(&error_, ptr_, fileName, outputUnitsPerSecond);
+  checkError(error_);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline std::string HdrHistogramTrace::saveAsHgrm(const std::string& fileName, double outputUnitsPerSecond) const {
@@ -4000,26 +4119,30 @@ inline double ImageStream::getRateLimit() const noexcept {
   return hebi_charts_ImageStream_getRateLimit(ptr_);
 }
 inline void ImageStream::setRateLimit(double maxFramesPerSecond) {
-  static auto hebi_charts_ImageStream_setRateLimit = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr, double)>("hebi_charts_ImageStream_setRateLimit");
-  int status_ = hebi_charts_ImageStream_setRateLimit(ptr_, maxFramesPerSecond);
-  if (status_ != 0) {
-    throw Exception("Encountered error in ImageStream::setRateLimit");
-  }
+  static auto hebi_charts_ImageStream_setRateLimit = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::ImageStreamPtr, double)>("hebi_charts_ImageStream_setRateLimit");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_ImageStream_setRateLimit(&error_, ptr_, maxFramesPerSecond);
+  checkError(error_);
 }
 inline size_t ImageStream::getRecorderThreads() {
-  static auto hebi_charts_ImageStream_getRecorderThreads = DynamicLookup::instance().getFunc<size_t(*)(internal::ImageStreamPtr)>("hebi_charts_ImageStream_getRecorderThreads");
-  return hebi_charts_ImageStream_getRecorderThreads(ptr_);
+  static auto hebi_charts_ImageStream_getRecorderThreads = DynamicLookup::instance().getFunc<size_t(*)(internal::ErrorInfo*, internal::ImageStreamPtr)>("hebi_charts_ImageStream_getRecorderThreads");
+  internal::ErrorInfo error_ = {};
+  auto result_ = hebi_charts_ImageStream_getRecorderThreads(&error_, ptr_);
+  checkError(error_);
+  return result_;
 }
 inline void ImageStream::setRecorderThreads(size_t numThreads) {
-  static auto hebi_charts_ImageStream_setRecorderThreads = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr, size_t)>("hebi_charts_ImageStream_setRecorderThreads");
-  int status_ = hebi_charts_ImageStream_setRecorderThreads(ptr_, numThreads);
-  if (status_ != 0) {
-    throw Exception("Encountered error in ImageStream::setRecorderThreads");
-  }
+  static auto hebi_charts_ImageStream_setRecorderThreads = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::ImageStreamPtr, size_t)>("hebi_charts_ImageStream_setRecorderThreads");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_ImageStream_setRecorderThreads(&error_, ptr_, numThreads);
+  checkError(error_);
 }
 inline bool ImageStream::isRecording() {
-  static auto hebi_charts_ImageStream_isRecording = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr)>("hebi_charts_ImageStream_isRecording");
-  return hebi_charts_ImageStream_isRecording(ptr_);
+  static auto hebi_charts_ImageStream_isRecording = DynamicLookup::instance().getFunc<int(*)(internal::ErrorInfo*, internal::ImageStreamPtr)>("hebi_charts_ImageStream_isRecording");
+  internal::ErrorInfo error_ = {};
+  auto result_ = hebi_charts_ImageStream_isRecording(&error_, ptr_);
+  checkError(error_);
+  return result_;
 }
 inline double ImageStream::getRenderScale() const noexcept {
   static auto hebi_charts_ImageStream_getRenderScale = DynamicLookup::instance().getFunc<double(*)(internal::ImageStreamPtr)>("hebi_charts_ImageStream_getRenderScale");
@@ -4050,44 +4173,44 @@ inline int ImageStream::getWidth() const noexcept {
   return hebi_charts_ImageStream_getWidth(ptr_);
 }
 inline void ImageStream::setResolution(int width, int height) {
-  static auto hebi_charts_ImageStream_setResolution = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr, int, int)>("hebi_charts_ImageStream_setResolution");
-  int status_ = hebi_charts_ImageStream_setResolution(ptr_, width, height);
-  if (status_ != 0) {
-    throw Exception("Encountered error in ImageStream::setResolution");
-  }
+  static auto hebi_charts_ImageStream_setResolution = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::ImageStreamPtr, int, int)>("hebi_charts_ImageStream_setResolution");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_ImageStream_setResolution(&error_, ptr_, width, height);
+  checkError(error_);
 }
 inline bool ImageStream::waitForNext(size_t maxTimeoutMillis) {
-  static auto hebi_charts_ImageStream_waitForNext = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr, size_t)>("hebi_charts_ImageStream_waitForNext");
-  return hebi_charts_ImageStream_waitForNext(ptr_, maxTimeoutMillis);
+  static auto hebi_charts_ImageStream_waitForNext = DynamicLookup::instance().getFunc<int(*)(internal::ErrorInfo*, internal::ImageStreamPtr, size_t)>("hebi_charts_ImageStream_waitForNext");
+  internal::ErrorInfo error_ = {};
+  auto result_ = hebi_charts_ImageStream_waitForNext(&error_, ptr_, maxTimeoutMillis);
+  checkError(error_);
+  return result_;
 }
 inline bool ImageStream::tryGetNext() noexcept {
   static auto hebi_charts_ImageStream_tryGetNext = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr)>("hebi_charts_ImageStream_tryGetNext");
   return hebi_charts_ImageStream_tryGetNext(ptr_);
 }
 inline void ImageStream::startRecording(const char* baseName, bool overwrite) {
-  static auto hebi_charts_ImageStream_startRecording = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr, const char*, int)>("hebi_charts_ImageStream_startRecording");
-  int status_ = hebi_charts_ImageStream_startRecording(ptr_, baseName, overwrite);
-  if (status_ != 0) {
-    throw Exception("Encountered error in ImageStream::startRecording");
-  }
+  static auto hebi_charts_ImageStream_startRecording = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::ImageStreamPtr, const char*, int)>("hebi_charts_ImageStream_startRecording");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_ImageStream_startRecording(&error_, ptr_, baseName, overwrite);
+  checkError(error_);
 }
 inline void ImageStream::startRecording(const std::string& baseName, bool overwrite) {
   startRecording(baseName.c_str(), overwrite);
 }
 inline RecordingResult ImageStream::stopRecording() {
-  static auto hebi_charts_ImageStream_stopRecording = DynamicLookup::instance().getFunc<internal::RecordingResultPtr(*)(internal::ImageStreamPtr)>("hebi_charts_ImageStream_stopRecording");
-  auto ptr = hebi_charts_ImageStream_stopRecording(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create RecordingResult in ImageStream::stopRecording");
-  }
+  static auto hebi_charts_ImageStream_stopRecording = DynamicLookup::instance().getFunc<internal::RecordingResultPtr(*)(internal::ErrorInfo*, internal::ImageStreamPtr)>("hebi_charts_ImageStream_stopRecording");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_ImageStream_stopRecording(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create RecordingResult in ImageStream::stopRecording");
   return RecordingResult(ptr);
 }
 inline void ImageStream::saveToFile(const char* fileName) const {
-  static auto hebi_charts_ImageStream_saveToFile = DynamicLookup::instance().getFunc<int(*)(internal::ImageStreamPtr, const char*)>("hebi_charts_ImageStream_saveToFile");
-  int status_ = hebi_charts_ImageStream_saveToFile(ptr_, fileName);
-  if (status_ != 0) {
-    throw Exception("Encountered error in ImageStream::saveToFile");
-  }
+  static auto hebi_charts_ImageStream_saveToFile = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::ImageStreamPtr, const char*)>("hebi_charts_ImageStream_saveToFile");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_ImageStream_saveToFile(&error_, ptr_, fileName);
+  checkError(error_);
 }
 inline void ImageStream::saveToFile(const std::string& fileName) const {
   saveToFile(fileName.c_str());
@@ -4113,11 +4236,11 @@ inline ImageStream::~ImageStream() noexcept {
 
 // LoopTimer
 inline LoopTimer::LoopTimer() {
-  static auto hebi_charts_LoopTimer_create = DynamicLookup::instance().getFunc<internal::LoopTimerPtr(*)()>("hebi_charts_LoopTimer_create");
-  ptr_ = hebi_charts_LoopTimer_create();
-  if (!ptr_) {
-    throw Exception("Could not create LoopTimer");
-  }
+  static auto hebi_charts_LoopTimer_create = DynamicLookup::instance().getFunc<internal::LoopTimerPtr(*)(internal::ErrorInfo*)>("hebi_charts_LoopTimer_create");
+  internal::ErrorInfo error_ = {};
+  ptr_ = hebi_charts_LoopTimer_create(&error_);
+  checkError(error_);
+  checkNotNull(ptr_, "Could not create LoopTimer");
 }
 inline double LoopTimer::getElapsedTime() const noexcept {
   static auto hebi_charts_LoopTimer_getElapsedTime = DynamicLookup::instance().getFunc<double(*)(internal::LoopTimerPtr)>("hebi_charts_LoopTimer_getElapsedTime");
@@ -4220,45 +4343,37 @@ inline void Object3d::setVisible(bool visible) noexcept {
   hebi_charts_Object3d_setVisible(ptr_, visible);
 }
 inline void Object3d::setOrientation(double qx, double qy, double qz, double qw) {
-  static auto hebi_charts_Object3d_setOrientation = DynamicLookup::instance().getFunc<int(*)(internal::Object3dPtr, double, double, double, double)>("hebi_charts_Object3d_setOrientation");
-  int status_ = hebi_charts_Object3d_setOrientation(ptr_, qx, qy, qz, qw);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Object3d::setOrientation");
-  }
+  static auto hebi_charts_Object3d_setOrientation = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::Object3dPtr, double, double, double, double)>("hebi_charts_Object3d_setOrientation");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Object3d_setOrientation(&error_, ptr_, qx, qy, qz, qw);
+  checkError(error_);
 }
 inline void Object3d::setOrientationRPY(double roll, double pitch, double yaw) {
-  static auto hebi_charts_Object3d_setOrientationRPY = DynamicLookup::instance().getFunc<int(*)(internal::Object3dPtr, double, double, double)>("hebi_charts_Object3d_setOrientationRPY");
-  int status_ = hebi_charts_Object3d_setOrientationRPY(ptr_, roll, pitch, yaw);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Object3d::setOrientationRPY");
-  }
+  static auto hebi_charts_Object3d_setOrientationRPY = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::Object3dPtr, double, double, double)>("hebi_charts_Object3d_setOrientationRPY");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Object3d_setOrientationRPY(&error_, ptr_, roll, pitch, yaw);
+  checkError(error_);
 }
 inline void Object3d::setTranslation(double x, double y, double z) {
-  static auto hebi_charts_Object3d_setTranslation = DynamicLookup::instance().getFunc<int(*)(internal::Object3dPtr, double, double, double)>("hebi_charts_Object3d_setTranslation");
-  int status_ = hebi_charts_Object3d_setTranslation(ptr_, x, y, z);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Object3d::setTranslation");
-  }
+  static auto hebi_charts_Object3d_setTranslation = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::Object3dPtr, double, double, double)>("hebi_charts_Object3d_setTranslation");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Object3d_setTranslation(&error_, ptr_, x, y, z);
+  checkError(error_);
 }
 inline void Object3d::setPose(double x, double y, double z, double qx, double qy, double qz, double qw) {
-  static auto hebi_charts_Object3d_setPose = DynamicLookup::instance().getFunc<int(*)(internal::Object3dPtr, double, double, double, double, double, double, double)>("hebi_charts_Object3d_setPose");
-  int status_ = hebi_charts_Object3d_setPose(ptr_, x, y, z, qx, qy, qz, qw);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Object3d::setPose");
-  }
+  static auto hebi_charts_Object3d_setPose = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::Object3dPtr, double, double, double, double, double, double, double)>("hebi_charts_Object3d_setPose");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Object3d_setPose(&error_, ptr_, x, y, z, qx, qy, qz, qw);
+  checkError(error_);
 }
-inline void Object3d::setTransform4x4(const double* matrix, MatrixOrdering ordering) {
-  static auto hebi_charts_Object3d_setTransform4x4 = DynamicLookup::instance().getFunc<int(*)(internal::Object3dPtr, const double*, MatrixOrdering)>("hebi_charts_Object3d_setTransform4x4");
-  int status_ = hebi_charts_Object3d_setTransform4x4(ptr_, matrix, ordering);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Object3d::setTransform4x4");
-  }
+inline void Object3d::setTransform4x4(internal::Transform4x4 matrix) {
+  static auto hebi_charts_Object3d_setTransform4x4 = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::Object3dPtr, internal::Transform4x4)>("hebi_charts_Object3d_setTransform4x4");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Object3d_setTransform4x4(&error_, ptr_, matrix);
+  checkError(error_);
 }
-inline void Object3d::setTransform4x4(const std::vector<double>& matrix, MatrixOrdering ordering) {
-  if (matrix.size() != 16) {
-    throw Exception("Transform matrix incorrect size");
-  }
-  setTransform4x4(matrix.data(), ordering);
+inline void Object3d::setTransform4x4(const std::array<double, 16>& matrix) {
+  setTransform4x4({matrix.data(), 0 /* row-major */});
 }
 inline void Object3d::cleanup() noexcept {
   if (ptr_ != nullptr) {
@@ -4320,6 +4435,21 @@ inline void Mesh::setDisplayStyle(DisplayStyle style) noexcept {
   static auto hebi_charts_Mesh_setDisplayStyle = DynamicLookup::instance().getFunc<void(*)(internal::MeshPtr, DisplayStyle)>("hebi_charts_Mesh_setDisplayStyle");
   hebi_charts_Mesh_setDisplayStyle(ptr_, style);
 }
+inline void Mesh::setMeshTransform4x4(internal::Transform4x4 matrix) {
+  static auto hebi_charts_Mesh_setMeshTransform4x4 = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::MeshPtr, internal::Transform4x4)>("hebi_charts_Mesh_setMeshTransform4x4");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Mesh_setMeshTransform4x4(&error_, ptr_, matrix);
+  checkError(error_);
+}
+inline void Mesh::setMeshTransform4x4(const std::array<double, 16>& matrix) {
+  setMeshTransform4x4({matrix.data(), 0 /* row-major */});
+}
+inline void Mesh::setMeshPoseRPY(double x, double y, double z, double roll, double pitch, double yaw) {
+  static auto hebi_charts_Mesh_setMeshPoseRPY = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::MeshPtr, double, double, double, double, double, double)>("hebi_charts_Mesh_setMeshPoseRPY");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Mesh_setMeshPoseRPY(&error_, ptr_, x, y, z, roll, pitch, yaw);
+  checkError(error_);
+}
 inline internal::Object3dPtr Mesh::getObject3dPointer(internal::MeshPtr cPointer) noexcept {
   static auto hebi_charts_Mesh_to_Object3d = DynamicLookup::instance().getFunc<internal::Object3dPtr(*)(internal::MeshPtr)>("hebi_charts_Mesh_to_Object3d");
   return hebi_charts_Mesh_to_Object3d(cPointer);
@@ -4348,18 +4478,14 @@ inline size_t Robot::getDof() const noexcept {
   static auto hebi_charts_Robot_getDof = DynamicLookup::instance().getFunc<size_t(*)(internal::RobotPtr)>("hebi_charts_Robot_getDof");
   return hebi_charts_Robot_getDof(ptr_);
 }
-inline void Robot::setPositions(const double* positions, size_t length) {
-  static auto hebi_charts_Robot_setPositions = DynamicLookup::instance().getFunc<int(*)(internal::RobotPtr, const double*, size_t)>("hebi_charts_Robot_setPositions");
-  if (length != getDof()) {
-    throw Exception("Position vector length does not match number of joints");
-  }
-  int status_ = hebi_charts_Robot_setPositions(ptr_, positions, length);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Robot::setPositions");
-  }
+inline void Robot::setPositions(internal::DoubleSpan positions) {
+  static auto hebi_charts_Robot_setPositions = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::RobotPtr, internal::DoubleSpan)>("hebi_charts_Robot_setPositions");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Robot_setPositions(&error_, ptr_, positions);
+  checkError(error_);
 }
 inline void Robot::setPositions(const std::vector<double>& positions) {
-  setPositions(positions.data(), positions.size());
+  setPositions({positions.data(), positions.size()});
 }
 inline internal::Object3dPtr Robot::getObject3dPointer(internal::RobotPtr cPointer) noexcept {
   static auto hebi_charts_Robot_to_Object3d = DynamicLookup::instance().getFunc<internal::Object3dPtr(*)(internal::RobotPtr)>("hebi_charts_Robot_to_Object3d");
@@ -4409,19 +4535,19 @@ inline void Line3d::clear() noexcept {
   static auto hebi_charts_Line3d_clear = DynamicLookup::instance().getFunc<void(*)(internal::Line3dPtr)>("hebi_charts_Line3d_clear");
   hebi_charts_Line3d_clear(ptr_);
 }
-inline void Line3d::setData(const double* x, const double* y, const double* z, size_t length) noexcept {
-  static auto hebi_charts_Line3d_setData = DynamicLookup::instance().getFunc<void(*)(internal::Line3dPtr, const double*, const double*, const double*, size_t)>("hebi_charts_Line3d_setData");
-  hebi_charts_Line3d_setData(ptr_, x, y, z, length);
+inline void Line3d::setData(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept {
+  static auto hebi_charts_Line3d_setData = DynamicLookup::instance().getFunc<void(*)(internal::Line3dPtr, internal::DoubleSpan, internal::DoubleSpan, internal::DoubleSpan)>("hebi_charts_Line3d_setData");
+  hebi_charts_Line3d_setData(ptr_, x, y, z);
 }
 inline void Line3d::setData(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept {
-  setData(x.data(), y.data(), z.data(), (std::min)({x.size(), y.size(), z.size()}));
+  setData({x.data(), x.size()}, {y.data(), y.size()}, {z.data(), z.size()});
 }
-inline void Line3d::addPoints(const double* x, const double* y, const double* z, size_t length) noexcept {
-  static auto hebi_charts_Line3d_addPoints = DynamicLookup::instance().getFunc<void(*)(internal::Line3dPtr, const double*, const double*, const double*, size_t)>("hebi_charts_Line3d_addPoints");
-  hebi_charts_Line3d_addPoints(ptr_, x, y, z, length);
+inline void Line3d::addPoints(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept {
+  static auto hebi_charts_Line3d_addPoints = DynamicLookup::instance().getFunc<void(*)(internal::Line3dPtr, internal::DoubleSpan, internal::DoubleSpan, internal::DoubleSpan)>("hebi_charts_Line3d_addPoints");
+  hebi_charts_Line3d_addPoints(ptr_, x, y, z);
 }
 inline void Line3d::addPoints(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept {
-  addPoints(x.data(), y.data(), z.data(), (std::min)({x.size(), y.size(), z.size()}));
+  addPoints({x.data(), x.size()}, {y.data(), y.size()}, {z.data(), z.size()});
 }
 inline void Line3d::addPoint(double x, double y, double z) noexcept {
   static auto hebi_charts_Line3d_addPoint = DynamicLookup::instance().getFunc<void(*)(internal::Line3dPtr, double, double, double)>("hebi_charts_Line3d_addPoint");
@@ -4483,19 +4609,19 @@ inline void Points3d::clear() noexcept {
   static auto hebi_charts_Points3d_clear = DynamicLookup::instance().getFunc<void(*)(internal::Points3dPtr)>("hebi_charts_Points3d_clear");
   hebi_charts_Points3d_clear(ptr_);
 }
-inline void Points3d::setData(const double* x, const double* y, const double* z, size_t length) noexcept {
-  static auto hebi_charts_Points3d_setData = DynamicLookup::instance().getFunc<void(*)(internal::Points3dPtr, const double*, const double*, const double*, size_t)>("hebi_charts_Points3d_setData");
-  hebi_charts_Points3d_setData(ptr_, x, y, z, length);
+inline void Points3d::setData(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept {
+  static auto hebi_charts_Points3d_setData = DynamicLookup::instance().getFunc<void(*)(internal::Points3dPtr, internal::DoubleSpan, internal::DoubleSpan, internal::DoubleSpan)>("hebi_charts_Points3d_setData");
+  hebi_charts_Points3d_setData(ptr_, x, y, z);
 }
 inline void Points3d::setData(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept {
-  setData(x.data(), y.data(), z.data(), (std::min)({x.size(), y.size(), z.size()}));
+  setData({x.data(), x.size()}, {y.data(), y.size()}, {z.data(), z.size()});
 }
-inline void Points3d::addPoints(const double* x, const double* y, const double* z, size_t length) noexcept {
-  static auto hebi_charts_Points3d_addPoints = DynamicLookup::instance().getFunc<void(*)(internal::Points3dPtr, const double*, const double*, const double*, size_t)>("hebi_charts_Points3d_addPoints");
-  hebi_charts_Points3d_addPoints(ptr_, x, y, z, length);
+inline void Points3d::addPoints(internal::DoubleSpan x, internal::DoubleSpan y, internal::DoubleSpan z) noexcept {
+  static auto hebi_charts_Points3d_addPoints = DynamicLookup::instance().getFunc<void(*)(internal::Points3dPtr, internal::DoubleSpan, internal::DoubleSpan, internal::DoubleSpan)>("hebi_charts_Points3d_addPoints");
+  hebi_charts_Points3d_addPoints(ptr_, x, y, z);
 }
 inline void Points3d::addPoints(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z) noexcept {
-  addPoints(x.data(), y.data(), z.data(), (std::min)({x.size(), y.size(), z.size()}));
+  addPoints({x.data(), x.size()}, {y.data(), y.size()}, {z.data(), z.size()});
 }
 inline void Points3d::addPoint(double x, double y, double z) noexcept {
   static auto hebi_charts_Points3d_addPoint = DynamicLookup::instance().getFunc<void(*)(internal::Points3dPtr, double, double, double)>("hebi_charts_Points3d_addPoint");
@@ -4518,8 +4644,10 @@ inline Points3d& Points3d::operator=(Points3d&& from) noexcept {
 
 // RecordingResult
 inline std::string RecordingResult::getDirectory() const {
-  static auto hebi_charts_RecordingResult_getDirectory = DynamicLookup::instance().getFunc<const char*(*)(internal::RecordingResultPtr)>("hebi_charts_RecordingResult_getDirectory");
-  auto ptr = hebi_charts_RecordingResult_getDirectory(ptr_);
+  static auto hebi_charts_RecordingResult_getDirectory = DynamicLookup::instance().getFunc<const char*(*)(internal::ErrorInfo*, internal::RecordingResultPtr)>("hebi_charts_RecordingResult_getDirectory");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_RecordingResult_getDirectory(&error_, ptr_);
+  checkError(error_);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline size_t RecordingResult::getDroppedCount() const noexcept {
@@ -4535,8 +4663,10 @@ inline double RecordingResult::getAverageFps() const noexcept {
   return hebi_charts_RecordingResult_getAverageFps(ptr_);
 }
 inline std::string RecordingResult::getManifest() const {
-  static auto hebi_charts_RecordingResult_getManifest = DynamicLookup::instance().getFunc<const char*(*)(internal::RecordingResultPtr)>("hebi_charts_RecordingResult_getManifest");
-  auto ptr = hebi_charts_RecordingResult_getManifest(ptr_);
+  static auto hebi_charts_RecordingResult_getManifest = DynamicLookup::instance().getFunc<const char*(*)(internal::ErrorInfo*, internal::RecordingResultPtr)>("hebi_charts_RecordingResult_getManifest");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_RecordingResult_getManifest(&error_, ptr_);
+  checkError(error_);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline size_t RecordingResult::getRecordedCount() const noexcept {
@@ -4552,13 +4682,17 @@ inline size_t RecordingResult::getTotalFrames() const noexcept {
   return hebi_charts_RecordingResult_getTotalFrames(ptr_);
 }
 inline std::string RecordingResult::getFfmpegCommand(VideoOutputFormat outputFormat, bool deleteDirectory) const {
-  static auto hebi_charts_RecordingResult_getFfmpegCommand = DynamicLookup::instance().getFunc<const char*(*)(internal::RecordingResultPtr, VideoOutputFormat, int)>("hebi_charts_RecordingResult_getFfmpegCommand");
-  auto ptr = hebi_charts_RecordingResult_getFfmpegCommand(ptr_, outputFormat, deleteDirectory);
+  static auto hebi_charts_RecordingResult_getFfmpegCommand = DynamicLookup::instance().getFunc<const char*(*)(internal::ErrorInfo*, internal::RecordingResultPtr, VideoOutputFormat, int)>("hebi_charts_RecordingResult_getFfmpegCommand");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_RecordingResult_getFfmpegCommand(&error_, ptr_, outputFormat, deleteDirectory);
+  checkError(error_);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline std::string RecordingResult::runFfmpeg(VideoOutputFormat outputFormat, bool deleteDirectory) {
-  static auto hebi_charts_RecordingResult_runFfmpeg = DynamicLookup::instance().getFunc<const char*(*)(internal::RecordingResultPtr, VideoOutputFormat, int)>("hebi_charts_RecordingResult_runFfmpeg");
-  auto ptr = hebi_charts_RecordingResult_runFfmpeg(ptr_, outputFormat, deleteDirectory);
+  static auto hebi_charts_RecordingResult_runFfmpeg = DynamicLookup::instance().getFunc<const char*(*)(internal::ErrorInfo*, internal::RecordingResultPtr, VideoOutputFormat, int)>("hebi_charts_RecordingResult_runFfmpeg");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_RecordingResult_runFfmpeg(&error_, ptr_, outputFormat, deleteDirectory);
+  checkError(error_);
   return !ptr ? std::string() : std::string(ptr); // copy utf8
 }
 inline void RecordingResult::cleanup() noexcept {
@@ -4647,49 +4781,49 @@ inline Camera Scene3d::getCamera() noexcept {
   return Camera(ptr);
 }
 inline Robot Scene3d::addRobot(const char* pathOrUrl) {
-  static auto hebi_charts_Scene3d_addRobot = DynamicLookup::instance().getFunc<internal::RobotPtr(*)(internal::Scene3dPtr, const char*)>("hebi_charts_Scene3d_addRobot");
-  auto ptr = hebi_charts_Scene3d_addRobot(ptr_, pathOrUrl);
-  if (!ptr) {
-    throw Exception("Could not create Robot in Scene3d::addRobot");
-  }
+  static auto hebi_charts_Scene3d_addRobot = DynamicLookup::instance().getFunc<internal::RobotPtr(*)(internal::ErrorInfo*, internal::Scene3dPtr, const char*)>("hebi_charts_Scene3d_addRobot");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_Scene3d_addRobot(&error_, ptr_, pathOrUrl);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Robot in Scene3d::addRobot");
   return Robot(ptr);
 }
 inline Robot Scene3d::addRobot(const std::string& pathOrUrl) {
   return addRobot(pathOrUrl.c_str());
 }
 inline Mesh Scene3d::addMesh(const char* pathOrUrl) {
-  static auto hebi_charts_Scene3d_addMesh = DynamicLookup::instance().getFunc<internal::MeshPtr(*)(internal::Scene3dPtr, const char*)>("hebi_charts_Scene3d_addMesh");
-  auto ptr = hebi_charts_Scene3d_addMesh(ptr_, pathOrUrl);
-  if (!ptr) {
-    throw Exception("Could not create Mesh in Scene3d::addMesh");
-  }
+  static auto hebi_charts_Scene3d_addMesh = DynamicLookup::instance().getFunc<internal::MeshPtr(*)(internal::ErrorInfo*, internal::Scene3dPtr, const char*)>("hebi_charts_Scene3d_addMesh");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_Scene3d_addMesh(&error_, ptr_, pathOrUrl);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Mesh in Scene3d::addMesh");
   return Mesh(ptr);
 }
 inline Mesh Scene3d::addMesh(const std::string& pathOrUrl) {
   return addMesh(pathOrUrl.c_str());
 }
 inline Frame Scene3d::addFrame(double lengthInMeters) {
-  static auto hebi_charts_Scene3d_addFrame = DynamicLookup::instance().getFunc<internal::FramePtr(*)(internal::Scene3dPtr, double)>("hebi_charts_Scene3d_addFrame");
-  auto ptr = hebi_charts_Scene3d_addFrame(ptr_, lengthInMeters);
-  if (!ptr) {
-    throw Exception("Could not create Frame in Scene3d::addFrame");
-  }
+  static auto hebi_charts_Scene3d_addFrame = DynamicLookup::instance().getFunc<internal::FramePtr(*)(internal::ErrorInfo*, internal::Scene3dPtr, double)>("hebi_charts_Scene3d_addFrame");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_Scene3d_addFrame(&error_, ptr_, lengthInMeters);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Frame in Scene3d::addFrame");
   return Frame(ptr);
 }
 inline Line3d Scene3d::addLine() {
-  static auto hebi_charts_Scene3d_addLine = DynamicLookup::instance().getFunc<internal::Line3dPtr(*)(internal::Scene3dPtr)>("hebi_charts_Scene3d_addLine");
-  auto ptr = hebi_charts_Scene3d_addLine(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Line3d in Scene3d::addLine");
-  }
+  static auto hebi_charts_Scene3d_addLine = DynamicLookup::instance().getFunc<internal::Line3dPtr(*)(internal::ErrorInfo*, internal::Scene3dPtr)>("hebi_charts_Scene3d_addLine");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_Scene3d_addLine(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Line3d in Scene3d::addLine");
   return Line3d(ptr);
 }
 inline Points3d Scene3d::addPoints() {
-  static auto hebi_charts_Scene3d_addPoints = DynamicLookup::instance().getFunc<internal::Points3dPtr(*)(internal::Scene3dPtr)>("hebi_charts_Scene3d_addPoints");
-  auto ptr = hebi_charts_Scene3d_addPoints(ptr_);
-  if (!ptr) {
-    throw Exception("Could not create Points3d in Scene3d::addPoints");
-  }
+  static auto hebi_charts_Scene3d_addPoints = DynamicLookup::instance().getFunc<internal::Points3dPtr(*)(internal::ErrorInfo*, internal::Scene3dPtr)>("hebi_charts_Scene3d_addPoints");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_Scene3d_addPoints(&error_, ptr_);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Points3d in Scene3d::addPoints");
   return Points3d(ptr);
 }
 inline void Scene3d::cleanup() noexcept {
@@ -4773,11 +4907,10 @@ inline void XYChart::setXLabel(const std::string& label) noexcept {
   setXLabel(label.c_str());
 }
 inline void XYChart::setXLim(double min, double max) {
-  static auto hebi_charts_XYChart_setXLim = DynamicLookup::instance().getFunc<int(*)(internal::XYChartPtr, double, double)>("hebi_charts_XYChart_setXLim");
-  int status_ = hebi_charts_XYChart_setXLim(ptr_, min, max);
-  if (status_ != 0) {
-    throw Exception("Encountered error in XYChart::setXLim");
-  }
+  static auto hebi_charts_XYChart_setXLim = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, internal::XYChartPtr, double, double)>("hebi_charts_XYChart_setXLim");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_XYChart_setXLim(&error_, ptr_, min, max);
+  checkError(error_);
 }
 inline double XYChart::getXMax() const noexcept {
   static auto hebi_charts_XYChart_getXMax = DynamicLookup::instance().getFunc<double(*)(internal::XYChartPtr)>("hebi_charts_XYChart_getXMax");
@@ -4890,11 +5023,11 @@ inline XYChart::~XYChart() noexcept {
 
 // LatencyChart
 inline LatencyTrace LatencyChart::addTrace(const char* name) {
-  static auto hebi_charts_LatencyChart_addTrace = DynamicLookup::instance().getFunc<internal::LatencyTracePtr(*)(internal::LatencyChartPtr, const char*)>("hebi_charts_LatencyChart_addTrace");
-  auto ptr = hebi_charts_LatencyChart_addTrace(ptr_, name);
-  if (!ptr) {
-    throw Exception("Could not create LatencyTrace in LatencyChart::addTrace");
-  }
+  static auto hebi_charts_LatencyChart_addTrace = DynamicLookup::instance().getFunc<internal::LatencyTracePtr(*)(internal::ErrorInfo*, internal::LatencyChartPtr, const char*)>("hebi_charts_LatencyChart_addTrace");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_LatencyChart_addTrace(&error_, ptr_, name);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create LatencyTrace in LatencyChart::addTrace");
   return LatencyTrace(ptr);
 }
 inline LatencyTrace LatencyChart::addTrace(const std::string& name) {
@@ -4917,11 +5050,11 @@ inline LatencyChart& LatencyChart::operator=(LatencyChart&& from) noexcept {
 
 // LineChart
 inline Line LineChart::addLine(const char* label) {
-  static auto hebi_charts_LineChart_addLine = DynamicLookup::instance().getFunc<internal::LinePtr(*)(internal::LineChartPtr, const char*)>("hebi_charts_LineChart_addLine");
-  auto ptr = hebi_charts_LineChart_addLine(ptr_, label);
-  if (!ptr) {
-    throw Exception("Could not create Line in LineChart::addLine");
-  }
+  static auto hebi_charts_LineChart_addLine = DynamicLookup::instance().getFunc<internal::LinePtr(*)(internal::ErrorInfo*, internal::LineChartPtr, const char*)>("hebi_charts_LineChart_addLine");
+  internal::ErrorInfo error_ = {};
+  auto ptr = hebi_charts_LineChart_addLine(&error_, ptr_, label);
+  checkError(error_);
+  checkNotNull(ptr, "Could not create Line in LineChart::addLine");
   return Line(ptr);
 }
 inline Line LineChart::addLine(const std::string& label) {
@@ -5087,19 +5220,19 @@ inline void Line::clear() noexcept {
   static auto hebi_charts_Line_clear = DynamicLookup::instance().getFunc<void(*)(internal::LinePtr)>("hebi_charts_Line_clear");
   hebi_charts_Line_clear(ptr_);
 }
-inline void Line::setData(const double* x, const double* y, size_t length) noexcept {
-  static auto hebi_charts_Line_setData = DynamicLookup::instance().getFunc<void(*)(internal::LinePtr, const double*, const double*, size_t)>("hebi_charts_Line_setData");
-  hebi_charts_Line_setData(ptr_, x, y, length);
+inline void Line::setData(internal::DoubleSpan x, internal::DoubleSpan y) noexcept {
+  static auto hebi_charts_Line_setData = DynamicLookup::instance().getFunc<void(*)(internal::LinePtr, internal::DoubleSpan, internal::DoubleSpan)>("hebi_charts_Line_setData");
+  hebi_charts_Line_setData(ptr_, x, y);
 }
 inline void Line::setData(const std::vector<double>& x, const std::vector<double>& y) noexcept {
-  setData(x.data(), y.data(), (std::min)(x.size(), y.size()));
+  setData({x.data(), x.size()}, {y.data(), y.size()});
 }
-inline void Line::addPoints(const double* x, const double* y, size_t length) noexcept {
-  static auto hebi_charts_Line_addPoints = DynamicLookup::instance().getFunc<void(*)(internal::LinePtr, const double*, const double*, size_t)>("hebi_charts_Line_addPoints");
-  hebi_charts_Line_addPoints(ptr_, x, y, length);
+inline void Line::addPoints(internal::DoubleSpan x, internal::DoubleSpan y) noexcept {
+  static auto hebi_charts_Line_addPoints = DynamicLookup::instance().getFunc<void(*)(internal::LinePtr, internal::DoubleSpan, internal::DoubleSpan)>("hebi_charts_Line_addPoints");
+  hebi_charts_Line_addPoints(ptr_, x, y);
 }
 inline void Line::addPoints(const std::vector<double>& x, const std::vector<double>& y) noexcept {
-  addPoints(x.data(), y.data(), (std::min)(x.size(), y.size()));
+  addPoints({x.data(), x.size()}, {y.data(), y.size()});
 }
 inline void Line::addPoint(double x, double y) noexcept {
   static auto hebi_charts_Line_addPoint = DynamicLookup::instance().getFunc<void(*)(internal::LinePtr, double, double)>("hebi_charts_Line_addPoint");
@@ -5122,11 +5255,10 @@ inline Line& Line::operator=(Line&& from) noexcept {
 
 // Runtime
 inline void runtime::setOption(RuntimeOption option, const char* value) {
-  static auto hebi_charts_Runtime_setOption = DynamicLookup::instance().getFunc<int(*)(RuntimeOption, const char*)>("hebi_charts_Runtime_setOption");
-  int status_ = hebi_charts_Runtime_setOption(option, value);
-  if (status_ != 0) {
-    throw Exception("Encountered error in Runtime::setOption");
-  }
+  static auto hebi_charts_Runtime_setOption = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*, RuntimeOption, const char*)>("hebi_charts_Runtime_setOption");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Runtime_setOption(&error_, option, value);
+  checkError(error_);
 }
 inline void runtime::setOption(RuntimeOption option, const std::string& value) {
   setOption(option, value.c_str());
@@ -5140,11 +5272,10 @@ inline void runtime::setAutoCloseWindows(bool autoClose) noexcept {
   hebi_charts_Runtime_setAutoCloseWindows(autoClose);
 }
 inline void runtime::waitUntilWindowsClosed() {
-  static auto hebi_charts_Runtime_waitUntilWindowsClosed = DynamicLookup::instance().getFunc<int(*)()>("hebi_charts_Runtime_waitUntilWindowsClosed");
-  int status_ = hebi_charts_Runtime_waitUntilWindowsClosed();
-  if (status_ != 0) {
-    throw Exception("Encountered error in Runtime::waitUntilWindowsClosed");
-  }
+  static auto hebi_charts_Runtime_waitUntilWindowsClosed = DynamicLookup::instance().getFunc<void(*)(internal::ErrorInfo*)>("hebi_charts_Runtime_waitUntilWindowsClosed");
+  internal::ErrorInfo error_ = {};
+  hebi_charts_Runtime_waitUntilWindowsClosed(&error_);
+  checkError(error_);
 }
 inline void runtime::collect() noexcept {
   static auto hebi_charts_Runtime_collect = DynamicLookup::instance().getFunc<void(*)()>("hebi_charts_Runtime_collect");
@@ -5158,10 +5289,6 @@ inline void runtime::runOnUiThread(UserCallbackFunction func, void* userData) no
   static auto hebi_charts_Runtime_runOnUiThread = DynamicLookup::instance().getFunc<void(*)(UserCallbackFunction, void*)>("hebi_charts_Runtime_runOnUiThread");
   hebi_charts_Runtime_runOnUiThread(func, userData);
 }
-inline void runtime::printLastErrorDetails() noexcept {
-  static auto hebi_charts_Runtime_printLastErrorDetails = DynamicLookup::instance().getFunc<void(*)()>("hebi_charts_Runtime_printLastErrorDetails");
-  hebi_charts_Runtime_printLastErrorDetails();
-}
 inline void runtime::printThreadInfo(const char* name) noexcept {
   static auto hebi_charts_Runtime_printThreadInfo = DynamicLookup::instance().getFunc<void(*)(const char*)>("hebi_charts_Runtime_printThreadInfo");
   hebi_charts_Runtime_printThreadInfo(name);
@@ -5169,30 +5296,7 @@ inline void runtime::printThreadInfo(const char* name) noexcept {
 inline void runtime::printThreadInfo(const std::string& name) noexcept {
   printThreadInfo(name.c_str());
 }
-inline std::string runtime::getLastErrorString() noexcept {
-  static auto hebi_charts_Runtime_getLastErrorString = DynamicLookup::instance().getFunc<const char*(*)()>("hebi_charts_Runtime_getLastErrorString");
-  auto ptr = hebi_charts_Runtime_getLastErrorString();
-  return !ptr ? std::string() : std::string(ptr); // copy utf8
-}
 
-// ==== Cocoa utilities for supporting macOS ====
-typedef int (*hebi_charts_MainCallbackFunction)(int argc, char** argv);
-/**
- * @details 
- * Sets up required system libraries and executes the callback on an appropriate thread
- * 
- * This is technically only needed on macOS as the Cocoa framework for displaying
- * windows needs to be run on the main thread. On Windows and Linux this method
- * executes the callback directly and otherwise does nothing. However, all platforms
- * are supported to enable platform-independent code with the same behavior.
- */
-inline int runApplication(hebi_charts_MainCallbackFunction callback, int argc, char** argv) {
-  if (!DynamicLookup::instance().isLoaded()) {
-    return callback(argc, argv);
-  }
-  static auto hebi_charts_runApplication = DynamicLookup::instance().getFunc<int(*)(hebi_charts_MainCallbackFunction, int, char**)>("hebi_charts_runApplication");
-  return hebi_charts_runApplication(callback, argc, argv);
-}
 
 // Library Information
 namespace lib {
@@ -5206,7 +5310,7 @@ struct Version {
 };
 
 inline Version getHeaderVersion() {
-  return {0, 9, 4, 127};
+  return {0, 9, 5, 130};
 }
 
 inline Version getLibraryVersion() {
@@ -5220,6 +5324,24 @@ inline bool isAvailable() { return DynamicLookup::instance().isLoaded(); }
 
 } // namespace lib
 
+// ==== Cocoa utilities for supporting macOS ====
+typedef int (*hebi_charts_MainCallbackFunction)(int argc, char** argv);
+/**
+ * @details
+ * Sets up required system libraries and executes the callback on an appropriate thread
+ *
+ * This is technically only needed on macOS as the Cocoa framework for displaying
+ * windows needs to be run on the main thread. On Windows and Linux this method
+ * executes the callback directly and otherwise does nothing. However, all platforms
+ * are supported to enable platform-independent code with the same behavior.
+ */
+inline int runApplication(hebi_charts_MainCallbackFunction callback, int argc, char** argv) {
+  if (!DynamicLookup::instance().isLoaded()) {
+    return callback(argc, argv);
+  }
+  static auto hebi_charts_runApplication = DynamicLookup::instance().getFunc<int(*)(hebi_charts_MainCallbackFunction, int, char**)>("hebi_charts_runApplication");
+  return hebi_charts_runApplication(callback, argc, argv);
+}
 
 template<typename FuncType> FuncType DynamicLookup::getFunc(const char* func) const {
   assert(lib_ != nullptr && "Fatal error -- cannot call hebi::charts functions on unloaded library");

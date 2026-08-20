@@ -133,9 +133,12 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
 
         function obj = getCamera(this)
             % Returns the camera of this 3d chart
+            %
+            %   Outputs:
+            %       Represents a view point looking at a 3d scene
             ptr_ = hebi_charts_native('hebi_charts_Scene3d_getCamera', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Camera in Scene3d.getCamera' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Camera in Scene3d.getCamera');
             end
             obj = hebi_charts.Camera(ptr_);
         end
@@ -146,11 +149,14 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
             %   Inputs:
             %       pathOrUrl - file path or web-url to a description file
             %
+            %   Outputs:
+            %       Represents robot kinematics
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_Scene3d_addRobot', this.ptr, pathOrUrl);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Robot in Scene3d.addRobot' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Robot in Scene3d.addRobot');
             end
             obj = hebi_charts.Robot(ptr_, varargin{:});
         end
@@ -161,11 +167,14 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
             %   Inputs:
             %       pathOrUrl - file path or web-url to an .obj file
             %
+            %   Outputs:
+            %       Represents a static 3d mesh
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_Scene3d_addMesh', this.ptr, pathOrUrl);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Mesh in Scene3d.addMesh' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Mesh in Scene3d.addMesh');
             end
             obj = hebi_charts.Mesh(ptr_, varargin{:});
         end
@@ -176,6 +185,9 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
             %   Inputs:
             %       lengthInMeters - length of each axis in [m]
             %
+            %   Outputs:
+            %       A triad that represents a frame
+            %
             %   Throws:
             %       Error on internal errors
             lengthInMeters = 0.03;
@@ -185,7 +197,7 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
             end
             ptr_ = hebi_charts_native('hebi_charts_Scene3d_addFrame', this.ptr, lengthInMeters);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Frame in Scene3d.addFrame' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Frame in Scene3d.addFrame');
             end
             obj = hebi_charts.Frame(ptr_, varargin{:});
         end
@@ -193,11 +205,17 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
         function obj = addLine(this, varargin)
             % Adds a 3D data series rendered as a continuous line
             %
+            %   Outputs:
+            %       Represents a line in 3d space. Note that there are currently no
+            %   line primitives, so the rendering is platform dependent and the
+            %   performance is limited.
+            %
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_Scene3d_addLine', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Line3d in Scene3d.addLine' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Line3d in Scene3d.addLine');
             end
             obj = hebi_charts.Line3d(ptr_, varargin{:});
         end
@@ -205,11 +223,17 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
         function obj = addPoints(this, varargin)
             % Adds a 3D data series rendered as individual mesh objects
             %
+            %   Outputs:
+            %       Represents points in 3d space. Each point gets rendered as
+            %   the specified marker shape. This is intended for markers
+            %   and is not appropriate for large scale lidar point clouds.
+            %
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_Scene3d_addPoints', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Points3d in Scene3d.addPoints' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Points3d in Scene3d.addPoints');
             end
             obj = hebi_charts.Points3d(ptr_, varargin{:});
         end
@@ -218,8 +242,8 @@ classdef (Sealed) Scene3d < handle & matlab.mixin.SetGet
 
     methods(Access = public, Hidden = true)
         function this = Scene3d(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('Scene3d constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('Scene3d instances are created by the library');
             end
             this.ptr = ptr;
 
