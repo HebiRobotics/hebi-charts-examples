@@ -1,8 +1,8 @@
 # Used to download the binaries - this should not be used directly.
 cmake_minimum_required(VERSION 3.12)
 
-set(HEBI_CHARTS_VERSION "0.9.4")
-set(HEBI_CHARTS_BUILD_NUMBER "127")
+set(HEBI_CHARTS_VERSION "0.9.5")
+set(HEBI_CHARTS_BUILD_NUMBER "130")
 
 # ======== Determine target platform ========
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -73,7 +73,7 @@ if(DOWNLOAD_HEBI_CHARTS AND NOT EXISTS "${HEBI_CHARTS_LIB_FILE}")
 
   # Build URL
   set(HEBI_CHARTS_DL_NAME "hebi_charts-${HEBI_CHARTS_VERSION}-${HEBI_CHARTS_PLATFORM}.zip")
-  set(HEBI_CHARTS_DL_URL "https://files.hebi.us/download/hebi_charts/snapshot/${HEBI_CHARTS_BUILD_NUMBER}/${HEBI_CHARTS_DL_NAME}")
+  set(HEBI_CHARTS_DL_URL "https://files.hebi.us/download/hebi_charts/snapshot/130/${HEBI_CHARTS_DL_NAME}")
 
   # Make sure the directory exists
   file(MAKE_DIRECTORY "${HEBI_CHARTS_DOWNLOAD_DIR}")
@@ -92,4 +92,12 @@ if(DOWNLOAD_HEBI_CHARTS AND NOT EXISTS "${HEBI_CHARTS_LIB_FILE}")
   message(STATUS "Removing temporary files")
   file(REMOVE "${HEBI_CHARTS_DL_PATH}")
 
+endif()
+
+# ======== Fail early if the binaries are still missing ========
+if(NOT EXISTS "${HEBI_CHARTS_LIB_FILE}")
+  message(FATAL_ERROR "Could not find the hebi_charts binaries for ${HEBI_CHARTS_PLATFORM}. "
+                      "Expected them at ${HEBI_CHARTS_LIB_FILE}. "
+                      "Enable DOWNLOAD_HEBI_CHARTS to download them on demand, "
+                      "or bundle them next to this file.")
 endif()

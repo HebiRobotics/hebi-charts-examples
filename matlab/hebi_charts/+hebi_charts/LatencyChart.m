@@ -9,11 +9,14 @@ classdef (Sealed) LatencyChart < hebi_charts.XYChart
             %   Inputs:
             %       name
             %
+            %   Outputs:
+            %       Represents a latency measurement that records latency values in the form of an HdrHistogram
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_LatencyChart_addTrace', this.ref_LatencyChart, name);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.LatencyTrace in LatencyChart.addTrace' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.LatencyTrace in LatencyChart.addTrace');
             end
             obj = hebi_charts.LatencyTrace(ptr_, varargin{:});
         end

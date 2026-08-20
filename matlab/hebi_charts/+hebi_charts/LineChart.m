@@ -9,11 +9,18 @@ classdef (Sealed) LineChart < hebi_charts.XYChart
             %   Inputs:
             %       label
             %
+            %   Outputs:
+            %       Represents a high-performance 2D line series optimized for real-time
+            %   telemetry.
+            %   Uses a double-buffered architecture with bounded rolling buffers to
+            %   decouple high-frequency data ingestion from the UI rendering pulse.
+            %
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_LineChart_addLine', this.ref_LineChart, label);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Line in LineChart.addLine' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Line in LineChart.addLine');
             end
             obj = hebi_charts.Line(ptr_, varargin{:});
         end

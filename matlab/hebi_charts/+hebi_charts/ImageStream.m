@@ -109,10 +109,7 @@ classdef (Sealed) ImageStream < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_ImageStream_setRateLimit', this.ptr, maxFramesPerSecond);
-            if status_ ~= 0
-                error(['Encountered error in ImageStream.set.rateLimit' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_ImageStream_setRateLimit', this.ptr, maxFramesPerSecond);
         end
 
         function result = get.recorderThreads(this)
@@ -131,10 +128,7 @@ classdef (Sealed) ImageStream < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_ImageStream_setRecorderThreads', this.ptr, numThreads);
-            if status_ ~= 0
-                error(['Encountered error in ImageStream.set.recorderThreads' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_ImageStream_setRecorderThreads', this.ptr, numThreads);
         end
 
         function result = get.recording(this)
@@ -190,10 +184,7 @@ classdef (Sealed) ImageStream < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_ImageStream_setResolution', this.ptr, width, height);
-            if status_ ~= 0
-                error(['Encountered error in ImageStream.setResolution' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_ImageStream_setResolution', this.ptr, width, height);
         end
 
         function result = waitForNext(this, maxTimeoutMillis)
@@ -237,20 +228,23 @@ classdef (Sealed) ImageStream < handle & matlab.mixin.SetGet
             if nargin < 3
                 overwrite = false;
             end
-            status_ = hebi_charts_native('hebi_charts_ImageStream_startRecording', this.ptr, baseName, overwrite);
-            if status_ ~= 0
-                error(['Encountered error in ImageStream.startRecording' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_ImageStream_startRecording', this.ptr, baseName, overwrite);
         end
 
         function obj = stopRecording(this)
             % [EXPERIMENTAL API] Blocking call that stops recording and returns the result.
             %
+            %   Outputs:
+            %       [EXPERIMENTAL API]
+            %   Represents the result of a recording. Can be used to
+            %   get various statistics and/or trigger FFMpeg.
+            %
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ImageStream_stopRecording', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.RecordingResult in ImageStream.stopRecording' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.RecordingResult in ImageStream.stopRecording');
             end
             obj = hebi_charts.RecordingResult(ptr_);
         end
@@ -263,18 +257,15 @@ classdef (Sealed) ImageStream < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_ImageStream_saveToFile', this.ptr, fileName);
-            if status_ ~= 0
-                error(['Encountered error in ImageStream.saveToFile' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_ImageStream_saveToFile', this.ptr, fileName);
         end
 
     end
 
     methods(Access = public, Hidden = true)
         function this = ImageStream(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('ImageStream constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('ImageStream instances are created by the library');
             end
             this.ptr = ptr;
 

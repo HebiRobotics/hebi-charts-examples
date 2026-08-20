@@ -33,10 +33,7 @@ classdef Object3d < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Object3d_setOrientation', this.ptr, qx, qy, qz, qw);
-            if status_ ~= 0
-                error(['Encountered error in Object3d.setOrientation' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Object3d_setOrientation', this.ptr, qx, qy, qz, qw);
         end
 
         function setOrientationRPY(this, roll, pitch, yaw)
@@ -54,10 +51,7 @@ classdef Object3d < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Object3d_setOrientationRPY', this.ptr, roll, pitch, yaw);
-            if status_ ~= 0
-                error(['Encountered error in Object3d.setOrientationRPY' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Object3d_setOrientationRPY', this.ptr, roll, pitch, yaw);
         end
 
         function setTranslation(this, x, y, z)
@@ -70,10 +64,7 @@ classdef Object3d < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Object3d_setTranslation', this.ptr, x, y, z);
-            if status_ ~= 0
-                error(['Encountered error in Object3d.setTranslation' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Object3d_setTranslation', this.ptr, x, y, z);
         end
 
         function setPose(this, x, y, z, qx, qy, qz, qw)
@@ -95,13 +86,10 @@ classdef Object3d < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Object3d_setPose', this.ptr, x, y, z, qx, qy, qz, qw);
-            if status_ ~= 0
-                error(['Encountered error in Object3d.setPose' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Object3d_setPose', this.ptr, x, y, z, qx, qy, qz, qw);
         end
 
-        function setTransform4x4(this, matrix, ordering)
+        function setTransform4x4(this, matrix)
             % Sets a 4x4 transform matrix of the form
             %
             %       R R R x
@@ -109,34 +97,24 @@ classdef Object3d < handle & matlab.mixin.SetGet
             %       R R R z
             %       0 0 0 1
             %
-            %   The transform needs to be of size=16 and include the
+            %   The transform needs to reference 16 elements and include the
             %   bottom row. The translation units are in meters.
             %   The input is not verified.
             %
             %   Inputs:
-            %       matrix - pointer to 16 double elements
-            %       ordering - corresponding memory layout of the 4x4 matrix
+            %       matrix - 4x4 transform matrix
             %
             %   Throws:
             %       Error on internal errors
-            if ~isequal(size(matrix), [4 4])
-                error('expected 4x4 matrix');
-            end
-            if nargin < 3
-                ordering = 'ColumnMajor';
-            end
-            status_ = hebi_charts_native('hebi_charts_Object3d_setTransform4x4', this.ptr, matrix, hebi_charts.MatrixOrdering.toNativeValue(ordering));
-            if status_ ~= 0
-                error(['Encountered error in Object3d.setTransform4x4' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Object3d_setTransform4x4', this.ptr, matrix);
         end
 
     end
 
     methods(Access = public, Hidden = true)
         function this = Object3d(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('Object3d constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('Object3d instances are created by the library');
             end
             this.ptr = ptr;
 

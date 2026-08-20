@@ -149,9 +149,15 @@ classdef (Sealed) LoopTimer < handle & matlab.mixin.SetGet
 
     methods(Access = public)
         function this = LoopTimer(varargin)
-            ptr_ = hebi_charts_native('hebi_charts_LoopTimer_create');
-            if isempty(ptr_)
-                error(['Failed to create hebi_charts.LoopTimer in LoopTimer.LoopTimer']);
+            % A uint64 scalar is a handle the library created
+            if nargin >= 1 && isa(varargin{1}, 'uint64') && isscalar(varargin{1})
+                ptr_ = varargin{1};
+                varargin(1) = [];
+            else
+                ptr_ = hebi_charts_native('hebi_charts_LoopTimer_create');
+                if isempty(ptr_)
+                    error('Failed to create hebi_charts.LoopTimer in LoopTimer.LoopTimer');
+                end
             end
             this.ptr = ptr_;
             if numel(varargin) > 0

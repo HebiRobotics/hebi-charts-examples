@@ -3,13 +3,13 @@ from ctypes import *
 from enum import IntEnum
 import os
 import platform
-from typing import Sequence, Tuple, Any
+from typing import Sequence, Tuple, Any, Callable, overload
 
 # Load the shared library relative to this file
 def load_library():
     lib_name = 'hebi_charts'
-    version = '0.9.4'
-    build_number = '127'
+    version = '0.9.5'
+    build_number = '130'
 
     architecture = platform.architecture()[0]  # gets '64bit' or '32bit'
     os_name = platform.system()  # gets 'Windows', 'Linux', 'Darwin'
@@ -52,7 +52,7 @@ def load_library():
 
             # Build download url
             dl_name = f"{lib_name}-{version}-{lib_platform}.zip"
-            url = f"https://files.hebi.us/download/{lib_name}/snapshot/{build_number}/{dl_name}"
+            url = f"https://files.hebi.us/download/hebi_charts/snapshot/130/{dl_name}"
 
             # Download zip file
             print(f"Downloading {url}")
@@ -104,6 +104,34 @@ def _require_numpy():
     return _numpy
 
 # API definitions
+class _ErrorInfo(Structure):
+    # Filled by every method that can throw. The strings stay valid only until
+    # this thread's next library call, so they get copied into the exception.
+    _fields_ = [("message", c_char_p), ("id", c_char_p), ("code", c_int32)]
+
+class Error(RuntimeError):
+    # Failure reported by the library. The id names the kind of failure, as in
+    # "mylib:invalidArgument", and is empty when the library did not set one.
+    def __init__(self, message, id=""):
+        super().__init__(f"[{id}] {message}" if id else message)
+        self.id = id
+
+def _checked(error_, result_):
+    # Wraps the call so that the check reads as one expression. Python evaluates
+    # the arguments first, so the struct is filled by the time this runs.
+    if error_.code != 0:
+        message = error_.message.decode("utf-8") if error_.message else "unknown error"
+        raise Error(message, error_.id.decode("utf-8") if error_.id else "")
+    return result_
+
+class _DoubleSpan(Structure):
+    # Layout of the by-value struct in the C ABI, mirroring DoubleSpan
+    _fields_ = [("data", POINTER(c_double)), ("length", c_size_t)]
+
+class _Transform4x4(Structure):
+    # Layout of the by-value struct in the C ABI, mirroring Transform4x4
+    _fields_ = [("data", POINTER(c_double)), ("ordering", c_int32)]
+
 class struct_Camera_(Structure):
     pass
 CameraPtr = POINTER(struct_Camera_)
@@ -239,12 +267,12 @@ libhebi_charts.hebi_charts_Camera_setView.argtypes = [CameraPtr, c_int32]
 libhebi_charts.hebi_charts_Camera_setView.restype = None
 libhebi_charts.hebi_charts_Camera_reset.argtypes = [CameraPtr]
 libhebi_charts.hebi_charts_Camera_reset.restype = None
-libhebi_charts.hebi_charts_Camera_applyRotation.argtypes = [CameraPtr, c_double, c_double, c_double, c_double]
-libhebi_charts.hebi_charts_Camera_applyRotation.restype = c_int
-libhebi_charts.hebi_charts_Camera_setDistance.argtypes = [CameraPtr, c_double]
-libhebi_charts.hebi_charts_Camera_setDistance.restype = c_int
-libhebi_charts.hebi_charts_Camera_setPan.argtypes = [CameraPtr, c_double, c_double, c_double]
-libhebi_charts.hebi_charts_Camera_setPan.restype = c_int
+libhebi_charts.hebi_charts_Camera_applyRotation.argtypes = [POINTER(_ErrorInfo), CameraPtr, c_double, c_double, c_double, c_double]
+libhebi_charts.hebi_charts_Camera_applyRotation.restype = None
+libhebi_charts.hebi_charts_Camera_setDistance.argtypes = [POINTER(_ErrorInfo), CameraPtr, c_double]
+libhebi_charts.hebi_charts_Camera_setDistance.restype = None
+libhebi_charts.hebi_charts_Camera_setPan.argtypes = [POINTER(_ErrorInfo), CameraPtr, c_double, c_double, c_double]
+libhebi_charts.hebi_charts_Camera_setPan.restype = None
 libhebi_charts.hebi_charts_Camera_setControlsVisible.argtypes = [CameraPtr, c_int]
 libhebi_charts.hebi_charts_Camera_setControlsVisible.restype = None
 libhebi_charts.hebi_charts_Camera_release.argtypes = [CameraPtr]
@@ -347,21 +375,21 @@ libhebi_charts.hebi_charts_ControlPanel_getWidth.argtypes = [ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_getWidth.restype = c_double
 libhebi_charts.hebi_charts_ControlPanel_setWidth.argtypes = [ControlPanelPtr, c_double]
 libhebi_charts.hebi_charts_ControlPanel_setWidth.restype = None
-libhebi_charts.hebi_charts_ControlPanel_addSection.argtypes = [ControlPanelPtr, c_char_p]
-libhebi_charts.hebi_charts_ControlPanel_addSection.restype = c_int
-libhebi_charts.hebi_charts_ControlPanel_addLabel.argtypes = [ControlPanelPtr]
+libhebi_charts.hebi_charts_ControlPanel_addSection.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr, c_char_p]
+libhebi_charts.hebi_charts_ControlPanel_addSection.restype = None
+libhebi_charts.hebi_charts_ControlPanel_addLabel.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_addLabel.restype = LabelPtr
-libhebi_charts.hebi_charts_ControlPanel_addButton.argtypes = [ControlPanelPtr]
+libhebi_charts.hebi_charts_ControlPanel_addButton.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_addButton.restype = ButtonPtr
-libhebi_charts.hebi_charts_ControlPanel_addStartButton.argtypes = [ControlPanelPtr]
+libhebi_charts.hebi_charts_ControlPanel_addStartButton.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_addStartButton.restype = ButtonPtr
-libhebi_charts.hebi_charts_ControlPanel_addStopButton.argtypes = [ControlPanelPtr]
+libhebi_charts.hebi_charts_ControlPanel_addStopButton.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_addStopButton.restype = ButtonPtr
-libhebi_charts.hebi_charts_ControlPanel_addSlider.argtypes = [ControlPanelPtr]
+libhebi_charts.hebi_charts_ControlPanel_addSlider.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_addSlider.restype = SliderPtr
-libhebi_charts.hebi_charts_ControlPanel_addToggle.argtypes = [ControlPanelPtr]
+libhebi_charts.hebi_charts_ControlPanel_addToggle.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_addToggle.restype = TogglePtr
-libhebi_charts.hebi_charts_ControlPanel_addDropdown.argtypes = [ControlPanelPtr]
+libhebi_charts.hebi_charts_ControlPanel_addDropdown.argtypes = [POINTER(_ErrorInfo), ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_addDropdown.restype = DropdownPtr
 libhebi_charts.hebi_charts_ControlPanel_release.argtypes = [ControlPanelPtr]
 libhebi_charts.hebi_charts_ControlPanel_release.restype = None
@@ -393,25 +421,25 @@ libhebi_charts.hebi_charts_FxmlView_setAutoReload.argtypes = [FxmlViewPtr, c_int
 libhebi_charts.hebi_charts_FxmlView_setAutoReload.restype = None
 libhebi_charts.hebi_charts_FxmlView_getSource.argtypes = [FxmlViewPtr]
 libhebi_charts.hebi_charts_FxmlView_getSource.restype = c_char_p
-libhebi_charts.hebi_charts_FxmlView_setSource.argtypes = [FxmlViewPtr, c_char_p]
-libhebi_charts.hebi_charts_FxmlView_setSource.restype = c_int
-libhebi_charts.hebi_charts_FxmlView_addLineChart.argtypes = [FxmlViewPtr, c_char_p]
+libhebi_charts.hebi_charts_FxmlView_setSource.argtypes = [POINTER(_ErrorInfo), FxmlViewPtr, c_char_p]
+libhebi_charts.hebi_charts_FxmlView_setSource.restype = None
+libhebi_charts.hebi_charts_FxmlView_addLineChart.argtypes = [POINTER(_ErrorInfo), FxmlViewPtr, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addLineChart.restype = LineChartPtr
-libhebi_charts.hebi_charts_FxmlView_addScope.argtypes = [FxmlViewPtr, c_char_p]
+libhebi_charts.hebi_charts_FxmlView_addScope.argtypes = [POINTER(_ErrorInfo), FxmlViewPtr, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addScope.restype = LineChartPtr
-libhebi_charts.hebi_charts_FxmlView_addLatencyChart.argtypes = [FxmlViewPtr, c_char_p]
+libhebi_charts.hebi_charts_FxmlView_addLatencyChart.argtypes = [POINTER(_ErrorInfo), FxmlViewPtr, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addLatencyChart.restype = LatencyChartPtr
-libhebi_charts.hebi_charts_FxmlView_addScene3d.argtypes = [FxmlViewPtr, c_char_p]
+libhebi_charts.hebi_charts_FxmlView_addScene3d.argtypes = [POINTER(_ErrorInfo), FxmlViewPtr, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addScene3d.restype = Scene3dPtr
-libhebi_charts.hebi_charts_FxmlView_addStreamView.argtypes = [FxmlViewPtr, c_char_p, c_char_p]
+libhebi_charts.hebi_charts_FxmlView_addStreamView.argtypes = [POINTER(_ErrorInfo), FxmlViewPtr, c_char_p, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addStreamView.restype = StreamViewPtr
-libhebi_charts.hebi_charts_FxmlView_addFxmlView.argtypes = [FxmlViewPtr, c_char_p]
+libhebi_charts.hebi_charts_FxmlView_addFxmlView.argtypes = [POINTER(_ErrorInfo), FxmlViewPtr, c_char_p]
 libhebi_charts.hebi_charts_FxmlView_addFxmlView.restype = FxmlViewPtr
 libhebi_charts.hebi_charts_FxmlView_release.argtypes = [FxmlViewPtr]
 libhebi_charts.hebi_charts_FxmlView_release.restype = None
 
 # ==== GridWindow ====
-libhebi_charts.hebi_charts_GridWindow_create.argtypes = [c_int, c_int]
+libhebi_charts.hebi_charts_GridWindow_create.argtypes = [POINTER(_ErrorInfo), c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_create.restype = GridWindowPtr
 libhebi_charts.hebi_charts_GridWindow_isFullScreen.argtypes = [GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_isFullScreen.restype = c_int
@@ -445,33 +473,33 @@ libhebi_charts.hebi_charts_GridWindow_getY.argtypes = [GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_getY.restype = c_int
 libhebi_charts.hebi_charts_GridWindow_setY.argtypes = [GridWindowPtr, c_int]
 libhebi_charts.hebi_charts_GridWindow_setY.restype = None
-libhebi_charts.hebi_charts_GridWindow_addLineChart.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
+libhebi_charts.hebi_charts_GridWindow_addLineChart.argtypes = [POINTER(_ErrorInfo), GridWindowPtr, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addLineChart.restype = LineChartPtr
-libhebi_charts.hebi_charts_GridWindow_addScope.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
+libhebi_charts.hebi_charts_GridWindow_addScope.argtypes = [POINTER(_ErrorInfo), GridWindowPtr, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addScope.restype = LineChartPtr
-libhebi_charts.hebi_charts_GridWindow_addLatencyChart.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
+libhebi_charts.hebi_charts_GridWindow_addLatencyChart.argtypes = [POINTER(_ErrorInfo), GridWindowPtr, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addLatencyChart.restype = LatencyChartPtr
-libhebi_charts.hebi_charts_GridWindow_addScene3d.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
+libhebi_charts.hebi_charts_GridWindow_addScene3d.argtypes = [POINTER(_ErrorInfo), GridWindowPtr, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addScene3d.restype = Scene3dPtr
-libhebi_charts.hebi_charts_GridWindow_addStreamView.argtypes = [GridWindowPtr, c_char_p, c_int, c_int, c_int, c_int]
+libhebi_charts.hebi_charts_GridWindow_addStreamView.argtypes = [POINTER(_ErrorInfo), GridWindowPtr, c_char_p, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addStreamView.restype = StreamViewPtr
-libhebi_charts.hebi_charts_GridWindow_addFxmlView.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int]
+libhebi_charts.hebi_charts_GridWindow_addFxmlView.argtypes = [POINTER(_ErrorInfo), GridWindowPtr, c_int, c_int, c_int, c_int]
 libhebi_charts.hebi_charts_GridWindow_addFxmlView.restype = FxmlViewPtr
-libhebi_charts.hebi_charts_GridWindow_addStylesheet.argtypes = [GridWindowPtr, c_char_p, c_int]
-libhebi_charts.hebi_charts_GridWindow_addStylesheet.restype = c_int
+libhebi_charts.hebi_charts_GridWindow_addStylesheet.argtypes = [POINTER(_ErrorInfo), GridWindowPtr, c_char_p, c_int]
+libhebi_charts.hebi_charts_GridWindow_addStylesheet.restype = None
 libhebi_charts.hebi_charts_GridWindow_show.argtypes = [GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_show.restype = None
-libhebi_charts.hebi_charts_GridWindow_showOffScreen.argtypes = [GridWindowPtr]
-libhebi_charts.hebi_charts_GridWindow_showOffScreen.restype = c_int
+libhebi_charts.hebi_charts_GridWindow_showOffScreen.argtypes = [POINTER(_ErrorInfo), GridWindowPtr]
+libhebi_charts.hebi_charts_GridWindow_showOffScreen.restype = None
 libhebi_charts.hebi_charts_GridWindow_hide.argtypes = [GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_hide.restype = None
 libhebi_charts.hebi_charts_GridWindow_isShowing.argtypes = [GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_isShowing.restype = c_int
-libhebi_charts.hebi_charts_GridWindow_waitUntilClosed.argtypes = [GridWindowPtr]
-libhebi_charts.hebi_charts_GridWindow_waitUntilClosed.restype = c_int
-libhebi_charts.hebi_charts_GridWindow_getControlPanel.argtypes = [GridWindowPtr]
+libhebi_charts.hebi_charts_GridWindow_waitUntilClosed.argtypes = [POINTER(_ErrorInfo), GridWindowPtr]
+libhebi_charts.hebi_charts_GridWindow_waitUntilClosed.restype = None
+libhebi_charts.hebi_charts_GridWindow_getControlPanel.argtypes = [POINTER(_ErrorInfo), GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_getControlPanel.restype = ControlPanelPtr
-libhebi_charts.hebi_charts_GridWindow_createImageStream.argtypes = [GridWindowPtr]
+libhebi_charts.hebi_charts_GridWindow_createImageStream.argtypes = [POINTER(_ErrorInfo), GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_createImageStream.restype = ImageStreamPtr
 libhebi_charts.hebi_charts_GridWindow_dispatchMouseEvent.argtypes = [GridWindowPtr, c_int, c_int, c_int, c_int, c_double, c_double]
 libhebi_charts.hebi_charts_GridWindow_dispatchMouseEvent.restype = None
@@ -481,27 +509,27 @@ libhebi_charts.hebi_charts_GridWindow_release.argtypes = [GridWindowPtr]
 libhebi_charts.hebi_charts_GridWindow_release.restype = None
 
 # ==== HdrHistogramRecorder ====
-libhebi_charts.hebi_charts_HdrHistogramRecorder_create.argtypes = []
+libhebi_charts.hebi_charts_HdrHistogramRecorder_create.argtypes = [POINTER(_ErrorInfo)]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_create.restype = HdrHistogramRecorderPtr
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getFrequency.argtypes = [HdrHistogramRecorderPtr]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getFrequency.restype = c_double
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setFrequency.argtypes = [HdrHistogramRecorderPtr, c_double]
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setFrequency.restype = c_int
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setFrequency.argtypes = [POINTER(_ErrorInfo), HdrHistogramRecorderPtr, c_double]
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setFrequency.restype = None
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getMax.argtypes = [HdrHistogramRecorderPtr]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getMax.restype = c_double
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setMax.argtypes = [HdrHistogramRecorderPtr, c_double]
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setMax.restype = c_int
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setMax.argtypes = [POINTER(_ErrorInfo), HdrHistogramRecorderPtr, c_double]
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setMax.restype = None
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getMin.argtypes = [HdrHistogramRecorderPtr]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getMin.restype = c_double
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setMin.argtypes = [HdrHistogramRecorderPtr, c_double]
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setMin.restype = c_int
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setMin.argtypes = [POINTER(_ErrorInfo), HdrHistogramRecorderPtr, c_double]
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setMin.restype = None
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getSignificantDigits.argtypes = [HdrHistogramRecorderPtr]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_getSignificantDigits.restype = c_int
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setSignificantDigits.argtypes = [HdrHistogramRecorderPtr, c_int]
-libhebi_charts.hebi_charts_HdrHistogramRecorder_setSignificantDigits.restype = c_int
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setSignificantDigits.argtypes = [POINTER(_ErrorInfo), HdrHistogramRecorderPtr, c_int]
+libhebi_charts.hebi_charts_HdrHistogramRecorder_setSignificantDigits.restype = None
 libhebi_charts.hebi_charts_HdrHistogramRecorder_addTrace.argtypes = [HdrHistogramRecorderPtr, c_char_p]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_addTrace.restype = HdrHistogramTracePtr
-libhebi_charts.hebi_charts_HdrHistogramRecorder_startRecording.argtypes = [HdrHistogramRecorderPtr, c_char_p]
+libhebi_charts.hebi_charts_HdrHistogramRecorder_startRecording.argtypes = [POINTER(_ErrorInfo), HdrHistogramRecorderPtr, c_char_p]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_startRecording.restype = c_char_p
 libhebi_charts.hebi_charts_HdrHistogramRecorder_stopRecording.argtypes = [HdrHistogramRecorderPtr]
 libhebi_charts.hebi_charts_HdrHistogramRecorder_stopRecording.restype = None
@@ -541,7 +569,7 @@ libhebi_charts.hebi_charts_HdrHistogramTrace_reset.argtypes = [HdrHistogramTrace
 libhebi_charts.hebi_charts_HdrHistogramTrace_reset.restype = None
 libhebi_charts.hebi_charts_HdrHistogramTrace_toHgrmString.argtypes = [HdrHistogramTracePtr, c_double]
 libhebi_charts.hebi_charts_HdrHistogramTrace_toHgrmString.restype = c_char_p
-libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm.argtypes = [HdrHistogramTracePtr, c_char_p, c_double]
+libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm.argtypes = [POINTER(_ErrorInfo), HdrHistogramTracePtr, c_char_p, c_double]
 libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm.restype = c_char_p
 libhebi_charts.hebi_charts_HdrHistogramTrace_release.argtypes = [HdrHistogramTracePtr]
 libhebi_charts.hebi_charts_HdrHistogramTrace_release.restype = None
@@ -561,13 +589,13 @@ libhebi_charts.hebi_charts_ImageStream_setPixelFormat.argtypes = [ImageStreamPtr
 libhebi_charts.hebi_charts_ImageStream_setPixelFormat.restype = None
 libhebi_charts.hebi_charts_ImageStream_getRateLimit.argtypes = [ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_getRateLimit.restype = c_double
-libhebi_charts.hebi_charts_ImageStream_setRateLimit.argtypes = [ImageStreamPtr, c_double]
-libhebi_charts.hebi_charts_ImageStream_setRateLimit.restype = c_int
-libhebi_charts.hebi_charts_ImageStream_getRecorderThreads.argtypes = [ImageStreamPtr]
+libhebi_charts.hebi_charts_ImageStream_setRateLimit.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr, c_double]
+libhebi_charts.hebi_charts_ImageStream_setRateLimit.restype = None
+libhebi_charts.hebi_charts_ImageStream_getRecorderThreads.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_getRecorderThreads.restype = c_size_t
-libhebi_charts.hebi_charts_ImageStream_setRecorderThreads.argtypes = [ImageStreamPtr, c_size_t]
-libhebi_charts.hebi_charts_ImageStream_setRecorderThreads.restype = c_int
-libhebi_charts.hebi_charts_ImageStream_isRecording.argtypes = [ImageStreamPtr]
+libhebi_charts.hebi_charts_ImageStream_setRecorderThreads.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr, c_size_t]
+libhebi_charts.hebi_charts_ImageStream_setRecorderThreads.restype = None
+libhebi_charts.hebi_charts_ImageStream_isRecording.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_isRecording.restype = c_int
 libhebi_charts.hebi_charts_ImageStream_getRenderScale.argtypes = [ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_getRenderScale.restype = c_double
@@ -583,23 +611,23 @@ libhebi_charts.hebi_charts_ImageStream_getTimestamp.argtypes = [ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_getTimestamp.restype = c_double
 libhebi_charts.hebi_charts_ImageStream_getWidth.argtypes = [ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_getWidth.restype = c_int
-libhebi_charts.hebi_charts_ImageStream_setResolution.argtypes = [ImageStreamPtr, c_int, c_int]
-libhebi_charts.hebi_charts_ImageStream_setResolution.restype = c_int
-libhebi_charts.hebi_charts_ImageStream_waitForNext.argtypes = [ImageStreamPtr, c_size_t]
+libhebi_charts.hebi_charts_ImageStream_setResolution.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr, c_int, c_int]
+libhebi_charts.hebi_charts_ImageStream_setResolution.restype = None
+libhebi_charts.hebi_charts_ImageStream_waitForNext.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr, c_size_t]
 libhebi_charts.hebi_charts_ImageStream_waitForNext.restype = c_int
 libhebi_charts.hebi_charts_ImageStream_tryGetNext.argtypes = [ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_tryGetNext.restype = c_int
-libhebi_charts.hebi_charts_ImageStream_startRecording.argtypes = [ImageStreamPtr, c_char_p, c_int]
-libhebi_charts.hebi_charts_ImageStream_startRecording.restype = c_int
-libhebi_charts.hebi_charts_ImageStream_stopRecording.argtypes = [ImageStreamPtr]
+libhebi_charts.hebi_charts_ImageStream_startRecording.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr, c_char_p, c_int]
+libhebi_charts.hebi_charts_ImageStream_startRecording.restype = None
+libhebi_charts.hebi_charts_ImageStream_stopRecording.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_stopRecording.restype = RecordingResultPtr
-libhebi_charts.hebi_charts_ImageStream_saveToFile.argtypes = [ImageStreamPtr, c_char_p]
-libhebi_charts.hebi_charts_ImageStream_saveToFile.restype = c_int
+libhebi_charts.hebi_charts_ImageStream_saveToFile.argtypes = [POINTER(_ErrorInfo), ImageStreamPtr, c_char_p]
+libhebi_charts.hebi_charts_ImageStream_saveToFile.restype = None
 libhebi_charts.hebi_charts_ImageStream_release.argtypes = [ImageStreamPtr]
 libhebi_charts.hebi_charts_ImageStream_release.restype = None
 
 # ==== LoopTimer ====
-libhebi_charts.hebi_charts_LoopTimer_create.argtypes = []
+libhebi_charts.hebi_charts_LoopTimer_create.argtypes = [POINTER(_ErrorInfo)]
 libhebi_charts.hebi_charts_LoopTimer_create.restype = LoopTimerPtr
 libhebi_charts.hebi_charts_LoopTimer_getElapsedTime.argtypes = [LoopTimerPtr]
 libhebi_charts.hebi_charts_LoopTimer_getElapsedTime.restype = c_double
@@ -645,16 +673,16 @@ libhebi_charts.hebi_charts_Object3d_isVisible.argtypes = [Object3dPtr]
 libhebi_charts.hebi_charts_Object3d_isVisible.restype = c_int
 libhebi_charts.hebi_charts_Object3d_setVisible.argtypes = [Object3dPtr, c_int]
 libhebi_charts.hebi_charts_Object3d_setVisible.restype = None
-libhebi_charts.hebi_charts_Object3d_setOrientation.argtypes = [Object3dPtr, c_double, c_double, c_double, c_double]
-libhebi_charts.hebi_charts_Object3d_setOrientation.restype = c_int
-libhebi_charts.hebi_charts_Object3d_setOrientationRPY.argtypes = [Object3dPtr, c_double, c_double, c_double]
-libhebi_charts.hebi_charts_Object3d_setOrientationRPY.restype = c_int
-libhebi_charts.hebi_charts_Object3d_setTranslation.argtypes = [Object3dPtr, c_double, c_double, c_double]
-libhebi_charts.hebi_charts_Object3d_setTranslation.restype = c_int
-libhebi_charts.hebi_charts_Object3d_setPose.argtypes = [Object3dPtr, c_double, c_double, c_double, c_double, c_double, c_double, c_double]
-libhebi_charts.hebi_charts_Object3d_setPose.restype = c_int
-libhebi_charts.hebi_charts_Object3d_setTransform4x4.argtypes = [Object3dPtr, POINTER(c_double), c_int32]
-libhebi_charts.hebi_charts_Object3d_setTransform4x4.restype = c_int
+libhebi_charts.hebi_charts_Object3d_setOrientation.argtypes = [POINTER(_ErrorInfo), Object3dPtr, c_double, c_double, c_double, c_double]
+libhebi_charts.hebi_charts_Object3d_setOrientation.restype = None
+libhebi_charts.hebi_charts_Object3d_setOrientationRPY.argtypes = [POINTER(_ErrorInfo), Object3dPtr, c_double, c_double, c_double]
+libhebi_charts.hebi_charts_Object3d_setOrientationRPY.restype = None
+libhebi_charts.hebi_charts_Object3d_setTranslation.argtypes = [POINTER(_ErrorInfo), Object3dPtr, c_double, c_double, c_double]
+libhebi_charts.hebi_charts_Object3d_setTranslation.restype = None
+libhebi_charts.hebi_charts_Object3d_setPose.argtypes = [POINTER(_ErrorInfo), Object3dPtr, c_double, c_double, c_double, c_double, c_double, c_double, c_double]
+libhebi_charts.hebi_charts_Object3d_setPose.restype = None
+libhebi_charts.hebi_charts_Object3d_setTransform4x4.argtypes = [POINTER(_ErrorInfo), Object3dPtr, _Transform4x4]
+libhebi_charts.hebi_charts_Object3d_setTransform4x4.restype = None
 libhebi_charts.hebi_charts_Object3d_release.argtypes = [Object3dPtr]
 libhebi_charts.hebi_charts_Object3d_release.restype = None
 
@@ -675,6 +703,10 @@ libhebi_charts.hebi_charts_Mesh_getDisplayStyle.argtypes = [MeshPtr]
 libhebi_charts.hebi_charts_Mesh_getDisplayStyle.restype = c_int32
 libhebi_charts.hebi_charts_Mesh_setDisplayStyle.argtypes = [MeshPtr, c_int32]
 libhebi_charts.hebi_charts_Mesh_setDisplayStyle.restype = None
+libhebi_charts.hebi_charts_Mesh_setMeshTransform4x4.argtypes = [POINTER(_ErrorInfo), MeshPtr, _Transform4x4]
+libhebi_charts.hebi_charts_Mesh_setMeshTransform4x4.restype = None
+libhebi_charts.hebi_charts_Mesh_setMeshPoseRPY.argtypes = [POINTER(_ErrorInfo), MeshPtr, c_double, c_double, c_double, c_double, c_double, c_double]
+libhebi_charts.hebi_charts_Mesh_setMeshPoseRPY.restype = None
 libhebi_charts.hebi_charts_Mesh_to_Object3d.argtypes = [MeshPtr]
 libhebi_charts.hebi_charts_Mesh_to_Object3d.restype = Object3dPtr
 
@@ -685,8 +717,8 @@ libhebi_charts.hebi_charts_Robot_setDisplayStyle.argtypes = [RobotPtr, c_int32]
 libhebi_charts.hebi_charts_Robot_setDisplayStyle.restype = None
 libhebi_charts.hebi_charts_Robot_getDof.argtypes = [RobotPtr]
 libhebi_charts.hebi_charts_Robot_getDof.restype = c_size_t
-libhebi_charts.hebi_charts_Robot_setPositions.argtypes = [RobotPtr, POINTER(c_double), c_size_t]
-libhebi_charts.hebi_charts_Robot_setPositions.restype = c_int
+libhebi_charts.hebi_charts_Robot_setPositions.argtypes = [POINTER(_ErrorInfo), RobotPtr, _DoubleSpan]
+libhebi_charts.hebi_charts_Robot_setPositions.restype = None
 libhebi_charts.hebi_charts_Robot_to_Object3d.argtypes = [RobotPtr]
 libhebi_charts.hebi_charts_Robot_to_Object3d.restype = Object3dPtr
 
@@ -703,9 +735,9 @@ libhebi_charts.hebi_charts_Line3d_setMaxPointCount.argtypes = [Line3dPtr, c_size
 libhebi_charts.hebi_charts_Line3d_setMaxPointCount.restype = None
 libhebi_charts.hebi_charts_Line3d_clear.argtypes = [Line3dPtr]
 libhebi_charts.hebi_charts_Line3d_clear.restype = None
-libhebi_charts.hebi_charts_Line3d_setData.argtypes = [Line3dPtr, POINTER(c_double), POINTER(c_double), POINTER(c_double), c_size_t]
+libhebi_charts.hebi_charts_Line3d_setData.argtypes = [Line3dPtr, _DoubleSpan, _DoubleSpan, _DoubleSpan]
 libhebi_charts.hebi_charts_Line3d_setData.restype = None
-libhebi_charts.hebi_charts_Line3d_addPoints.argtypes = [Line3dPtr, POINTER(c_double), POINTER(c_double), POINTER(c_double), c_size_t]
+libhebi_charts.hebi_charts_Line3d_addPoints.argtypes = [Line3dPtr, _DoubleSpan, _DoubleSpan, _DoubleSpan]
 libhebi_charts.hebi_charts_Line3d_addPoints.restype = None
 libhebi_charts.hebi_charts_Line3d_addPoint.argtypes = [Line3dPtr, c_double, c_double, c_double]
 libhebi_charts.hebi_charts_Line3d_addPoint.restype = None
@@ -733,9 +765,9 @@ libhebi_charts.hebi_charts_Points3d_setMaxPointCount.argtypes = [Points3dPtr, c_
 libhebi_charts.hebi_charts_Points3d_setMaxPointCount.restype = None
 libhebi_charts.hebi_charts_Points3d_clear.argtypes = [Points3dPtr]
 libhebi_charts.hebi_charts_Points3d_clear.restype = None
-libhebi_charts.hebi_charts_Points3d_setData.argtypes = [Points3dPtr, POINTER(c_double), POINTER(c_double), POINTER(c_double), c_size_t]
+libhebi_charts.hebi_charts_Points3d_setData.argtypes = [Points3dPtr, _DoubleSpan, _DoubleSpan, _DoubleSpan]
 libhebi_charts.hebi_charts_Points3d_setData.restype = None
-libhebi_charts.hebi_charts_Points3d_addPoints.argtypes = [Points3dPtr, POINTER(c_double), POINTER(c_double), POINTER(c_double), c_size_t]
+libhebi_charts.hebi_charts_Points3d_addPoints.argtypes = [Points3dPtr, _DoubleSpan, _DoubleSpan, _DoubleSpan]
 libhebi_charts.hebi_charts_Points3d_addPoints.restype = None
 libhebi_charts.hebi_charts_Points3d_addPoint.argtypes = [Points3dPtr, c_double, c_double, c_double]
 libhebi_charts.hebi_charts_Points3d_addPoint.restype = None
@@ -743,7 +775,7 @@ libhebi_charts.hebi_charts_Points3d_to_Series3d.argtypes = [Points3dPtr]
 libhebi_charts.hebi_charts_Points3d_to_Series3d.restype = Series3dPtr
 
 # ==== RecordingResult ====
-libhebi_charts.hebi_charts_RecordingResult_getDirectory.argtypes = [RecordingResultPtr]
+libhebi_charts.hebi_charts_RecordingResult_getDirectory.argtypes = [POINTER(_ErrorInfo), RecordingResultPtr]
 libhebi_charts.hebi_charts_RecordingResult_getDirectory.restype = c_char_p
 libhebi_charts.hebi_charts_RecordingResult_getDroppedCount.argtypes = [RecordingResultPtr]
 libhebi_charts.hebi_charts_RecordingResult_getDroppedCount.restype = c_size_t
@@ -751,7 +783,7 @@ libhebi_charts.hebi_charts_RecordingResult_getDuration.argtypes = [RecordingResu
 libhebi_charts.hebi_charts_RecordingResult_getDuration.restype = c_double
 libhebi_charts.hebi_charts_RecordingResult_getAverageFps.argtypes = [RecordingResultPtr]
 libhebi_charts.hebi_charts_RecordingResult_getAverageFps.restype = c_double
-libhebi_charts.hebi_charts_RecordingResult_getManifest.argtypes = [RecordingResultPtr]
+libhebi_charts.hebi_charts_RecordingResult_getManifest.argtypes = [POINTER(_ErrorInfo), RecordingResultPtr]
 libhebi_charts.hebi_charts_RecordingResult_getManifest.restype = c_char_p
 libhebi_charts.hebi_charts_RecordingResult_getRecordedCount.argtypes = [RecordingResultPtr]
 libhebi_charts.hebi_charts_RecordingResult_getRecordedCount.restype = c_size_t
@@ -759,9 +791,9 @@ libhebi_charts.hebi_charts_RecordingResult_getSkippedCount.argtypes = [Recording
 libhebi_charts.hebi_charts_RecordingResult_getSkippedCount.restype = c_size_t
 libhebi_charts.hebi_charts_RecordingResult_getTotalFrames.argtypes = [RecordingResultPtr]
 libhebi_charts.hebi_charts_RecordingResult_getTotalFrames.restype = c_size_t
-libhebi_charts.hebi_charts_RecordingResult_getFfmpegCommand.argtypes = [RecordingResultPtr, c_int32, c_int]
+libhebi_charts.hebi_charts_RecordingResult_getFfmpegCommand.argtypes = [POINTER(_ErrorInfo), RecordingResultPtr, c_int32, c_int]
 libhebi_charts.hebi_charts_RecordingResult_getFfmpegCommand.restype = c_char_p
-libhebi_charts.hebi_charts_RecordingResult_runFfmpeg.argtypes = [RecordingResultPtr, c_int32, c_int]
+libhebi_charts.hebi_charts_RecordingResult_runFfmpeg.argtypes = [POINTER(_ErrorInfo), RecordingResultPtr, c_int32, c_int]
 libhebi_charts.hebi_charts_RecordingResult_runFfmpeg.restype = c_char_p
 libhebi_charts.hebi_charts_RecordingResult_release.argtypes = [RecordingResultPtr]
 libhebi_charts.hebi_charts_RecordingResult_release.restype = None
@@ -799,15 +831,15 @@ libhebi_charts.hebi_charts_Scene3d_setGridStep.argtypes = [Scene3dPtr, c_double]
 libhebi_charts.hebi_charts_Scene3d_setGridStep.restype = None
 libhebi_charts.hebi_charts_Scene3d_getCamera.argtypes = [Scene3dPtr]
 libhebi_charts.hebi_charts_Scene3d_getCamera.restype = CameraPtr
-libhebi_charts.hebi_charts_Scene3d_addRobot.argtypes = [Scene3dPtr, c_char_p]
+libhebi_charts.hebi_charts_Scene3d_addRobot.argtypes = [POINTER(_ErrorInfo), Scene3dPtr, c_char_p]
 libhebi_charts.hebi_charts_Scene3d_addRobot.restype = RobotPtr
-libhebi_charts.hebi_charts_Scene3d_addMesh.argtypes = [Scene3dPtr, c_char_p]
+libhebi_charts.hebi_charts_Scene3d_addMesh.argtypes = [POINTER(_ErrorInfo), Scene3dPtr, c_char_p]
 libhebi_charts.hebi_charts_Scene3d_addMesh.restype = MeshPtr
-libhebi_charts.hebi_charts_Scene3d_addFrame.argtypes = [Scene3dPtr, c_double]
+libhebi_charts.hebi_charts_Scene3d_addFrame.argtypes = [POINTER(_ErrorInfo), Scene3dPtr, c_double]
 libhebi_charts.hebi_charts_Scene3d_addFrame.restype = FramePtr
-libhebi_charts.hebi_charts_Scene3d_addLine.argtypes = [Scene3dPtr]
+libhebi_charts.hebi_charts_Scene3d_addLine.argtypes = [POINTER(_ErrorInfo), Scene3dPtr]
 libhebi_charts.hebi_charts_Scene3d_addLine.restype = Line3dPtr
-libhebi_charts.hebi_charts_Scene3d_addPoints.argtypes = [Scene3dPtr]
+libhebi_charts.hebi_charts_Scene3d_addPoints.argtypes = [POINTER(_ErrorInfo), Scene3dPtr]
 libhebi_charts.hebi_charts_Scene3d_addPoints.restype = Points3dPtr
 libhebi_charts.hebi_charts_Scene3d_release.argtypes = [Scene3dPtr]
 libhebi_charts.hebi_charts_Scene3d_release.restype = None
@@ -833,8 +865,8 @@ libhebi_charts.hebi_charts_XYChart_getXLabel.argtypes = [XYChartPtr]
 libhebi_charts.hebi_charts_XYChart_getXLabel.restype = c_char_p
 libhebi_charts.hebi_charts_XYChart_setXLabel.argtypes = [XYChartPtr, c_char_p]
 libhebi_charts.hebi_charts_XYChart_setXLabel.restype = None
-libhebi_charts.hebi_charts_XYChart_setXLim.argtypes = [XYChartPtr, c_double, c_double]
-libhebi_charts.hebi_charts_XYChart_setXLim.restype = c_int
+libhebi_charts.hebi_charts_XYChart_setXLim.argtypes = [POINTER(_ErrorInfo), XYChartPtr, c_double, c_double]
+libhebi_charts.hebi_charts_XYChart_setXLim.restype = None
 libhebi_charts.hebi_charts_XYChart_getXMax.argtypes = [XYChartPtr]
 libhebi_charts.hebi_charts_XYChart_getXMax.restype = c_double
 libhebi_charts.hebi_charts_XYChart_setXMax.argtypes = [XYChartPtr, c_double]
@@ -877,13 +909,13 @@ libhebi_charts.hebi_charts_XYChart_release.argtypes = [XYChartPtr]
 libhebi_charts.hebi_charts_XYChart_release.restype = None
 
 # ==== LatencyChart ====
-libhebi_charts.hebi_charts_LatencyChart_addTrace.argtypes = [LatencyChartPtr, c_char_p]
+libhebi_charts.hebi_charts_LatencyChart_addTrace.argtypes = [POINTER(_ErrorInfo), LatencyChartPtr, c_char_p]
 libhebi_charts.hebi_charts_LatencyChart_addTrace.restype = LatencyTracePtr
 libhebi_charts.hebi_charts_LatencyChart_to_XYChart.argtypes = [LatencyChartPtr]
 libhebi_charts.hebi_charts_LatencyChart_to_XYChart.restype = XYChartPtr
 
 # ==== LineChart ====
-libhebi_charts.hebi_charts_LineChart_addLine.argtypes = [LineChartPtr, c_char_p]
+libhebi_charts.hebi_charts_LineChart_addLine.argtypes = [POINTER(_ErrorInfo), LineChartPtr, c_char_p]
 libhebi_charts.hebi_charts_LineChart_addLine.restype = LinePtr
 libhebi_charts.hebi_charts_LineChart_to_XYChart.argtypes = [LineChartPtr]
 libhebi_charts.hebi_charts_LineChart_to_XYChart.restype = XYChartPtr
@@ -949,9 +981,9 @@ libhebi_charts.hebi_charts_Line_setMaxPointCount.argtypes = [LinePtr, c_size_t]
 libhebi_charts.hebi_charts_Line_setMaxPointCount.restype = None
 libhebi_charts.hebi_charts_Line_clear.argtypes = [LinePtr]
 libhebi_charts.hebi_charts_Line_clear.restype = None
-libhebi_charts.hebi_charts_Line_setData.argtypes = [LinePtr, POINTER(c_double), POINTER(c_double), c_size_t]
+libhebi_charts.hebi_charts_Line_setData.argtypes = [LinePtr, _DoubleSpan, _DoubleSpan]
 libhebi_charts.hebi_charts_Line_setData.restype = None
-libhebi_charts.hebi_charts_Line_addPoints.argtypes = [LinePtr, POINTER(c_double), POINTER(c_double), c_size_t]
+libhebi_charts.hebi_charts_Line_addPoints.argtypes = [LinePtr, _DoubleSpan, _DoubleSpan]
 libhebi_charts.hebi_charts_Line_addPoints.restype = None
 libhebi_charts.hebi_charts_Line_addPoint.argtypes = [LinePtr, c_double, c_double]
 libhebi_charts.hebi_charts_Line_addPoint.restype = None
@@ -959,26 +991,22 @@ libhebi_charts.hebi_charts_Line_to_XYSeries.argtypes = [LinePtr]
 libhebi_charts.hebi_charts_Line_to_XYSeries.restype = XYSeriesPtr
 
 # ==== Runtime ====
-libhebi_charts.hebi_charts_Runtime_setOption.argtypes = [c_int32, c_char_p]
-libhebi_charts.hebi_charts_Runtime_setOption.restype = c_int
+libhebi_charts.hebi_charts_Runtime_setOption.argtypes = [POINTER(_ErrorInfo), c_int32, c_char_p]
+libhebi_charts.hebi_charts_Runtime_setOption.restype = None
 libhebi_charts.hebi_charts_Runtime_setTheme.argtypes = [c_int32]
 libhebi_charts.hebi_charts_Runtime_setTheme.restype = None
 libhebi_charts.hebi_charts_Runtime_setAutoCloseWindows.argtypes = [c_int]
 libhebi_charts.hebi_charts_Runtime_setAutoCloseWindows.restype = None
-libhebi_charts.hebi_charts_Runtime_waitUntilWindowsClosed.argtypes = []
-libhebi_charts.hebi_charts_Runtime_waitUntilWindowsClosed.restype = c_int
+libhebi_charts.hebi_charts_Runtime_waitUntilWindowsClosed.argtypes = [POINTER(_ErrorInfo)]
+libhebi_charts.hebi_charts_Runtime_waitUntilWindowsClosed.restype = None
 libhebi_charts.hebi_charts_Runtime_collect.argtypes = []
 libhebi_charts.hebi_charts_Runtime_collect.restype = None
 libhebi_charts.hebi_charts_Runtime_closeAll.argtypes = []
 libhebi_charts.hebi_charts_Runtime_closeAll.restype = None
 libhebi_charts.hebi_charts_Runtime_runOnUiThread.argtypes = [UserCallbackFunction, c_void_p]
 libhebi_charts.hebi_charts_Runtime_runOnUiThread.restype = None
-libhebi_charts.hebi_charts_Runtime_printLastErrorDetails.argtypes = []
-libhebi_charts.hebi_charts_Runtime_printLastErrorDetails.restype = None
 libhebi_charts.hebi_charts_Runtime_printThreadInfo.argtypes = [c_char_p]
 libhebi_charts.hebi_charts_Runtime_printThreadInfo.restype = None
-libhebi_charts.hebi_charts_Runtime_getLastErrorString.argtypes = []
-libhebi_charts.hebi_charts_Runtime_getLastErrorString.restype = c_char_p
 
 # ==== Enum Wrappers ====
 class CameraView(IntEnum):
@@ -1034,10 +1062,6 @@ class MarkerType(IntEnum):
     DIAMOND1 = 10
     DIAMOND2 = 11
 
-class MatrixOrdering(IntEnum):
-    ROW_MAJOR = 0
-    COLUMN_MAJOR = 1
-
 class PixelFormat(IntEnum):
     UNKNOWN = 0
     BGRA_PRE = 1
@@ -1081,13 +1105,20 @@ class Camera:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: CameraPtr):
-        if not isinstance(ptr, CameraPtr):
-            raise TypeError(f'Expected CameraPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Camera instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: CameraPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: CameraPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_Camera_release(self.ptr)
         self.ptr = None
 
@@ -1096,7 +1127,7 @@ class Camera:
 
     def set_view(self, view: CameraView) -> None:
         """Sets the view point to a predefined standard view
-        
+
         Args:
             view:
         """
@@ -1109,58 +1140,55 @@ class Camera:
     def apply_rotation(self, qx: float, qy: float, qz: float, qw: float) -> None:
         """Applies an incremental rotation to the current camera view using a unit quaternion (x, y, z, w).
         This follows the ROS/REP-103 convention where the scalar component 'w' is last.
-        
+
         This rotation is multiplied by the current camera orientation.
         The input is not verified!
-        
+
         Args:
             qx: quaternion x (vector part)
             qy: quaternion y (vector part)
             qz: quaternion z (vector part)
             qw: quaternion w (scalar part)
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_Camera_applyRotation(self.ptr, qx, qy, qz, qw)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Camera::apply_rotation ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Camera_applyRotation(byref(error_), self.ptr, qx, qy, qz, qw))
 
     def set_distance(self, distance_in_meters: float) -> None:
         """Sets the distance (zoom) from the camera to the pivot center. Out of range values are clamped.
-        
+
         Args:
             distance_in_meters: distance [m]
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_Camera_setDistance(self.ptr, distance_in_meters)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Camera::set_distance ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Camera_setDistance(byref(error_), self.ptr, distance_in_meters))
 
     def set_pan(self, x: float, y: float, z: float) -> None:
         """Sets the 3D pan offset (panning) of the camera.
         This slides the entire scene relative to the camera view.
-        
+
         To center the camera on a specific object, use this to offset
         the world origin.
-        
+
         Args:
             x: position x [m]
             y: position y [m]
             z: position z [m]
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_Camera_setPan(self.ptr, x, y, z)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Camera::set_pan ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Camera_setPan(byref(error_), self.ptr, x, y, z))
 
     def set_controls_visible(self, value: bool) -> None:
         """Shows or hides the on-screen navigation UI controls (buttons/overlays).
-        
+
         Args:
             value:
         """
@@ -1172,13 +1200,20 @@ class Control:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: ControlPtr):
-        if not isinstance(ptr, ControlPtr):
-            raise TypeError(f'Expected ControlPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Control instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: ControlPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: ControlPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_Control_release(self.ptr)
         self.ptr = None
 
@@ -1193,7 +1228,7 @@ class Control:
     @enabled.setter
     def enabled(self, enabled: bool):
         """Sets the disabled state of this node
-        
+
         Args:
             enabled:
         """
@@ -1208,7 +1243,7 @@ class Control:
     @label.setter
     def label(self, name: str):
         """Sets the name or descriptor of the control in the left column
-        
+
         Args:
             name:
         """
@@ -1225,7 +1260,7 @@ class Control:
     @tooltip.setter
     def tooltip(self, tooltip: str):
         """Sets the tooltip
-        
+
         Args:
             tooltip:
         """
@@ -1241,7 +1276,7 @@ class Control:
     @visible.setter
     def visible(self, visible: bool):
         """Sets the visibility of this node
-        
+
         Args:
             visible:
         """
@@ -1253,11 +1288,12 @@ class Button(Control):
 
     __slots__ = ('ref_Button',)
 
-    def __init__(self, ref_Button: ButtonPtr):
-        if not isinstance(ref_Button, ButtonPtr):
-            raise TypeError(f'Expected ButtonPtr, got {type(ref_Button).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Button instances are created by the library')
+
+    def _attach(self, ref_Button: ButtonPtr):
         self.ref_Button = ref_Button
-        super().__init__(libhebi_charts.hebi_charts_Button_to_Control(ref_Button))
+        super()._attach(libhebi_charts.hebi_charts_Button_to_Control(ref_Button))
 
     def __del__(self):
         super().__del__()
@@ -1275,7 +1311,7 @@ class Button(Control):
     @text.setter
     def text(self, text: str):
         """Sets the text of this button
-        
+
         Args:
             text:
         """
@@ -1299,11 +1335,12 @@ class Dropdown(Control):
 
     __slots__ = ('ref_Dropdown',)
 
-    def __init__(self, ref_Dropdown: DropdownPtr):
-        if not isinstance(ref_Dropdown, DropdownPtr):
-            raise TypeError(f'Expected DropdownPtr, got {type(ref_Dropdown).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Dropdown instances are created by the library')
+
+    def _attach(self, ref_Dropdown: DropdownPtr):
         self.ref_Dropdown = ref_Dropdown
-        super().__init__(libhebi_charts.hebi_charts_Dropdown_to_Control(ref_Dropdown))
+        super()._attach(libhebi_charts.hebi_charts_Dropdown_to_Control(ref_Dropdown))
 
     def __del__(self):
         super().__del__()
@@ -1319,9 +1356,9 @@ class Dropdown(Control):
     @options.setter
     def options(self, options: Sequence[str]):
         """Sets the list of available options
-        
+
         Args:
-            options: 
+            options:
             count:
         """
         count = 0 if options is None else len(options)
@@ -1338,7 +1375,7 @@ class Dropdown(Control):
     @selected_index.setter
     def selected_index(self, index: int):
         """Sets the selected index
-        
+
         Args:
             index:
         """
@@ -1346,7 +1383,7 @@ class Dropdown(Control):
 
     def add_option(self, option: str) -> None:
         """Adds an option to the list
-        
+
         Args:
             option:
         """
@@ -1366,11 +1403,12 @@ class Label(Control):
 
     __slots__ = ('ref_Label',)
 
-    def __init__(self, ref_Label: LabelPtr):
-        if not isinstance(ref_Label, LabelPtr):
-            raise TypeError(f'Expected LabelPtr, got {type(ref_Label).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Label instances are created by the library')
+
+    def _attach(self, ref_Label: LabelPtr):
         self.ref_Label = ref_Label
-        super().__init__(libhebi_charts.hebi_charts_Label_to_Control(ref_Label))
+        super()._attach(libhebi_charts.hebi_charts_Label_to_Control(ref_Label))
 
     def __del__(self):
         super().__del__()
@@ -1388,7 +1426,7 @@ class Label(Control):
     @text.setter
     def text(self, text: str):
         """Sets the text of this status label
-        
+
         Args:
             text:
         """
@@ -1404,7 +1442,7 @@ class Label(Control):
     @value.setter
     def value(self, value: float):
         """Sets the numeric value of this label using a standard engineering format
-        
+
         Args:
             value:
         """
@@ -1416,11 +1454,12 @@ class Slider(Control):
 
     __slots__ = ('ref_Slider',)
 
-    def __init__(self, ref_Slider: SliderPtr):
-        if not isinstance(ref_Slider, SliderPtr):
-            raise TypeError(f'Expected SliderPtr, got {type(ref_Slider).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Slider instances are created by the library')
+
+    def _attach(self, ref_Slider: SliderPtr):
         self.ref_Slider = ref_Slider
-        super().__init__(libhebi_charts.hebi_charts_Slider_to_Control(ref_Slider))
+        super()._attach(libhebi_charts.hebi_charts_Slider_to_Control(ref_Slider))
 
     def __del__(self):
         super().__del__()
@@ -1436,9 +1475,9 @@ class Slider(Control):
     @limits.setter
     def limits(self, limits: Tuple[float, float]):
         """Sets the possible range of the slider [min, max]
-        
+
         Args:
-            min: 
+            min:
             max:
         """
         min, max = limits
@@ -1452,7 +1491,7 @@ class Slider(Control):
     @max.setter
     def max(self, max: float):
         """Sets the maximum value of the slider range. Must be greater than min.
-        
+
         Args:
             max:
         """
@@ -1466,7 +1505,7 @@ class Slider(Control):
     @min.setter
     def min(self, min: float):
         """Sets the minimum value of the slider range. Must be less than max.
-        
+
         Args:
             min:
         """
@@ -1480,7 +1519,7 @@ class Slider(Control):
     @value.setter
     def value(self, value: float):
         """Sets the value of this slider
-        
+
         Args:
             value:
         """
@@ -1498,11 +1537,12 @@ class Toggle(Control):
 
     __slots__ = ('ref_Toggle',)
 
-    def __init__(self, ref_Toggle: TogglePtr):
-        if not isinstance(ref_Toggle, TogglePtr):
-            raise TypeError(f'Expected TogglePtr, got {type(ref_Toggle).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Toggle instances are created by the library')
+
+    def _attach(self, ref_Toggle: TogglePtr):
         self.ref_Toggle = ref_Toggle
-        super().__init__(libhebi_charts.hebi_charts_Toggle_to_Control(ref_Toggle))
+        super()._attach(libhebi_charts.hebi_charts_Toggle_to_Control(ref_Toggle))
 
     def __del__(self):
         super().__del__()
@@ -1519,7 +1559,7 @@ class Toggle(Control):
     @selected.setter
     def selected(self, selected: bool):
         """Sets the toggle state
-        
+
         Args:
             selected:
         """
@@ -1537,13 +1577,20 @@ class ControlPanel:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: ControlPanelPtr):
-        if not isinstance(ptr, ControlPanelPtr):
-            raise TypeError(f'Expected ControlPanelPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('ControlPanel instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: ControlPanelPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: ControlPanelPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_ControlPanel_release(self.ptr)
         self.ptr = None
 
@@ -1559,7 +1606,7 @@ class ControlPanel:
     @title.setter
     def title(self, title: str):
         """Sets the title
-        
+
         Args:
             title:
         """
@@ -1575,7 +1622,7 @@ class ControlPanel:
     @width.setter
     def width(self, width: float):
         """Sets the desired width
-        
+
         Args:
             width:
         """
@@ -1583,29 +1630,32 @@ class ControlPanel:
 
     def add_section(self, title: str) -> None:
         """Starts a new section with the given header
-        
+
         Args:
-            title: 
-        
+            title:
+
         Raises:
             Exception: on internal errors
         """
         if title is not None and not isinstance(title, c_char_p):
             title = c_char_p(title.encode('utf-8') if isinstance(title, str) else title)
-        status_ = libhebi_charts.hebi_charts_ControlPanel_addSection(self.ptr, title)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in ControlPanel::add_section ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addSection(byref(error_), self.ptr, title))
 
     def add_label(self, *, text: str = None, value: float = None, enabled: bool = None, label: str = None, tooltip: str = None, visible: bool = None) -> Label:
         """Adds a label for displaying text to the control panel
-        
+
+        Returns:
+            A control that displays some text or value
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ControlPanel_addLabel(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addLabel(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Label in ControlPanel::add_label ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Label(ptr_)
+            raise RuntimeError('Failed to create Label in ControlPanel::add_label')
+        obj_ = Label._wrap(ptr_)
         if text is not None: obj_.text = text
         if value is not None: obj_.value = value
         if enabled is not None: obj_.enabled = enabled
@@ -1616,14 +1666,18 @@ class ControlPanel:
 
     def add_button(self, *, text: str = None, enabled: bool = None, label: str = None, tooltip: str = None, visible: bool = None) -> Button:
         """Adds a button to the control panel
-        
+
+        Returns:
+            A button control
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ControlPanel_addButton(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addButton(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Button in ControlPanel::add_button ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Button(ptr_)
+            raise RuntimeError('Failed to create Button in ControlPanel::add_button')
+        obj_ = Button._wrap(ptr_)
         if text is not None: obj_.text = text
         if enabled is not None: obj_.enabled = enabled
         if label is not None: obj_.label = label
@@ -1633,14 +1687,18 @@ class ControlPanel:
 
     def add_start_button(self, *, text: str = None, enabled: bool = None, label: str = None, tooltip: str = None, visible: bool = None) -> Button:
         """Adds a 'start'-style button to the control panel
-        
+
+        Returns:
+            A button control
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ControlPanel_addStartButton(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addStartButton(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Button in ControlPanel::add_start_button ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Button(ptr_)
+            raise RuntimeError('Failed to create Button in ControlPanel::add_start_button')
+        obj_ = Button._wrap(ptr_)
         if text is not None: obj_.text = text
         if enabled is not None: obj_.enabled = enabled
         if label is not None: obj_.label = label
@@ -1650,14 +1708,18 @@ class ControlPanel:
 
     def add_stop_button(self, *, text: str = None, enabled: bool = None, label: str = None, tooltip: str = None, visible: bool = None) -> Button:
         """Adds a 'stop'-style (red) button to the control panel
-        
+
+        Returns:
+            A button control
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ControlPanel_addStopButton(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addStopButton(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Button in ControlPanel::add_stop_button ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Button(ptr_)
+            raise RuntimeError('Failed to create Button in ControlPanel::add_stop_button')
+        obj_ = Button._wrap(ptr_)
         if text is not None: obj_.text = text
         if enabled is not None: obj_.enabled = enabled
         if label is not None: obj_.label = label
@@ -1667,14 +1729,18 @@ class ControlPanel:
 
     def add_slider(self, *, limits: Tuple[float, float] = None, max: float = None, min: float = None, value: float = None, enabled: bool = None, label: str = None, tooltip: str = None, visible: bool = None) -> Slider:
         """Adds a slider to the control panel
-        
+
+        Returns:
+            A slider control for numeric input
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ControlPanel_addSlider(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addSlider(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Slider in ControlPanel::add_slider ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Slider(ptr_)
+            raise RuntimeError('Failed to create Slider in ControlPanel::add_slider')
+        obj_ = Slider._wrap(ptr_)
         if limits is not None: obj_.limits = limits
         if max is not None: obj_.max = max
         if min is not None: obj_.min = min
@@ -1687,14 +1753,18 @@ class ControlPanel:
 
     def add_toggle(self, *, selected: bool = None, enabled: bool = None, label: str = None, tooltip: str = None, visible: bool = None) -> Toggle:
         """Adds a toggle to the control panel
-        
+
+        Returns:
+            A boolean toggle switch for on/off states
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ControlPanel_addToggle(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addToggle(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Toggle in ControlPanel::add_toggle ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Toggle(ptr_)
+            raise RuntimeError('Failed to create Toggle in ControlPanel::add_toggle')
+        obj_ = Toggle._wrap(ptr_)
         if selected is not None: obj_.selected = selected
         if enabled is not None: obj_.enabled = enabled
         if label is not None: obj_.label = label
@@ -1704,14 +1774,18 @@ class ControlPanel:
 
     def add_dropdown(self, *, options: Sequence[str] = None, selected_index: int = None, enabled: bool = None, label: str = None, tooltip: str = None, visible: bool = None) -> Dropdown:
         """Adds a dropdown choice selector to the control panel
-        
+
+        Returns:
+            A dropdown selection control for switching between discrete modes
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ControlPanel_addDropdown(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ControlPanel_addDropdown(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Dropdown in ControlPanel::add_dropdown ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Dropdown(ptr_)
+            raise RuntimeError('Failed to create Dropdown in ControlPanel::add_dropdown')
+        obj_ = Dropdown._wrap(ptr_)
         if options is not None: obj_.options = options
         if selected_index is not None: obj_.selected_index = selected_index
         if enabled is not None: obj_.enabled = enabled
@@ -1726,13 +1800,20 @@ class Cursor:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: CursorPtr):
-        if not isinstance(ptr, CursorPtr):
-            raise TypeError(f'Expected CursorPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Cursor instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: CursorPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: CursorPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_Cursor_release(self.ptr)
         self.ptr = None
 
@@ -1747,7 +1828,7 @@ class Cursor:
     @editable.setter
     def editable(self, editable: bool):
         """Editable indicators can be dragged around by users
-        
+
         Args:
             editable:
         """
@@ -1762,7 +1843,7 @@ class Cursor:
     @label.setter
     def label(self, label: str):
         """Sets the indicator label. Empty or null hides the label.
-        
+
         Args:
             label:
         """
@@ -1778,7 +1859,7 @@ class Cursor:
     @value.setter
     def value(self, value: float):
         """Sets the indicated value. NaN hides the indicator.
-        
+
         Args:
             value:
         """
@@ -1792,7 +1873,7 @@ class Cursor:
     @visible.setter
     def visible(self, visible: bool):
         """Sets the visibility in the chart
-        
+
         Args:
             visible:
         """
@@ -1804,13 +1885,20 @@ class FxmlView:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: FxmlViewPtr):
-        if not isinstance(ptr, FxmlViewPtr):
-            raise TypeError(f'Expected FxmlViewPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('FxmlView instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: FxmlViewPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: FxmlViewPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_FxmlView_release(self.ptr)
         self.ptr = None
 
@@ -1825,7 +1913,7 @@ class FxmlView:
     @auto_reload.setter
     def auto_reload(self, enable_auto_reload: bool):
         """Sets the auto-reload state
-        
+
         Args:
             enable_auto_reload:
         """
@@ -1840,34 +1928,37 @@ class FxmlView:
     @source.setter
     def source(self, path_or_url: str):
         """Sets the file path or web-url to a .fxml file
-        
+
         Args:
             path_or_url: path or url to an FXML file
-        
+
         Raises:
             Exception: on internal errors
         """
         if path_or_url is not None and not isinstance(path_or_url, c_char_p):
             path_or_url = c_char_p(path_or_url.encode('utf-8') if isinstance(path_or_url, str) else path_or_url)
-        status_ = libhebi_charts.hebi_charts_FxmlView_setSource(self.ptr, path_or_url)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in FxmlView::source ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_FxmlView_setSource(byref(error_), self.ptr, path_or_url))
 
     def add_line_chart(self, fx_id: str, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LineChart:
         """Creates a 2d line chart with the given size
-        
+
         Args:
-            fx_id: 
-        
+            fx_id:
+
+        Returns:
+            Represents an XY line chart
+
         Raises:
             Exception: on internal errors
         """
         if fx_id is not None and not isinstance(fx_id, c_char_p):
             fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
-        ptr_ = libhebi_charts.hebi_charts_FxmlView_addLineChart(self.ptr, fx_id)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_FxmlView_addLineChart(byref(error_), self.ptr, fx_id))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LineChart in FxmlView::add_line_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = LineChart(ptr_)
+            raise RuntimeError('Failed to create LineChart in FxmlView::add_line_chart')
+        obj_ = LineChart._wrap(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -1886,19 +1977,23 @@ class FxmlView:
 
     def add_scope(self, fx_id: str, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LineChart:
         """Creates a line chart with a pre-set time axis in [s]
-        
+
         Args:
-            fx_id: 
-        
+            fx_id:
+
+        Returns:
+            Represents an XY line chart
+
         Raises:
             Exception: on internal errors
         """
         if fx_id is not None and not isinstance(fx_id, c_char_p):
             fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
-        ptr_ = libhebi_charts.hebi_charts_FxmlView_addScope(self.ptr, fx_id)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_FxmlView_addScope(byref(error_), self.ptr, fx_id))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LineChart in FxmlView::add_scope ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = LineChart(ptr_)
+            raise RuntimeError('Failed to create LineChart in FxmlView::add_scope')
+        obj_ = LineChart._wrap(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -1917,19 +2012,23 @@ class FxmlView:
 
     def add_latency_chart(self, fx_id: str, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LatencyChart:
         """Creates a latency chart for displaying latency measurements [s]
-        
+
         Args:
-            fx_id: 
-        
+            fx_id:
+
+        Returns:
+            Shows latency measurements in HdrHistogram percentile format
+
         Raises:
             Exception: on internal errors
         """
         if fx_id is not None and not isinstance(fx_id, c_char_p):
             fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
-        ptr_ = libhebi_charts.hebi_charts_FxmlView_addLatencyChart(self.ptr, fx_id)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_FxmlView_addLatencyChart(byref(error_), self.ptr, fx_id))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LatencyChart in FxmlView::add_latency_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = LatencyChart(ptr_)
+            raise RuntimeError('Failed to create LatencyChart in FxmlView::add_latency_chart')
+        obj_ = LatencyChart._wrap(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -1948,19 +2047,23 @@ class FxmlView:
 
     def add_scene3d(self, fx_id: str, *, grid_bounds: Tuple[float, float, float, float, float, float] = None, grid_max_x: float = None, grid_max_y: float = None, grid_max_z: float = None, grid_min_x: float = None, grid_min_y: float = None, grid_min_z: float = None, grid_step: float = None) -> Scene3d:
         """Creates a 3d chart with the given size
-        
+
         Args:
-            fx_id: 
-        
+            fx_id:
+
+        Returns:
+            Represents a 3d scene that can render a variety of objects in 3d space
+
         Raises:
             Exception: on internal errors
         """
         if fx_id is not None and not isinstance(fx_id, c_char_p):
             fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
-        ptr_ = libhebi_charts.hebi_charts_FxmlView_addScene3d(self.ptr, fx_id)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_FxmlView_addScene3d(byref(error_), self.ptr, fx_id))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Scene3d in FxmlView::add_scene3d ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Scene3d(ptr_)
+            raise RuntimeError('Failed to create Scene3d in FxmlView::add_scene3d')
+        obj_ = Scene3d._wrap(ptr_)
         if grid_bounds is not None: obj_.grid_bounds = grid_bounds
         if grid_max_x is not None: obj_.grid_max_x = grid_max_x
         if grid_max_y is not None: obj_.grid_max_y = grid_max_y
@@ -1973,11 +2076,14 @@ class FxmlView:
 
     def add_stream_view(self, file: str, fx_id: str) -> StreamView:
         """Shows a shared-memory stream generated by hebi-video tools
-        
+
         Args:
-            file: 
-            fx_id: 
-        
+            file:
+            fx_id:
+
+        Returns:
+            Shows a shared-memory stream generated by hebi-video tools.
+
         Raises:
             Exception: on internal errors
         """
@@ -1985,26 +2091,31 @@ class FxmlView:
             file = c_char_p(file.encode('utf-8') if isinstance(file, str) else file)
         if fx_id is not None and not isinstance(fx_id, c_char_p):
             fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
-        ptr_ = libhebi_charts.hebi_charts_FxmlView_addStreamView(self.ptr, file, fx_id)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_FxmlView_addStreamView(byref(error_), self.ptr, file, fx_id))
         if not ptr_:
-            raise RuntimeError(f'Failed to create StreamView in FxmlView::add_stream_view ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        return StreamView(ptr_)
+            raise RuntimeError('Failed to create StreamView in FxmlView::add_stream_view')
+        return StreamView._wrap(ptr_)
 
     def add_fxml_view(self, fx_id: str, *, auto_reload: bool = None, source: str = None) -> FxmlView:
         """Shows a panel for interactive controls
-        
+
         Args:
-            fx_id: 
-        
+            fx_id:
+
+        Returns:
+            A completely customizable view that is defined by FXML.
+
         Raises:
             Exception: on internal errors
         """
         if fx_id is not None and not isinstance(fx_id, c_char_p):
             fx_id = c_char_p(fx_id.encode('utf-8') if isinstance(fx_id, str) else fx_id)
-        ptr_ = libhebi_charts.hebi_charts_FxmlView_addFxmlView(self.ptr, fx_id)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_FxmlView_addFxmlView(byref(error_), self.ptr, fx_id))
         if not ptr_:
-            raise RuntimeError(f'Failed to create FxmlView in FxmlView::add_fxml_view ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = FxmlView(ptr_)
+            raise RuntimeError('Failed to create FxmlView in FxmlView::add_fxml_view')
+        obj_ = FxmlView._wrap(ptr_)
         if auto_reload is not None: obj_.auto_reload = auto_reload
         if source is not None: obj_.source = source
         return obj_
@@ -2017,18 +2128,22 @@ class GridWindow:
 
     def __init__(self, rows: int = 1, cols: int = 1, *, full_screen: bool = None, height: int = None, keep_open: bool = None, location: Tuple[int, int] = None, size: Tuple[int, int] = None, title: str = None, width: int = None, x: int = None, y: int = None) -> None:
         """Creates a grid of equally sized rows and columns
-        
+
         Args:
-            rows: 
-            cols: 
-        
+            rows:
+            cols:
+
+        Returns:
+            Represents a window containing an equally sized row/col grid
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_create(rows, cols)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_create(byref(error_), rows, cols))
         if not ptr_:
-            raise RuntimeError(f'Failed to create GridWindow in GridWindow::__init__ ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        self.ptr = ptr_
+            raise RuntimeError('Failed to create GridWindow in GridWindow::__init__')
+        self._attach(ptr_)
         if full_screen is not None: self.full_screen = full_screen
         if height is not None: self.height = height
         if keep_open is not None: self.keep_open = keep_open
@@ -2039,8 +2154,17 @@ class GridWindow:
         if x is not None: self.x = x
         if y is not None: self.y = y
 
+    @classmethod
+    def _wrap(cls, ptr: GridWindowPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: GridWindowPtr):
+        self.ptr = ptr
+
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_GridWindow_release(self.ptr)
         self.ptr = None
 
@@ -2055,7 +2179,7 @@ class GridWindow:
     @full_screen.setter
     def full_screen(self, full_screen: bool):
         """Enters or exits fullscreen mode. Does not apply to off screen windows
-        
+
         Args:
             full_screen:
         """
@@ -2069,7 +2193,7 @@ class GridWindow:
     @height.setter
     def height(self, height: int):
         """Sets the content height in display points
-        
+
         Args:
             height:
         """
@@ -2083,7 +2207,7 @@ class GridWindow:
     @keep_open.setter
     def keep_open(self, keep_open: bool):
         """Keeps the window open after the destructor gets called
-        
+
         Args:
             keep_open:
         """
@@ -2096,9 +2220,9 @@ class GridWindow:
     @location.setter
     def location(self, location: Tuple[int, int]):
         """Sets the window's screen location in pixels (x, y)
-        
+
         Args:
-            x_offset: 
+            x_offset:
             y_offset:
         """
         x_offset, y_offset = location
@@ -2111,9 +2235,9 @@ class GridWindow:
     @size.setter
     def size(self, size: Tuple[int, int]):
         """Sets the content size in display points (width, height), excluding the title bar.
-        
+
         Args:
-            width: 
+            width:
             height:
         """
         width, height = size
@@ -2128,7 +2252,7 @@ class GridWindow:
     @title.setter
     def title(self, title: str):
         """Sets the title of the window header bar
-        
+
         Args:
             title:
         """
@@ -2144,7 +2268,7 @@ class GridWindow:
     @width.setter
     def width(self, width: int):
         """Sets the content width in display points
-        
+
         Args:
             width:
         """
@@ -2158,7 +2282,7 @@ class GridWindow:
     @x.setter
     def x(self, x: int):
         """Sets the window's horizontal screen location in pixels
-        
+
         Args:
             x:
         """
@@ -2172,7 +2296,7 @@ class GridWindow:
     @y.setter
     def y(self, y: int):
         """Sets the window's vertical screen location in pixels
-        
+
         Args:
             y:
         """
@@ -2180,20 +2304,24 @@ class GridWindow:
 
     def add_line_chart(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LineChart:
         """Creates a 2d line chart with the given size
-        
+
         Args:
-            row: 
-            col: 
-            row_span: 
-            col_span: 
-        
+            row:
+            col:
+            row_span:
+            col_span:
+
+        Returns:
+            Represents an XY line chart
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_addLineChart(self.ptr, row, col, row_span, col_span)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_addLineChart(byref(error_), self.ptr, row, col, row_span, col_span))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LineChart in GridWindow::add_line_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = LineChart(ptr_)
+            raise RuntimeError('Failed to create LineChart in GridWindow::add_line_chart')
+        obj_ = LineChart._wrap(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -2212,20 +2340,24 @@ class GridWindow:
 
     def add_scope(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LineChart:
         """Creates a line chart with a pre-set time axis in [s]
-        
+
         Args:
-            row: 
-            col: 
-            row_span: 
-            col_span: 
-        
+            row:
+            col:
+            row_span:
+            col_span:
+
+        Returns:
+            Represents an XY line chart
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_addScope(self.ptr, row, col, row_span, col_span)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_addScope(byref(error_), self.ptr, row, col, row_span, col_span))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LineChart in GridWindow::add_scope ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = LineChart(ptr_)
+            raise RuntimeError('Failed to create LineChart in GridWindow::add_scope')
+        obj_ = LineChart._wrap(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -2244,20 +2376,24 @@ class GridWindow:
 
     def add_latency_chart(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, title: str = None, x_assume_sorted: bool = None, xauto: bool = None, xlabel: str = None, xlim: Tuple[float, float] = None, xmax: float = None, xmin: float = None, xunit: str = None, yauto: bool = None, ylabel: str = None, ylim: Tuple[float, float] = None, ymax: float = None, ymin: float = None, yunit: str = None) -> LatencyChart:
         """Creates a latency chart for recording latency measurements in [s]
-        
+
         Args:
-            row: 
-            col: 
-            row_span: 
-            col_span: 
-        
+            row:
+            col:
+            row_span:
+            col_span:
+
+        Returns:
+            Shows latency measurements in HdrHistogram percentile format
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_addLatencyChart(self.ptr, row, col, row_span, col_span)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_addLatencyChart(byref(error_), self.ptr, row, col, row_span, col_span))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LatencyChart in GridWindow::add_latency_chart ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = LatencyChart(ptr_)
+            raise RuntimeError('Failed to create LatencyChart in GridWindow::add_latency_chart')
+        obj_ = LatencyChart._wrap(ptr_)
         if title is not None: obj_.title = title
         if x_assume_sorted is not None: obj_.x_assume_sorted = x_assume_sorted
         if xauto is not None: obj_.xauto = xauto
@@ -2276,20 +2412,24 @@ class GridWindow:
 
     def add_scene3d(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, grid_bounds: Tuple[float, float, float, float, float, float] = None, grid_max_x: float = None, grid_max_y: float = None, grid_max_z: float = None, grid_min_x: float = None, grid_min_y: float = None, grid_min_z: float = None, grid_step: float = None) -> Scene3d:
         """Creates a 3d chart with the given size
-        
+
         Args:
-            row: 
-            col: 
-            row_span: 
-            col_span: 
-        
+            row:
+            col:
+            row_span:
+            col_span:
+
+        Returns:
+            Represents a 3d scene that can render a variety of objects in 3d space
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_addScene3d(self.ptr, row, col, row_span, col_span)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_addScene3d(byref(error_), self.ptr, row, col, row_span, col_span))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Scene3d in GridWindow::add_scene3d ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Scene3d(ptr_)
+            raise RuntimeError('Failed to create Scene3d in GridWindow::add_scene3d')
+        obj_ = Scene3d._wrap(ptr_)
         if grid_bounds is not None: obj_.grid_bounds = grid_bounds
         if grid_max_x is not None: obj_.grid_max_x = grid_max_x
         if grid_max_y is not None: obj_.grid_max_y = grid_max_y
@@ -2302,59 +2442,66 @@ class GridWindow:
 
     def add_stream_view(self, file: str, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1) -> StreamView:
         """Shows a shared-memory stream generated by hebi-video tools
-        
+
         Args:
-            file: 
-            row: 
-            col: 
-            row_span: 
-            col_span: 
-        
+            file:
+            row:
+            col:
+            row_span:
+            col_span:
+
+        Returns:
+            Shows a shared-memory stream generated by hebi-video tools.
+
         Raises:
             Exception: on internal errors
         """
         if file is not None and not isinstance(file, c_char_p):
             file = c_char_p(file.encode('utf-8') if isinstance(file, str) else file)
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_addStreamView(self.ptr, file, row, col, row_span, col_span)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_addStreamView(byref(error_), self.ptr, file, row, col, row_span, col_span))
         if not ptr_:
-            raise RuntimeError(f'Failed to create StreamView in GridWindow::add_stream_view ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        return StreamView(ptr_)
+            raise RuntimeError('Failed to create StreamView in GridWindow::add_stream_view')
+        return StreamView._wrap(ptr_)
 
     def add_fxml_view(self, row: int = 0, col: int = 0, row_span: int = 1, col_span: int = 1, *, auto_reload: bool = None, source: str = None) -> FxmlView:
         """Shows a panel for interactive controls
-        
+
         Args:
-            row: 
-            col: 
-            row_span: 
-            col_span: 
-        
+            row:
+            col:
+            row_span:
+            col_span:
+
+        Returns:
+            A completely customizable view that is defined by FXML.
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_addFxmlView(self.ptr, row, col, row_span, col_span)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_addFxmlView(byref(error_), self.ptr, row, col, row_span, col_span))
         if not ptr_:
-            raise RuntimeError(f'Failed to create FxmlView in GridWindow::add_fxml_view ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = FxmlView(ptr_)
+            raise RuntimeError('Failed to create FxmlView in GridWindow::add_fxml_view')
+        obj_ = FxmlView._wrap(ptr_)
         if auto_reload is not None: obj_.auto_reload = auto_reload
         if source is not None: obj_.source = source
         return obj_
 
     def add_stylesheet(self, path_or_url: str, auto_reload: bool = False) -> None:
         """Adds a CSS file to the root scene
-        
+
         Args:
             path_or_url: path to a CSS file
             auto_reload: true adds a hot-reload capability on file change
-        
+
         Raises:
             Exception: on internal errors
         """
         if path_or_url is not None and not isinstance(path_or_url, c_char_p):
             path_or_url = c_char_p(path_or_url.encode('utf-8') if isinstance(path_or_url, str) else path_or_url)
-        status_ = libhebi_charts.hebi_charts_GridWindow_addStylesheet(self.ptr, path_or_url, auto_reload)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in GridWindow::add_stylesheet ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_GridWindow_addStylesheet(byref(error_), self.ptr, path_or_url, auto_reload))
 
     def show(self) -> None:
         """Shows the window. May be called multiple times"""
@@ -2362,13 +2509,12 @@ class GridWindow:
 
     def show_off_screen(self) -> None:
         """[EXPERIMENTAL] Shows the window in a hidden utility window. Use this if you encounter issues with headless rendering.
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_GridWindow_showOffScreen(self.ptr)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in GridWindow::show_off_screen ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_GridWindow_showOffScreen(byref(error_), self.ptr))
 
     def hide(self) -> None:
         """Hides the window. May be called multiple times. Hidden windows are not destroyed"""
@@ -2380,24 +2526,27 @@ class GridWindow:
 
     def wait_until_closed(self) -> None:
         """Waits until this window gets closed by the user
-        
+
         Raises:
             Exception: when called from the FX thread
         """
-        status_ = libhebi_charts.hebi_charts_GridWindow_waitUntilClosed(self.ptr)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in GridWindow::wait_until_closed ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_GridWindow_waitUntilClosed(byref(error_), self.ptr))
 
     def get_control_panel(self, *, title: str = None, width: float = None) -> ControlPanel:
         """Returns a fixed-size panel on the side of the window that can be used for interactive controls
-        
+
+        Returns:
+            A panel containing a list of interactive controls like buttons, sliders, and labels
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_getControlPanel(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_getControlPanel(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create ControlPanel in GridWindow::get_control_panel ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = ControlPanel(ptr_)
+            raise RuntimeError('Failed to create ControlPanel in GridWindow::get_control_panel')
+        obj_ = ControlPanel._wrap(ptr_)
         if title is not None: obj_.title = title
         if width is not None: obj_.width = width
         return obj_
@@ -2405,14 +2554,24 @@ class GridWindow:
     def create_image_stream(self, *, pixel_format: PixelFormat = None, rate_limit: float = None, recorder_threads: int = None) -> ImageStream:
         """[EXPERIMENTAL API]
         Creates an image stream that continuously stores the content as images.
-        
+
+        Returns:
+            [EXPERIMENTAL API]
+        Represents a stream of images with an accessible pixel buffer. This class
+        is not thread-safe and should only be used from one thread. Buffers and metadata
+        for an image are only valid in between successful next() calls.
+
+        The stream reuses multiple buffers internally and provides efficient access to the raw memory.
+
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_GridWindow_createImageStream(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_GridWindow_createImageStream(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create ImageStream in GridWindow::create_image_stream ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = ImageStream(ptr_)
+            raise RuntimeError('Failed to create ImageStream in GridWindow::create_image_stream')
+        obj_ = ImageStream._wrap(ptr_)
         if pixel_format is not None: obj_.pixel_format = pixel_format
         if rate_limit is not None: obj_.rate_limit = rate_limit
         if recorder_threads is not None: obj_.recorder_threads = recorder_threads
@@ -2421,13 +2580,13 @@ class GridWindow:
     def dispatch_mouse_event(self, action: int, button: int, down_mask: int, modifiers: int, x: float, y: float) -> None:
         """[EXPERIMENTAL API]
         Injects a mouse event into this window
-        
+
         Args:
-            action: 
-            button: 
-            down_mask: 
-            modifiers: 
-            x: 
+            action:
+            button:
+            down_mask:
+            modifiers:
+            x:
             y:
         """
         libhebi_charts.hebi_charts_GridWindow_dispatchMouseEvent(self.ptr, action, button, down_mask, modifiers, x, y)
@@ -2435,12 +2594,12 @@ class GridWindow:
     def dispatch_scroll_event(self, x: float, y: float, delta_x: float, delta_y: float, modifiers: int) -> None:
         """[EXPERIMENTAL API]
         Injects a mouse event into this window
-        
+
         Args:
-            x: 
-            y: 
-            delta_x: 
-            delta_y: 
+            x:
+            y:
+            delta_x:
+            delta_y:
             modifiers:
         """
         libhebi_charts.hebi_charts_GridWindow_dispatchScrollEvent(self.ptr, x, y, delta_x, delta_y, modifiers)
@@ -2452,17 +2611,27 @@ class HdrHistogramRecorder:
     __slots__ = ('ptr',)
 
     def __init__(self, *, frequency: float = None, max: float = None, min: float = None, significant_digits: int = None) -> None:
-        ptr_ = libhebi_charts.hebi_charts_HdrHistogramRecorder_create()
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_HdrHistogramRecorder_create(byref(error_)))
         if not ptr_:
-            raise RuntimeError(f'Failed to create HdrHistogramRecorder in HdrHistogramRecorder::__init__')
-        self.ptr = ptr_
+            raise RuntimeError('Failed to create HdrHistogramRecorder in HdrHistogramRecorder::__init__')
+        self._attach(ptr_)
         if frequency is not None: self.frequency = frequency
         if max is not None: self.max = max
         if min is not None: self.min = min
         if significant_digits is not None: self.significant_digits = significant_digits
 
+    @classmethod
+    def _wrap(cls, ptr: HdrHistogramRecorderPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: HdrHistogramRecorderPtr):
+        self.ptr = ptr
+
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_HdrHistogramRecorder_release(self.ptr)
         self.ptr = None
 
@@ -2476,16 +2645,15 @@ class HdrHistogramRecorder:
     @frequency.setter
     def frequency(self, frequency: float):
         """Sets the logging frequency (Hz) for background file updates.
-        
+
         Args:
             frequency: hz
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_HdrHistogramRecorder_setFrequency(self.ptr, frequency)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in HdrHistogramRecorder::frequency')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_HdrHistogramRecorder_setFrequency(byref(error_), self.ptr, frequency))
 
     @property
     def max(self) -> float:
@@ -2494,16 +2662,15 @@ class HdrHistogramRecorder:
     @max.setter
     def max(self, value: float):
         """Sets the highest trackable value [s]. Values above this will throw an error.
-        
+
         Args:
             value: seconds
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_HdrHistogramRecorder_setMax(self.ptr, value)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in HdrHistogramRecorder::max')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_HdrHistogramRecorder_setMax(byref(error_), self.ptr, value))
 
     @property
     def min(self) -> float:
@@ -2512,16 +2679,15 @@ class HdrHistogramRecorder:
     @min.setter
     def min(self, value: float):
         """Sets the lowest trackable value [s]. Values below this will be rounded up.
-        
+
         Args:
             value: seconds
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_HdrHistogramRecorder_setMin(self.ptr, value)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in HdrHistogramRecorder::min')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_HdrHistogramRecorder_setMin(byref(error_), self.ptr, value))
 
     @property
     def significant_digits(self) -> int:
@@ -2530,42 +2696,45 @@ class HdrHistogramRecorder:
     @significant_digits.setter
     def significant_digits(self, significant_digits: int):
         """Sets the number of significant decimal digits to maintain (1-5).
-        
+
         Args:
-            significant_digits: 
-        
+            significant_digits:
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_HdrHistogramRecorder_setSignificantDigits(self.ptr, significant_digits)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in HdrHistogramRecorder::significant_digits')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_HdrHistogramRecorder_setSignificantDigits(byref(error_), self.ptr, significant_digits))
 
     def add_trace(self, tag: str) -> HdrHistogramTrace:
         """Creates a new single-writer trace that gets recorded in intervals.
-        
+
         Args:
             tag:
+
+        Returns:
+            A wait-free single-writer HdrHistogram record
         """
         if tag is not None and not isinstance(tag, c_char_p):
             tag = c_char_p(tag.encode('utf-8') if isinstance(tag, str) else tag)
         ptr_ = libhebi_charts.hebi_charts_HdrHistogramRecorder_addTrace(self.ptr, tag)
         if not ptr_:
-            raise RuntimeError(f'Failed to create HdrHistogramTrace in HdrHistogramRecorder::add_trace')
-        return HdrHistogramTrace(ptr_)
+            raise RuntimeError('Failed to create HdrHistogramTrace in HdrHistogramRecorder::add_trace')
+        return HdrHistogramTrace._wrap(ptr_)
 
     def start_recording(self, log_file: str) -> str:
         """Starts the background recording thread. Returns the absolute normalized path.
-        
+
         Args:
             log_file: Path to the .hlog file
-        
+
         Raises:
             Exception: on internal errors
         """
         if log_file is not None and not isinstance(log_file, c_char_p):
             log_file = c_char_p(log_file.encode('utf-8') if isinstance(log_file, str) else log_file)
-        ptr_ = libhebi_charts.hebi_charts_HdrHistogramRecorder_startRecording(self.ptr, log_file)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_HdrHistogramRecorder_startRecording(byref(error_), self.ptr, log_file))
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
     def stop_recording(self) -> None:
@@ -2578,13 +2747,20 @@ class HdrHistogramTrace:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: HdrHistogramTracePtr):
-        if not isinstance(ptr, HdrHistogramTracePtr):
-            raise TypeError(f'Expected HdrHistogramTracePtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('HdrHistogramTrace instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: HdrHistogramTracePtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: HdrHistogramTracePtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_HdrHistogramTrace_release(self.ptr)
         self.ptr = None
 
@@ -2626,20 +2802,23 @@ class HdrHistogramTrace:
     def create_local(cls, number_of_significant_digits: int = 2, min_seconds: float = 1e-9, max_seconds: float = 3600) -> HdrHistogramTrace:
         """Creates an unattached and untagged histogram. The local version removes
         all synchronization overhead, but is not thread-safe.
-        
+
         Args:
-            number_of_significant_digits: 
-            min_seconds: 
+            number_of_significant_digits:
+            min_seconds:
             max_seconds:
+
+        Returns:
+            A wait-free single-writer HdrHistogram record
         """
         ptr_ = libhebi_charts.hebi_charts_HdrHistogramTrace_createLocal(number_of_significant_digits, min_seconds, max_seconds)
         if not ptr_:
-            raise RuntimeError(f'Failed to create HdrHistogramTrace in HdrHistogramTrace::create_local')
-        return HdrHistogramTrace(ptr_)
+            raise RuntimeError('Failed to create HdrHistogramTrace in HdrHistogramTrace::create_local')
+        return HdrHistogramTrace._wrap(ptr_)
 
     def get_value_at_percentile(self, percentile: float) -> float:
         """Returns the value at a specific percentile (0-100) in [s].
-        
+
         Args:
             percentile:
         """
@@ -2660,7 +2839,7 @@ class HdrHistogramTrace:
     def record_value(self, value: float) -> None:
         """Records a single latency value in seconds. Values outside the
         min/max range are clamped. Returns the recorded value in [s]
-        
+
         Args:
             value: latency in [s]
         """
@@ -2668,7 +2847,7 @@ class HdrHistogramTrace:
 
     def record_value_with_count(self, value: float, count: int) -> None:
         """Records a latency value in seconds with a specific occurrence count.
-        
+
         Args:
             value: latency in [s]
             count: occurrence count
@@ -2679,7 +2858,7 @@ class HdrHistogramTrace:
         """Records a value in seconds with Coordinated Omission compensation.
         If the value is larger than the expected interval, additional samples
         are auto-generated to fill the gap.
-        
+
         Args:
             value: latency in [s]
             expected_interval_between_samples: expected interval in [s]
@@ -2692,7 +2871,7 @@ class HdrHistogramTrace:
 
     def to_hgrm_string(self, output_units_per_second: float = 1e6) -> str:
         """A string of the percentile distribution for plotting .hgrm files
-        
+
         Args:
             output_units_per_second: output scale (ms=1e3, us=1e6, ns=1e9
         """
@@ -2702,17 +2881,18 @@ class HdrHistogramTrace:
     def save_as_hgrm(self, file_name: str, output_units_per_second: float = 1e6) -> str:
         """Saves the percentile distribution as an .hgrm file in the desired output units. This
         can be loaded into standard hgrm plotting tools. Returns the absolute path to the output.
-        
+
         Args:
-            file_name: 
+            file_name:
             output_units_per_second: output scale (ms=1e3, us=1e6, ns=1e9
-        
+
         Raises:
             Exception: on internal errors
         """
         if file_name is not None and not isinstance(file_name, c_char_p):
             file_name = c_char_p(file_name.encode('utf-8') if isinstance(file_name, str) else file_name)
-        ptr_ = libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm(self.ptr, file_name, output_units_per_second)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_HdrHistogramTrace_saveAsHgrm(byref(error_), self.ptr, file_name, output_units_per_second))
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
 
@@ -2721,19 +2901,26 @@ class ImageStream:
     Represents a stream of images with an accessible pixel buffer. This class
     is not thread-safe and should only be used from one thread. Buffers and metadata
     for an image are only valid in between successful next() calls.
-    
+
     The stream reuses multiple buffers internally and provides efficient access to the raw memory.
     """
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: ImageStreamPtr):
-        if not isinstance(ptr, ImageStreamPtr):
-            raise TypeError(f'Expected ImageStreamPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('ImageStream instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: ImageStreamPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: ImageStreamPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_ImageStream_release(self.ptr)
         self.ptr = None
 
@@ -2765,36 +2952,36 @@ class ImageStream:
         """Represents the pixel format of the current buffer. The native and most
         performant format is BGRA_PRE, which stores pixels in adjacent bytes
         with premultiplied alpha components.
-        
+
         Other convenience formats may be added in the future, but as of this point
         the others are all experimental.
-        
+
         [Memory Layout (BGRA_PRE)]
         Bytes are stored in order of increasing index: Blue, Green, Red, Alpha
-        
+
         [Compatibility]
         With an Alpha of 255 BGRA_PRE is identical to BGRA and is binary-compatible with the following:
-        
+
             OpenCV:    CV_8UC4
-        
+
             wxWidgets: BitmapBufferFormat_ARGB32
                        BitmapBufferFormat_RGB32
-        
+
             Qt:        Format_ARGB32 (on little endian)
                        Format_BGRA8888
-        
+
         Alpha less than 255 would show the image as darker or distorted, in which case
         the channels would need to be un-multiplied first.
-        
+
         [Usage]
         Pixels in this format can be decoded using the following sample code:
-        
+
             int i = rowstart + x * 4;
             int blue  = buffer[i + 0] & 0xff;
             int green = buffer[i + 1] & 0xff;
             int red   = buffer[i + 2] & 0xff;
             int alpha = buffer[i + 3] & 0xff;
-        
+
         @return the pixel format of the current frame
         """
         return PixelFormat(libhebi_charts.hebi_charts_ImageStream_getPixelFormat(self.ptr))
@@ -2804,9 +2991,9 @@ class ImageStream:
         """Sets the desired pixel format for future frames. The stream starts
         with the default of BGRA_PRE. Setting Unknown also reverts back to
         the default.
-        
+
         All other formats are considered experimental.
-        
+
         Args:
             pixel_format:
         """
@@ -2820,48 +3007,48 @@ class ImageStream:
     @rate_limit.setter
     def rate_limit(self, max_frames_per_second: float):
         """Sets the artificial rate limit above which frames get ignored.
-        
+
         Args:
             max_frames_per_second: Rate limit in fps, e.g., 30.0
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_ImageStream_setRateLimit(self.ptr, max_frames_per_second)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in ImageStream::rate_limit ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_ImageStream_setRateLimit(byref(error_), self.ptr, max_frames_per_second))
 
     @property
     def recorder_threads(self) -> int:
         """Gets the number of threads used for encoding individual frames
-        
+
         Raises:
             Exception: on internal errors
         """
-        return libhebi_charts.hebi_charts_ImageStream_getRecorderThreads(self.ptr)
+        error_ = _ErrorInfo()
+        return _checked(error_, libhebi_charts.hebi_charts_ImageStream_getRecorderThreads(byref(error_), self.ptr))
 
     @recorder_threads.setter
     def recorder_threads(self, num_threads: int):
         """Sets the number of threads used for encoding individual frames
-        
+
         Args:
-            num_threads: 
-        
+            num_threads:
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_ImageStream_setRecorderThreads(self.ptr, num_threads)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in ImageStream::recorder_threads ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_ImageStream_setRecorderThreads(byref(error_), self.ptr, num_threads))
 
     @property
     def recording(self) -> bool:
         """[EXPERIMENTAL API] Checks whether the stream is currently recording.
-        
+
         Raises:
             Exception: on internal errors
         """
-        return libhebi_charts.hebi_charts_ImageStream_isRecording(self.ptr) != 0
+        error_ = _ErrorInfo()
+        return _checked(error_, libhebi_charts.hebi_charts_ImageStream_isRecording(byref(error_), self.ptr)) != 0
 
     @property
     def render_scale(self) -> float:
@@ -2902,39 +3089,39 @@ class ImageStream:
 
     def set_resolution(self, width: int, height: int) -> None:
         """Sets the resolution for future snapshots. Defaults to the initial resolution. Set 0 to auto-size.
-        
+
         Args:
-            width: 
-            height: 
-        
+            width:
+            height:
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_ImageStream_setResolution(self.ptr, width, height)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in ImageStream::set_resolution ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_ImageStream_setResolution(byref(error_), self.ptr, width, height))
 
     def wait_for_next(self, max_timeout_millis: int) -> bool:
         """Waits until there is a new image, and flips internal buffers
         as needed. Similar in behavior, but more efficient than.
-        
+
             while (!tryGetNext() && !timeout) yield();
-        
+
         @return true if a new image is available
-        
+
         Args:
             max_timeout_millis: zero waits forever
-        
+
         Raises:
             Exception: on internal errors
         """
-        return libhebi_charts.hebi_charts_ImageStream_waitForNext(self.ptr, max_timeout_millis) != 0
+        error_ = _ErrorInfo()
+        return _checked(error_, libhebi_charts.hebi_charts_ImageStream_waitForNext(byref(error_), self.ptr, max_timeout_millis)) != 0
 
     def try_get_next(self) -> bool:
         """Checks whether there is a new image, and flips
         internal buffers as needed. Any metadata is only
         valid until the next call.
-        
+
         @return true if a new image is available
         """
         return libhebi_charts.hebi_charts_ImageStream_tryGetNext(self.ptr) != 0
@@ -2942,48 +3129,53 @@ class ImageStream:
     def start_recording(self, base_name: str, overwrite: bool = False) -> None:
         """[EXPERIMENTAL API]
         Losslessly records individual frames to disk in a way that ffmpeg can convert.
-        
+
         The base name represents the file name without the extension. Images get stored
         in dir/<base>/*.png and the result will be in dir/<base>.<extension>.
-        
+
         Args:
             base_name: The target base name
             overwrite: Whether the recorder is allowed to overwrite existing files
-        
+
         Raises:
             Exception: IO errors when creating the directory
         """
         if base_name is not None and not isinstance(base_name, c_char_p):
             base_name = c_char_p(base_name.encode('utf-8') if isinstance(base_name, str) else base_name)
-        status_ = libhebi_charts.hebi_charts_ImageStream_startRecording(self.ptr, base_name, overwrite)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in ImageStream::start_recording ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_ImageStream_startRecording(byref(error_), self.ptr, base_name, overwrite))
 
     def stop_recording(self) -> RecordingResult:
         """[EXPERIMENTAL API] Blocking call that stops recording and returns the result.
-        
+
+        Returns:
+            [EXPERIMENTAL API]
+        Represents the result of a recording. Can be used to
+        get various statistics and/or trigger FFMpeg.
+
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_ImageStream_stopRecording(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_ImageStream_stopRecording(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create RecordingResult in ImageStream::stop_recording ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        return RecordingResult(ptr_)
+            raise RuntimeError('Failed to create RecordingResult in ImageStream::stop_recording')
+        return RecordingResult._wrap(ptr_)
 
     def save_to_file(self, file_name: str) -> None:
         """Saves the image to a file
-        
+
         Args:
-            file_name: 
-        
+            file_name:
+
         Raises:
             Exception: on internal errors
         """
         if file_name is not None and not isinstance(file_name, c_char_p):
             file_name = c_char_p(file_name.encode('utf-8') if isinstance(file_name, str) else file_name)
-        status_ = libhebi_charts.hebi_charts_ImageStream_saveToFile(self.ptr, file_name)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in ImageStream::save_to_file ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_ImageStream_saveToFile(byref(error_), self.ptr, file_name))
 
 
 class LoopTimer:
@@ -2995,15 +3187,25 @@ class LoopTimer:
     __slots__ = ('ptr',)
 
     def __init__(self, *, frequency: float = None, period: float = None) -> None:
-        ptr_ = libhebi_charts.hebi_charts_LoopTimer_create()
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_LoopTimer_create(byref(error_)))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LoopTimer in LoopTimer::__init__')
-        self.ptr = ptr_
+            raise RuntimeError('Failed to create LoopTimer in LoopTimer::__init__')
+        self._attach(ptr_)
         if frequency is not None: self.frequency = frequency
         if period is not None: self.period = period
 
+    @classmethod
+    def _wrap(cls, ptr: LoopTimerPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: LoopTimerPtr):
+        self.ptr = ptr
+
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_LoopTimer_release(self.ptr)
         self.ptr = None
 
@@ -3022,7 +3224,7 @@ class LoopTimer:
     @frequency.setter
     def frequency(self, frequency: float):
         """Sets the desired frequency for waitForNextTick
-        
+
         Args:
             frequency: hz
         """
@@ -3035,7 +3237,7 @@ class LoopTimer:
     @period.setter
     def period(self, seconds: float):
         """Sets the desired period of waitForNextTick
-        
+
         Args:
             seconds: seconds
         """
@@ -3103,7 +3305,7 @@ class LoopTimer:
         """Experimental (may be removed in the future):
         Attempts to sleep for the given number of nanoseconds using Thread::sleep. Results are
         best effort and depend on the platform. Threads might spuriously wake up early or be late.
-        
+
         Args:
             nanos: Positive number of nanoseconds. Zero returns immediately.
         """
@@ -3114,7 +3316,7 @@ class LoopTimer:
         """Experimental (may be removed in the future):
         Attempts to sleep for the given number of nanoseconds using LockSupport::park. Results are
         best effort and depend on the platform. Threads might spuriously wake up early or be late.
-        
+
         Args:
             nanos: Positive number of nanoseconds. Zero returns immediately.
         """
@@ -3125,7 +3327,7 @@ class LoopTimer:
         """Experimental (may be removed in the future):
         Attempts to sleep for the given number of nanoseconds using Object::wait. Results are
         best effort and depend on the platform. Threads might spuriously wake up early or be late.
-        
+
         Args:
             nanos: Positive number of nanoseconds. Zero returns immediately.
         """
@@ -3137,7 +3339,7 @@ class LoopTimer:
         Attempts to "sleep" for the given number of nanoseconds using tiered spin methods for a more
         accurate result in exchange for higher CPU cost. Results are best effort and depend on the
         platform. Even busy spins may be late depending on the OS scheduler.
-        
+
         Args:
             nanos: Positive number of nanoseconds. Zero returns immediately.
         """
@@ -3149,13 +3351,20 @@ class Object3d:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: Object3dPtr):
-        if not isinstance(ptr, Object3dPtr):
-            raise TypeError(f'Expected Object3dPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Object3d instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: Object3dPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: Object3dPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_Object3d_release(self.ptr)
         self.ptr = None
 
@@ -3170,7 +3379,7 @@ class Object3d:
     @visible.setter
     def visible(self, visible: bool):
         """Sets visibility for this object. Hidden objects are not removed from the SceneGraph
-        
+
         Args:
             visible:
         """
@@ -3180,63 +3389,60 @@ class Object3d:
         """Sets the orientation of the object using a unit quaternion (x, y, z, w).
         This follows the ROS/REP-103 convention where the scalar component 'w' is last.
         The input is not verified!
-        
+
         Args:
             qx: quaternion x (vector part)
             qy: quaternion y (vector part)
             qz: quaternion z (vector part)
             qw: quaternion w (scalar part)
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_Object3d_setOrientation(self.ptr, qx, qy, qz, qw)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Object3d::set_orientation ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Object3d_setOrientation(byref(error_), self.ptr, qx, qy, qz, qw))
 
     def set_orientation_r_p_y(self, roll: float, pitch: float, yaw: float) -> None:
         """Sets the orientation of the object using Roll, Pitch, and Yaw (radians).
         Follows the ROS/REP-103 convention (Extrinsic / Fixed-Axis XYZ):
-        
+
             orientation = Rz(yaw)*Ry(pitch)*Rx(roll)
-        
+
         This method preserves the current translation. The input is not verified!
-        
+
         Args:
             roll: angle in [rad]
             pitch: angle in [rad]
             yaw: angle in [rad]
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_Object3d_setOrientationRPY(self.ptr, roll, pitch, yaw)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Object3d::set_orientation_r_p_y ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Object3d_setOrientationRPY(byref(error_), self.ptr, roll, pitch, yaw))
 
     def set_translation(self, x: float, y: float, z: float) -> None:
         """Translates the object. The input is not verified!
-        
+
         Args:
             x: position x [m]
             y: position y [m]
             z: position z [m]
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_Object3d_setTranslation(self.ptr, x, y, z)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Object3d::set_translation ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Object3d_setTranslation(byref(error_), self.ptr, x, y, z))
 
     def set_pose(self, x: float, y: float, z: float, qx: float, qy: float, qz: float, qw: float) -> None:
         """Sets the full pose (position and orientation) of the object in a
         single atomic update. This follows the ROS/REP-103 convention
         (Position + Quaternion).
-        
+
         Units: Translation in [m], Quaternion (x, y, z, w).
         The input is not verified!
-        
+
         Args:
             x: position x [m]
             y: position y [m]
@@ -3245,39 +3451,39 @@ class Object3d:
             qy: quaternion y (vector part)
             qz: quaternion z (vector part)
             qw: quaternion w (scalar part)
-        
+
         Raises:
             Exception: on internal errors
         """
-        status_ = libhebi_charts.hebi_charts_Object3d_setPose(self.ptr, x, y, z, qx, qy, qz, qw)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Object3d::set_pose ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Object3d_setPose(byref(error_), self.ptr, x, y, z, qx, qy, qz, qw))
 
-    def set_transform4x4(self, matrix: Sequence[float], ordering: MatrixOrdering = MatrixOrdering.ROW_MAJOR) -> None:
+    def set_transform4x4(self, matrix: Sequence[Sequence[float]]) -> None:
         """Sets a 4x4 transform matrix of the form
-        
+
             R R R x
             R R R y
             R R R z
             0 0 0 1
-        
-        The transform needs to be of size=16 and include the
+
+        The transform needs to reference 16 elements and include the
         bottom row. The translation units are in meters.
         The input is not verified.
-        
+
         Args:
-            matrix: pointer to 16 double elements
-            ordering: corresponding memory layout of the 4x4 matrix
-        
+            matrix: 4x4 transform matrix
+
         Raises:
             Exception: on internal errors
         """
         np = _require_numpy()
-        if matrix is not None and not isinstance(matrix, POINTER(c_double)):
-            matrix = np.ascontiguousarray(matrix, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        status_ = libhebi_charts.hebi_charts_Object3d_setTransform4x4(self.ptr, matrix, ordering)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Object3d::set_transform4x4 ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        if not isinstance(matrix, _Transform4x4):
+            matrix_arr = np.ascontiguousarray(matrix, dtype=np.float64)
+            if matrix_arr.size != 16:
+                raise ValueError("expected a 4x4 matrix, got shape " + str(matrix_arr.shape))
+            matrix = _Transform4x4(matrix_arr.ctypes.data_as(POINTER(c_double)), 0)
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Object3d_setTransform4x4(byref(error_), self.ptr, matrix))
 
 
 class Frame(Object3d):
@@ -3285,11 +3491,12 @@ class Frame(Object3d):
 
     __slots__ = ('ref_Frame',)
 
-    def __init__(self, ref_Frame: FramePtr):
-        if not isinstance(ref_Frame, FramePtr):
-            raise TypeError(f'Expected FramePtr, got {type(ref_Frame).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Frame instances are created by the library')
+
+    def _attach(self, ref_Frame: FramePtr):
         self.ref_Frame = ref_Frame
-        super().__init__(libhebi_charts.hebi_charts_Frame_to_Object3d(ref_Frame))
+        super()._attach(libhebi_charts.hebi_charts_Frame_to_Object3d(ref_Frame))
 
     def __del__(self):
         super().__del__()
@@ -3304,11 +3511,12 @@ class Mesh(Object3d):
 
     __slots__ = ('ref_Mesh',)
 
-    def __init__(self, ref_Mesh: MeshPtr):
-        if not isinstance(ref_Mesh, MeshPtr):
-            raise TypeError(f'Expected MeshPtr, got {type(ref_Mesh).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Mesh instances are created by the library')
+
+    def _attach(self, ref_Mesh: MeshPtr):
         self.ref_Mesh = ref_Mesh
-        super().__init__(libhebi_charts.hebi_charts_Mesh_to_Object3d(ref_Mesh))
+        super()._attach(libhebi_charts.hebi_charts_Mesh_to_Object3d(ref_Mesh))
 
     def __del__(self):
         super().__del__()
@@ -3325,7 +3533,7 @@ class Mesh(Object3d):
     @centered.setter
     def centered(self, centered: bool):
         """Moves the origin to the center of the mesh.
-        
+
         Args:
             centered:
         """
@@ -3341,7 +3549,7 @@ class Mesh(Object3d):
         """Sets the scaling factor applied to the mesh. The internal
         units are mm, so a mesh in meters would need to be scaled
         by 1e-3 to render correctly.
-        
+
         Args:
             scale_units_to_millimeters:
         """
@@ -3355,15 +3563,75 @@ class Mesh(Object3d):
     @style.setter
     def style(self, style: DisplayStyle):
         """Updates the visual representation of the mesh model.
-        
+
         This is typically used to visually distinguish between multiple states of
         the same mesh, such as overlaying a semi-transparent 'Ghosted' target
         pose over the 'Original' pose.
-        
+
         Args:
             style: sets the display style
         """
         libhebi_charts.hebi_charts_Mesh_setDisplayStyle(self.ref_Mesh, style)
+
+    def set_mesh_transform4x4(self, matrix: Sequence[Sequence[float]]) -> None:
+        """Sets a fixed mesh-to-object pre-transform as a 4x4 matrix of the form
+
+            R R R x
+            R R R y
+            R R R z
+            0 0 0 1
+
+        The composition order is
+
+            rendered = objectPose * meshTransform * (centered and scaled mesh)
+
+        so the pre-transform is meant to be set once after loading to correct
+        for the frame the mesh was exported in (e.g. rotating a Y-up mesh to
+        Z-up), while the pose methods keep animating on top of it.
+
+        The transform needs to reference 16 elements and include the
+        bottom row. The translation units are in meters.
+        The input is not verified.
+
+        Args:
+            matrix: 4x4 transform matrix
+
+        Raises:
+            Exception: on internal errors
+        """
+        np = _require_numpy()
+        if not isinstance(matrix, _Transform4x4):
+            matrix_arr = np.ascontiguousarray(matrix, dtype=np.float64)
+            if matrix_arr.size != 16:
+                raise ValueError("expected a 4x4 matrix, got shape " + str(matrix_arr.shape))
+            matrix = _Transform4x4(matrix_arr.ctypes.data_as(POINTER(c_double)), 0)
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Mesh_setMeshTransform4x4(byref(error_), self.ref_Mesh, matrix))
+
+    def set_mesh_pose_r_p_y(self, x: float, y: float, z: float, roll: float, pitch: float, yaw: float) -> None:
+        """Sets the fixed mesh-to-object pre-transform using a translation and
+        Roll, Pitch, and Yaw (radians). Follows the ROS/REP-103 convention
+        (Extrinsic / Fixed-Axis XYZ):
+
+            orientation = Rz(yaw)*Ry(pitch)*Rx(roll)
+
+        This is a convenience for the common case of correcting the frame the
+        mesh was exported in (e.g. a Y-up mesh needs a roll of pi/2), while
+        the pose methods keep animating on top of it. The input is not verified!
+
+        Args:
+            x: position x [m]
+            y: position y [m]
+            z: position z [m]
+            roll: angle in [rad]
+            pitch: angle in [rad]
+            yaw: angle in [rad]
+
+        Raises:
+            Exception: on internal errors
+        """
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Mesh_setMeshPoseRPY(byref(error_), self.ref_Mesh, x, y, z, roll, pitch, yaw))
 
 
 class Robot(Object3d):
@@ -3371,11 +3639,12 @@ class Robot(Object3d):
 
     __slots__ = ('ref_Robot',)
 
-    def __init__(self, ref_Robot: RobotPtr):
-        if not isinstance(ref_Robot, RobotPtr):
-            raise TypeError(f'Expected RobotPtr, got {type(ref_Robot).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Robot instances are created by the library')
+
+    def _attach(self, ref_Robot: RobotPtr):
         self.ref_Robot = ref_Robot
-        super().__init__(libhebi_charts.hebi_charts_Robot_to_Object3d(ref_Robot))
+        super()._attach(libhebi_charts.hebi_charts_Robot_to_Object3d(ref_Robot))
 
     def __del__(self):
         super().__del__()
@@ -3392,11 +3661,11 @@ class Robot(Object3d):
     @display_style.setter
     def display_style(self, style: DisplayStyle):
         """Updates the visual representation of the robot model.
-        
+
         This is typically used to visually distinguish between multiple states of
         the same robot, such as overlaying a semi-transparent 'Ghosted' target
         pose over the 'Original' pose.
-        
+
         Args:
             style: sets the display style
         """
@@ -3407,32 +3676,31 @@ class Robot(Object3d):
         """Gets the number of joints (Degrees of Freedom) of this robot"""
         return libhebi_charts.hebi_charts_Robot_getDof(self.ref_Robot)
 
-    def set_positions(self, positions: Sequence[float], length: int = None) -> None:
+    def set_positions(self, positions: Sequence[float]) -> None:
         """Updates the robot model configuration (kinematics) using a vector of joint positions.
-        
+
         Units:
           - Revolute joints: [rad]
           - Prismatic joints: [m]
-        
+
         The order of the vector must match the joint definitions in the underlying model.
-        The 'length' parameter must exactly match the number of degrees of freedom (DOF)
+        The number of positions must exactly match the number of degrees of freedom (DOF)
         returned by getDof().
-        
+
         Args:
-            positions: pointer to an array of joint positions
-            length: number of joints (must match getDof)
-        
+            positions: joint positions (size must match getDof)
+
         Raises:
             Exception: if position vector length does not match number of joints.
         """
         np = _require_numpy()
-        if length is None:
-            length = 0 if (positions is None) else len(positions)
-        if positions is not None and not isinstance(positions, POINTER(c_double)):
-            positions = np.ascontiguousarray(positions, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        status_ = libhebi_charts.hebi_charts_Robot_setPositions(self.ref_Robot, positions, length)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Robot::set_positions ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        if positions is None:
+            positions = _DoubleSpan(None, 0)
+        elif not isinstance(positions, _DoubleSpan):
+            positions_arr = np.ascontiguousarray(positions, dtype=np.float64)
+            positions = _DoubleSpan(positions_arr.ctypes.data_as(POINTER(c_double)), len(positions_arr))
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Robot_setPositions(byref(error_), self.ref_Robot, positions))
 
 
 class Series3d(Object3d):
@@ -3440,11 +3708,12 @@ class Series3d(Object3d):
 
     __slots__ = ('ref_Series3d',)
 
-    def __init__(self, ref_Series3d: Series3dPtr):
-        if not isinstance(ref_Series3d, Series3dPtr):
-            raise TypeError(f'Expected Series3dPtr, got {type(ref_Series3d).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Series3d instances are created by the library')
+
+    def _attach(self, ref_Series3d: Series3dPtr):
         self.ref_Series3d = ref_Series3d
-        super().__init__(libhebi_charts.hebi_charts_Series3d_to_Object3d(ref_Series3d))
+        super()._attach(libhebi_charts.hebi_charts_Series3d_to_Object3d(ref_Series3d))
 
     def __del__(self):
         super().__del__()
@@ -3461,7 +3730,7 @@ class Series3d(Object3d):
     @color.setter
     def color(self, color: Color):
         """Sets the dataset color
-        
+
         Args:
             color:
         """
@@ -3476,11 +3745,12 @@ class Line3d(Series3d):
 
     __slots__ = ('ref_Line3d',)
 
-    def __init__(self, ref_Line3d: Line3dPtr):
-        if not isinstance(ref_Line3d, Line3dPtr):
-            raise TypeError(f'Expected Line3dPtr, got {type(ref_Line3d).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Line3d instances are created by the library')
+
+    def _attach(self, ref_Line3d: Line3dPtr):
         self.ref_Line3d = ref_Line3d
-        super().__init__(libhebi_charts.hebi_charts_Line3d_to_Series3d(ref_Line3d))
+        super()._attach(libhebi_charts.hebi_charts_Line3d_to_Series3d(ref_Line3d))
 
     def __del__(self):
         super().__del__()
@@ -3492,7 +3762,7 @@ class Line3d(Series3d):
     def set_max_point_count(self, count: int) -> None:
         """Sets the internal maximum point count for incrementally
         adding points. May clear existing data.
-        
+
         Args:
             count: maximum number of points
         """
@@ -3502,59 +3772,73 @@ class Line3d(Series3d):
         """Clears all existing data"""
         libhebi_charts.hebi_charts_Line3d_clear(self.ref_Line3d)
 
-    def set_data(self, x: Sequence[float], y: Sequence[float], z: Sequence[float], length: int = None) -> None:
+    def set_data(self, x: Sequence[float], y: Sequence[float], z: Sequence[float]) -> None:
         """Replaces the entire dataset with the provided X/Y/Z content. This
         operation copies the input data, so the caller retains ownership of
         the memory. Sets the buffer capacity to match the input length and
-        clears any previous rolling history.
-        
+        clears any previous rolling history. Mismatched input lengths get
+        truncated to the shortest one.
+
         Args:
             x: points
             y: points
             z: points
-            length: number of x/y/z points
         """
         np = _require_numpy()
-        if length is None:
-            length = (0 if (x is None or y is None or z is None) else min(len(x), len(y), len(z)))
-        if x is not None and not isinstance(x, POINTER(c_double)):
-            x = np.ascontiguousarray(x, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if y is not None and not isinstance(y, POINTER(c_double)):
-            y = np.ascontiguousarray(y, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if z is not None and not isinstance(z, POINTER(c_double)):
-            z = np.ascontiguousarray(z, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        libhebi_charts.hebi_charts_Line3d_setData(self.ref_Line3d, x, y, z, length)
+        if x is None:
+            x = _DoubleSpan(None, 0)
+        elif not isinstance(x, _DoubleSpan):
+            x_arr = np.ascontiguousarray(x, dtype=np.float64)
+            x = _DoubleSpan(x_arr.ctypes.data_as(POINTER(c_double)), len(x_arr))
+        if y is None:
+            y = _DoubleSpan(None, 0)
+        elif not isinstance(y, _DoubleSpan):
+            y_arr = np.ascontiguousarray(y, dtype=np.float64)
+            y = _DoubleSpan(y_arr.ctypes.data_as(POINTER(c_double)), len(y_arr))
+        if z is None:
+            z = _DoubleSpan(None, 0)
+        elif not isinstance(z, _DoubleSpan):
+            z_arr = np.ascontiguousarray(z, dtype=np.float64)
+            z = _DoubleSpan(z_arr.ctypes.data_as(POINTER(c_double)), len(z_arr))
+        libhebi_charts.hebi_charts_Line3d_setData(self.ref_Line3d, x, y, z)
 
-    def add_points(self, x: Sequence[float], y: Sequence[float], z: Sequence[float], length: int = None) -> None:
+    def add_points(self, x: Sequence[float], y: Sequence[float], z: Sequence[float]) -> None:
         """Appends multiple data points to the end of the internal rolling buffer.
         This operation copies the input data, so the caller retains ownership
         of the memory. If the total number of points exceeds the current capacity,
-        the oldest points are overwritten.
-        
+        the oldest points are overwritten. Mismatched input lengths get
+        truncated to the shortest one.
+
         Args:
             x: points
             y: points
             z: points
-            length: number of x/y/z points
         """
         np = _require_numpy()
-        if length is None:
-            length = (0 if (x is None or y is None or z is None) else min(len(x), len(y), len(z)))
-        if x is not None and not isinstance(x, POINTER(c_double)):
-            x = np.ascontiguousarray(x, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if y is not None and not isinstance(y, POINTER(c_double)):
-            y = np.ascontiguousarray(y, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if z is not None and not isinstance(z, POINTER(c_double)):
-            z = np.ascontiguousarray(z, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        libhebi_charts.hebi_charts_Line3d_addPoints(self.ref_Line3d, x, y, z, length)
+        if x is None:
+            x = _DoubleSpan(None, 0)
+        elif not isinstance(x, _DoubleSpan):
+            x_arr = np.ascontiguousarray(x, dtype=np.float64)
+            x = _DoubleSpan(x_arr.ctypes.data_as(POINTER(c_double)), len(x_arr))
+        if y is None:
+            y = _DoubleSpan(None, 0)
+        elif not isinstance(y, _DoubleSpan):
+            y_arr = np.ascontiguousarray(y, dtype=np.float64)
+            y = _DoubleSpan(y_arr.ctypes.data_as(POINTER(c_double)), len(y_arr))
+        if z is None:
+            z = _DoubleSpan(None, 0)
+        elif not isinstance(z, _DoubleSpan):
+            z_arr = np.ascontiguousarray(z, dtype=np.float64)
+            z = _DoubleSpan(z_arr.ctypes.data_as(POINTER(c_double)), len(z_arr))
+        libhebi_charts.hebi_charts_Line3d_addPoints(self.ref_Line3d, x, y, z)
 
     def add_point(self, x: float, y: float, z: float) -> None:
         """Adds one point to an internal rolling buffer. Once the maximum
         point count is reached, it will overwrite the earliest data.
-        
+
         Args:
-            x: 
-            y: 
+            x:
+            y:
             z:
         """
         libhebi_charts.hebi_charts_Line3d_addPoint(self.ref_Line3d, x, y, z)
@@ -3568,11 +3852,12 @@ class Points3d(Series3d):
 
     __slots__ = ('ref_Points3d',)
 
-    def __init__(self, ref_Points3d: Points3dPtr):
-        if not isinstance(ref_Points3d, Points3dPtr):
-            raise TypeError(f'Expected Points3dPtr, got {type(ref_Points3d).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Points3d instances are created by the library')
+
+    def _attach(self, ref_Points3d: Points3dPtr):
         self.ref_Points3d = ref_Points3d
-        super().__init__(libhebi_charts.hebi_charts_Points3d_to_Series3d(ref_Points3d))
+        super()._attach(libhebi_charts.hebi_charts_Points3d_to_Series3d(ref_Points3d))
 
     def __del__(self):
         super().__del__()
@@ -3589,7 +3874,7 @@ class Points3d(Series3d):
     @marker_shape.setter
     def marker_shape(self, shape: MarkerShape):
         """Sets the geometry used to represent each point in the series
-        
+
         Args:
             shape:
         """
@@ -3603,7 +3888,7 @@ class Points3d(Series3d):
     @marker_size.setter
     def marker_size(self, value: float):
         """Sets the characteristic size (diameter or side length) of the markers in [m]
-        
+
         Args:
             value: [m]
         """
@@ -3617,7 +3902,7 @@ class Points3d(Series3d):
     @self_illumination.setter
     def self_illumination(self, value: bool):
         """Self illumination makes the shapes glow without an external light source (defaults to true)
-        
+
         Args:
             value:
         """
@@ -3631,7 +3916,7 @@ class Points3d(Series3d):
     @vertex_sharing.setter
     def vertex_sharing(self, value: bool):
         """Vertex sharing reduces the complexity, but can result in poor lighting
-        
+
         Args:
             value:
         """
@@ -3640,7 +3925,7 @@ class Points3d(Series3d):
     def set_max_point_count(self, count: int) -> None:
         """Sets the internal maximum point count for incrementally
         adding points. May clear existing data.
-        
+
         Args:
             count: maximum number of points
         """
@@ -3650,59 +3935,73 @@ class Points3d(Series3d):
         """Clears all existing data"""
         libhebi_charts.hebi_charts_Points3d_clear(self.ref_Points3d)
 
-    def set_data(self, x: Sequence[float], y: Sequence[float], z: Sequence[float], length: int = None) -> None:
+    def set_data(self, x: Sequence[float], y: Sequence[float], z: Sequence[float]) -> None:
         """Replaces the entire dataset with the provided X/Y/Z content. This
         operation copies the input data, so the caller retains ownership of
         the memory. Sets the buffer capacity to match the input length and
-        clears any previous rolling history.
-        
+        clears any previous rolling history. Mismatched input lengths get
+        truncated to the shortest one.
+
         Args:
             x: points
             y: points
             z: points
-            length: number of x/y/z points
         """
         np = _require_numpy()
-        if length is None:
-            length = (0 if (x is None or y is None or z is None) else min(len(x), len(y), len(z)))
-        if x is not None and not isinstance(x, POINTER(c_double)):
-            x = np.ascontiguousarray(x, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if y is not None and not isinstance(y, POINTER(c_double)):
-            y = np.ascontiguousarray(y, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if z is not None and not isinstance(z, POINTER(c_double)):
-            z = np.ascontiguousarray(z, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        libhebi_charts.hebi_charts_Points3d_setData(self.ref_Points3d, x, y, z, length)
+        if x is None:
+            x = _DoubleSpan(None, 0)
+        elif not isinstance(x, _DoubleSpan):
+            x_arr = np.ascontiguousarray(x, dtype=np.float64)
+            x = _DoubleSpan(x_arr.ctypes.data_as(POINTER(c_double)), len(x_arr))
+        if y is None:
+            y = _DoubleSpan(None, 0)
+        elif not isinstance(y, _DoubleSpan):
+            y_arr = np.ascontiguousarray(y, dtype=np.float64)
+            y = _DoubleSpan(y_arr.ctypes.data_as(POINTER(c_double)), len(y_arr))
+        if z is None:
+            z = _DoubleSpan(None, 0)
+        elif not isinstance(z, _DoubleSpan):
+            z_arr = np.ascontiguousarray(z, dtype=np.float64)
+            z = _DoubleSpan(z_arr.ctypes.data_as(POINTER(c_double)), len(z_arr))
+        libhebi_charts.hebi_charts_Points3d_setData(self.ref_Points3d, x, y, z)
 
-    def add_points(self, x: Sequence[float], y: Sequence[float], z: Sequence[float], length: int = None) -> None:
+    def add_points(self, x: Sequence[float], y: Sequence[float], z: Sequence[float]) -> None:
         """Appends multiple data points to the end of the internal rolling buffer.
         This operation copies the input data, so the caller retains ownership
         of the memory. If the total number of points exceeds the current capacity,
-        the oldest points are overwritten.
-        
+        the oldest points are overwritten. Mismatched input lengths get
+        truncated to the shortest one.
+
         Args:
             x: points
             y: points
             z: points
-            length: number of x/y/z points
         """
         np = _require_numpy()
-        if length is None:
-            length = (0 if (x is None or y is None or z is None) else min(len(x), len(y), len(z)))
-        if x is not None and not isinstance(x, POINTER(c_double)):
-            x = np.ascontiguousarray(x, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if y is not None and not isinstance(y, POINTER(c_double)):
-            y = np.ascontiguousarray(y, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if z is not None and not isinstance(z, POINTER(c_double)):
-            z = np.ascontiguousarray(z, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        libhebi_charts.hebi_charts_Points3d_addPoints(self.ref_Points3d, x, y, z, length)
+        if x is None:
+            x = _DoubleSpan(None, 0)
+        elif not isinstance(x, _DoubleSpan):
+            x_arr = np.ascontiguousarray(x, dtype=np.float64)
+            x = _DoubleSpan(x_arr.ctypes.data_as(POINTER(c_double)), len(x_arr))
+        if y is None:
+            y = _DoubleSpan(None, 0)
+        elif not isinstance(y, _DoubleSpan):
+            y_arr = np.ascontiguousarray(y, dtype=np.float64)
+            y = _DoubleSpan(y_arr.ctypes.data_as(POINTER(c_double)), len(y_arr))
+        if z is None:
+            z = _DoubleSpan(None, 0)
+        elif not isinstance(z, _DoubleSpan):
+            z_arr = np.ascontiguousarray(z, dtype=np.float64)
+            z = _DoubleSpan(z_arr.ctypes.data_as(POINTER(c_double)), len(z_arr))
+        libhebi_charts.hebi_charts_Points3d_addPoints(self.ref_Points3d, x, y, z)
 
     def add_point(self, x: float, y: float, z: float) -> None:
         """Adds one point to an internal rolling buffer. Once the maximum
         point count is reached, it will overwrite the earliest data.
-        
+
         Args:
-            x: 
-            y: 
+            x:
+            y:
             z:
         """
         libhebi_charts.hebi_charts_Points3d_addPoint(self.ref_Points3d, x, y, z)
@@ -3716,13 +4015,20 @@ class RecordingResult:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: RecordingResultPtr):
-        if not isinstance(ptr, RecordingResultPtr):
-            raise TypeError(f'Expected RecordingResultPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('RecordingResult instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: RecordingResultPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: RecordingResultPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_RecordingResult_release(self.ptr)
         self.ptr = None
 
@@ -3732,11 +4038,12 @@ class RecordingResult:
     @property
     def directory(self) -> str:
         """The absolute path to the directory containing the PNG frames and manifest.
-        
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_RecordingResult_getDirectory(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_RecordingResult_getDirectory(byref(error_), self.ptr))
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
     @property
@@ -3757,11 +4064,12 @@ class RecordingResult:
     @property
     def manifest(self) -> str:
         """The absolute path to the manifest containing timing metadata.
-        
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_RecordingResult_getManifest(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_RecordingResult_getManifest(byref(error_), self.ptr))
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
     @property
@@ -3783,40 +4091,42 @@ class RecordingResult:
         """Generates an FFmpeg command that converts the stored PNG files into the specified video format.
         The file name is the directory name w/ extension one level up. For example, an h264 format would
         map as follows:
-        
+
             input: experiments/test17/*.png
             output: experiments/test17.mp4
-        
+
         The delete directory flag appends a command that delete the input directory after a successful conversion.
-        
+
         Args:
             output_format: target format
             delete_directory: cleanup after conversion
-        
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_RecordingResult_getFfmpegCommand(self.ptr, output_format, delete_directory)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_RecordingResult_getFfmpegCommand(byref(error_), self.ptr, output_format, delete_directory))
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
     def run_ffmpeg(self, output_format: VideoOutputFormat, delete_directory: bool = False) -> str:
         """Runs an FFmpeg command that converts the stored PNG files into the specified video format.
         The file name is the directory name w/ extension one level up. For example, an h264 format would
         map as follows:
-        
+
             input: experiments/test17/*.png
             output: experiments/test17.mp4
-        
+
         The delete directory flag appends a command that delete the input directory after a successful conversion.
-        
+
         Args:
             output_format: target format
             delete_directory: cleanup after conversion
-        
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_RecordingResult_runFfmpeg(self.ptr, output_format, delete_directory)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_RecordingResult_runFfmpeg(byref(error_), self.ptr, output_format, delete_directory))
         return ptr_.decode("utf-8") if ptr_ is not None else ""
 
 
@@ -3825,13 +4135,20 @@ class Scene3d:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: Scene3dPtr):
-        if not isinstance(ptr, Scene3dPtr):
-            raise TypeError(f'Expected Scene3dPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Scene3d instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: Scene3dPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: Scene3dPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_Scene3d_release(self.ptr)
         self.ptr = None
 
@@ -3845,7 +4162,7 @@ class Scene3d:
     @grid_bounds.setter
     def grid_bounds(self, gridBounds: Tuple[float, float, float, float, float, float]):
         """Sets the boundaries of the 3D grid cage in [m]
-        
+
         Args:
             min_x: [m]
             max_x: [m]
@@ -3865,7 +4182,7 @@ class Scene3d:
     @grid_max_x.setter
     def grid_max_x(self, val: float):
         """Sets the maximum X boundary of the 3D grid cage in [m]
-        
+
         Args:
             val:
         """
@@ -3879,7 +4196,7 @@ class Scene3d:
     @grid_max_y.setter
     def grid_max_y(self, val: float):
         """Sets the maximum Y boundary of the 3D grid cage in [m]
-        
+
         Args:
             val:
         """
@@ -3893,7 +4210,7 @@ class Scene3d:
     @grid_max_z.setter
     def grid_max_z(self, val: float):
         """Sets the maximum Z boundary of the 3D grid cage in [m]
-        
+
         Args:
             val:
         """
@@ -3907,7 +4224,7 @@ class Scene3d:
     @grid_min_x.setter
     def grid_min_x(self, val: float):
         """Sets the minimum X boundary of the 3D grid cage in [m]
-        
+
         Args:
             val:
         """
@@ -3921,7 +4238,7 @@ class Scene3d:
     @grid_min_y.setter
     def grid_min_y(self, val: float):
         """Sets the minimum Y boundary of the 3D grid cage in [m]
-        
+
         Args:
             val:
         """
@@ -3935,7 +4252,7 @@ class Scene3d:
     @grid_min_z.setter
     def grid_min_z(self, val: float):
         """Sets the minimum Z boundary of the 3D grid cage in [m]
-        
+
         Args:
             val:
         """
@@ -3949,53 +4266,65 @@ class Scene3d:
     @grid_step.setter
     def grid_step(self, grid_step: float):
         """Sets the distance between grid lines in [m]
-        
+
         Args:
             grid_step: Distance in [m]
         """
         libhebi_charts.hebi_charts_Scene3d_setGridStep(self.ptr, grid_step)
 
     def get_camera(self) -> Camera:
-        """Returns the camera of this 3d chart"""
+        """Returns the camera of this 3d chart
+
+        Returns:
+            Represents a view point looking at a 3d scene
+        """
         ptr_ = libhebi_charts.hebi_charts_Scene3d_getCamera(self.ptr)
         if not ptr_:
-            raise RuntimeError(f'Failed to create Camera in Scene3d::get_camera ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        return Camera(ptr_)
+            raise RuntimeError('Failed to create Camera in Scene3d::get_camera')
+        return Camera._wrap(ptr_)
 
     def add_robot(self, path_or_url: str, *, display_style: DisplayStyle = None, visible: bool = None) -> Robot:
         """Adds a robot from a description file (.hrdf)
-        
+
         Args:
             path_or_url: file path or web-url to a description file
-        
+
+        Returns:
+            Represents robot kinematics
+
         Raises:
             Exception: on internal errors
         """
         if path_or_url is not None and not isinstance(path_or_url, c_char_p):
             path_or_url = c_char_p(path_or_url.encode('utf-8') if isinstance(path_or_url, str) else path_or_url)
-        ptr_ = libhebi_charts.hebi_charts_Scene3d_addRobot(self.ptr, path_or_url)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_Scene3d_addRobot(byref(error_), self.ptr, path_or_url))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Robot in Scene3d::add_robot ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Robot(ptr_)
+            raise RuntimeError('Failed to create Robot in Scene3d::add_robot')
+        obj_ = Robot._wrap(ptr_)
         if display_style is not None: obj_.display_style = display_style
         if visible is not None: obj_.visible = visible
         return obj_
 
     def add_mesh(self, path_or_url: str, *, centered: bool = None, scale: float = None, style: DisplayStyle = None, visible: bool = None) -> Mesh:
         """Adds a 3d mesh from a file (.obj)
-        
+
         Args:
             path_or_url: file path or web-url to an .obj file
-        
+
+        Returns:
+            Represents a static 3d mesh
+
         Raises:
             Exception: on internal errors
         """
         if path_or_url is not None and not isinstance(path_or_url, c_char_p):
             path_or_url = c_char_p(path_or_url.encode('utf-8') if isinstance(path_or_url, str) else path_or_url)
-        ptr_ = libhebi_charts.hebi_charts_Scene3d_addMesh(self.ptr, path_or_url)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_Scene3d_addMesh(byref(error_), self.ptr, path_or_url))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Mesh in Scene3d::add_mesh ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Mesh(ptr_)
+            raise RuntimeError('Failed to create Mesh in Scene3d::add_mesh')
+        obj_ = Mesh._wrap(ptr_)
         if centered is not None: obj_.centered = centered
         if scale is not None: obj_.scale = scale
         if style is not None: obj_.style = style
@@ -4004,44 +4333,62 @@ class Scene3d:
 
     def add_frame(self, length_in_meters: float = 0.03, *, visible: bool = None) -> Frame:
         """Adds a triad that represents a right-handed coordinate frame
-        
+
         Args:
             length_in_meters: length of each axis in [m]
-        
+
+        Returns:
+            A triad that represents a frame
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_Scene3d_addFrame(self.ptr, length_in_meters)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_Scene3d_addFrame(byref(error_), self.ptr, length_in_meters))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Frame in Scene3d::add_frame ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Frame(ptr_)
+            raise RuntimeError('Failed to create Frame in Scene3d::add_frame')
+        obj_ = Frame._wrap(ptr_)
         if visible is not None: obj_.visible = visible
         return obj_
 
     def add_line(self, *, color: Color = None, visible: bool = None) -> Line3d:
         """Adds a 3D data series rendered as a continuous line
-        
+
+        Returns:
+            Represents a line in 3d space. Note that there are currently no
+        line primitives, so the rendering is platform dependent and the
+        performance is limited.
+
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_Scene3d_addLine(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_Scene3d_addLine(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Line3d in Scene3d::add_line ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Line3d(ptr_)
+            raise RuntimeError('Failed to create Line3d in Scene3d::add_line')
+        obj_ = Line3d._wrap(ptr_)
         if color is not None: obj_.color = color
         if visible is not None: obj_.visible = visible
         return obj_
 
     def add_points(self, *, marker_shape: MarkerShape = None, marker_size: float = None, self_illumination: bool = None, vertex_sharing: bool = None, color: Color = None, visible: bool = None) -> Points3d:
         """Adds a 3D data series rendered as individual mesh objects
-        
+
+        Returns:
+            Represents points in 3d space. Each point gets rendered as
+        the specified marker shape. This is intended for markers
+        and is not appropriate for large scale lidar point clouds.
+
+
         Raises:
             Exception: on internal errors
         """
-        ptr_ = libhebi_charts.hebi_charts_Scene3d_addPoints(self.ptr)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_Scene3d_addPoints(byref(error_), self.ptr))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Points3d in Scene3d::add_points ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Points3d(ptr_)
+            raise RuntimeError('Failed to create Points3d in Scene3d::add_points')
+        obj_ = Points3d._wrap(ptr_)
         if marker_shape is not None: obj_.marker_shape = marker_shape
         if marker_size is not None: obj_.marker_size = marker_size
         if self_illumination is not None: obj_.self_illumination = self_illumination
@@ -4056,13 +4403,20 @@ class StreamView:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: StreamViewPtr):
-        if not isinstance(ptr, StreamViewPtr):
-            raise TypeError(f'Expected StreamViewPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('StreamView instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: StreamViewPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: StreamViewPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_StreamView_release(self.ptr)
         self.ptr = None
 
@@ -4075,13 +4429,20 @@ class XYChart:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: XYChartPtr):
-        if not isinstance(ptr, XYChartPtr):
-            raise TypeError(f'Expected XYChartPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('XYChart instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: XYChartPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: XYChartPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_XYChart_release(self.ptr)
         self.ptr = None
 
@@ -4097,7 +4458,7 @@ class XYChart:
     @title.setter
     def title(self, title: str):
         """Sets the title shown in the chart titlebar
-        
+
         Args:
             title:
         """
@@ -4113,7 +4474,7 @@ class XYChart:
     @x_assume_sorted.setter
     def x_assume_sorted(self, x_assume_sorted: bool):
         """Enable to speed up rendering of large datasets. Must be disabled for paths that 'wrap back' or loops.
-        
+
         Args:
             x_assume_sorted:
         """
@@ -4127,7 +4488,7 @@ class XYChart:
     @xauto.setter
     def xauto(self, enabled: bool):
         """Enables/disables auto SI-prefix scaling for X-axis (e.g., 0.001s -> 1ms)
-        
+
         Args:
             enabled:
         """
@@ -4142,7 +4503,7 @@ class XYChart:
     @xlabel.setter
     def xlabel(self, label: str):
         """Sets the X-axis label text
-        
+
         Args:
             label:
         """
@@ -4157,18 +4518,17 @@ class XYChart:
     @xlim.setter
     def xlim(self, xlim: Tuple[float, float]):
         """Sets the X-axis limits. Set nan for auto-ranging.
-        
+
         Args:
-            min: 
-            max: 
-        
+            min:
+            max:
+
         Raises:
             Exception: on internal errors
         """
         min, max = xlim
-        status_ = libhebi_charts.hebi_charts_XYChart_setXLim(self.ptr, min, max)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in XYChart::xlim ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_XYChart_setXLim(byref(error_), self.ptr, min, max))
 
     @property
     def xmax(self) -> float:
@@ -4178,7 +4538,7 @@ class XYChart:
     @xmax.setter
     def xmax(self, max: float):
         """Sets the X-axis maximum limit
-        
+
         Args:
             max:
         """
@@ -4192,7 +4552,7 @@ class XYChart:
     @xmin.setter
     def xmin(self, min: float):
         """Sets the X-axis minimum limit
-        
+
         Args:
             min:
         """
@@ -4207,7 +4567,7 @@ class XYChart:
     @xunit.setter
     def xunit(self, unit: str):
         """Sets the X-axis unit (e.g., 's')
-        
+
         Args:
             unit:
         """
@@ -4223,7 +4583,7 @@ class XYChart:
     @yauto.setter
     def yauto(self, enabled: bool):
         """Enables/disables auto SI-prefix scaling for Y-axis
-        
+
         Args:
             enabled:
         """
@@ -4238,7 +4598,7 @@ class XYChart:
     @ylabel.setter
     def ylabel(self, label: str):
         """Sets the Y-axis label text
-        
+
         Args:
             label:
         """
@@ -4253,9 +4613,9 @@ class XYChart:
     @ylim.setter
     def ylim(self, ylim: Tuple[float, float]):
         """Sets the Y-axis limits. Set nan for auto-ranging.
-        
+
         Args:
-            min: 
+            min:
             max:
         """
         min, max = ylim
@@ -4269,7 +4629,7 @@ class XYChart:
     @ymax.setter
     def ymax(self, max: float):
         """Sets the Y-axis maximum limit
-        
+
         Args:
             max:
         """
@@ -4283,7 +4643,7 @@ class XYChart:
     @ymin.setter
     def ymin(self, min: float):
         """Sets the Y-axis minimum limit
-        
+
         Args:
             min:
         """
@@ -4298,7 +4658,7 @@ class XYChart:
     @yunit.setter
     def yunit(self, unit: str):
         """Sets the Y-axis unit (e.g., 'V')
-        
+
         Args:
             unit:
         """
@@ -4307,11 +4667,15 @@ class XYChart:
         libhebi_charts.hebi_charts_XYChart_setYUnit(self.ptr, unit)
 
     def add_x_cursor(self, *, editable: bool = None, label: str = None, value: float = None, visible: bool = None) -> Cursor:
-        """Adds a draggable cursor to the X-axis"""
+        """Adds a draggable cursor to the X-axis
+
+        Returns:
+            A vertical or horizontal cursor to measure or mark an axis value. Can be draggable.
+        """
         ptr_ = libhebi_charts.hebi_charts_XYChart_addXCursor(self.ptr)
         if not ptr_:
-            raise RuntimeError(f'Failed to create Cursor in XYChart::add_x_cursor ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Cursor(ptr_)
+            raise RuntimeError('Failed to create Cursor in XYChart::add_x_cursor')
+        obj_ = Cursor._wrap(ptr_)
         if editable is not None: obj_.editable = editable
         if label is not None: obj_.label = label
         if value is not None: obj_.value = value
@@ -4319,11 +4683,15 @@ class XYChart:
         return obj_
 
     def add_y_cursor(self, *, editable: bool = None, label: str = None, value: float = None, visible: bool = None) -> Cursor:
-        """Adds a draggable cursor to the Y-axis"""
+        """Adds a draggable cursor to the Y-axis
+
+        Returns:
+            A vertical or horizontal cursor to measure or mark an axis value. Can be draggable.
+        """
         ptr_ = libhebi_charts.hebi_charts_XYChart_addYCursor(self.ptr)
         if not ptr_:
-            raise RuntimeError(f'Failed to create Cursor in XYChart::add_y_cursor ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Cursor(ptr_)
+            raise RuntimeError('Failed to create Cursor in XYChart::add_y_cursor')
+        obj_ = Cursor._wrap(ptr_)
         if editable is not None: obj_.editable = editable
         if label is not None: obj_.label = label
         if value is not None: obj_.value = value
@@ -4336,11 +4704,12 @@ class LatencyChart(XYChart):
 
     __slots__ = ('ref_LatencyChart',)
 
-    def __init__(self, ref_LatencyChart: LatencyChartPtr):
-        if not isinstance(ref_LatencyChart, LatencyChartPtr):
-            raise TypeError(f'Expected LatencyChartPtr, got {type(ref_LatencyChart).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('LatencyChart instances are created by the library')
+
+    def _attach(self, ref_LatencyChart: LatencyChartPtr):
         self.ref_LatencyChart = ref_LatencyChart
-        super().__init__(libhebi_charts.hebi_charts_LatencyChart_to_XYChart(ref_LatencyChart))
+        super()._attach(libhebi_charts.hebi_charts_LatencyChart_to_XYChart(ref_LatencyChart))
 
     def __del__(self):
         super().__del__()
@@ -4351,19 +4720,23 @@ class LatencyChart(XYChart):
 
     def add_trace(self, name: str, *, color: Color = None, label: str = None, line_style: LineStyle = None, line_width: float = None, marker_size: float = None, marker_type: MarkerType = None, show_in_legend: bool = None, visible: bool = None) -> LatencyTrace:
         """Creates a new hdr histogram dataset
-        
+
         Args:
-            name: 
-        
+            name:
+
+        Returns:
+            Represents a latency measurement that records latency values in the form of an HdrHistogram
+
         Raises:
             Exception: on internal errors
         """
         if name is not None and not isinstance(name, c_char_p):
             name = c_char_p(name.encode('utf-8') if isinstance(name, str) else name)
-        ptr_ = libhebi_charts.hebi_charts_LatencyChart_addTrace(self.ref_LatencyChart, name)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_LatencyChart_addTrace(byref(error_), self.ref_LatencyChart, name))
         if not ptr_:
-            raise RuntimeError(f'Failed to create LatencyTrace in LatencyChart::add_trace ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = LatencyTrace(ptr_)
+            raise RuntimeError('Failed to create LatencyTrace in LatencyChart::add_trace')
+        obj_ = LatencyTrace._wrap(ptr_)
         if color is not None: obj_.color = color
         if label is not None: obj_.label = label
         if line_style is not None: obj_.line_style = line_style
@@ -4380,11 +4753,12 @@ class LineChart(XYChart):
 
     __slots__ = ('ref_LineChart',)
 
-    def __init__(self, ref_LineChart: LineChartPtr):
-        if not isinstance(ref_LineChart, LineChartPtr):
-            raise TypeError(f'Expected LineChartPtr, got {type(ref_LineChart).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('LineChart instances are created by the library')
+
+    def _attach(self, ref_LineChart: LineChartPtr):
         self.ref_LineChart = ref_LineChart
-        super().__init__(libhebi_charts.hebi_charts_LineChart_to_XYChart(ref_LineChart))
+        super()._attach(libhebi_charts.hebi_charts_LineChart_to_XYChart(ref_LineChart))
 
     def __del__(self):
         super().__del__()
@@ -4395,19 +4769,27 @@ class LineChart(XYChart):
 
     def add_line(self, label: str, *, max_point_count: int = None, color: Color = None, line_style: LineStyle = None, line_width: float = None, marker_size: float = None, marker_type: MarkerType = None, show_in_legend: bool = None, visible: bool = None) -> Line:
         """Creates a new line series
-        
+
         Args:
-            label: 
-        
+            label:
+
+        Returns:
+            Represents a high-performance 2D line series optimized for real-time
+        telemetry.
+        Uses a double-buffered architecture with bounded rolling buffers to
+        decouple high-frequency data ingestion from the UI rendering pulse.
+
+
         Raises:
             Exception: on internal errors
         """
         if label is not None and not isinstance(label, c_char_p):
             label = c_char_p(label.encode('utf-8') if isinstance(label, str) else label)
-        ptr_ = libhebi_charts.hebi_charts_LineChart_addLine(self.ref_LineChart, label)
+        error_ = _ErrorInfo()
+        ptr_ = _checked(error_, libhebi_charts.hebi_charts_LineChart_addLine(byref(error_), self.ref_LineChart, label))
         if not ptr_:
-            raise RuntimeError(f'Failed to create Line in LineChart::add_line ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
-        obj_ = Line(ptr_)
+            raise RuntimeError('Failed to create Line in LineChart::add_line')
+        obj_ = Line._wrap(ptr_)
         if max_point_count is not None: obj_.max_point_count = max_point_count
         if color is not None: obj_.color = color
         if line_style is not None: obj_.line_style = line_style
@@ -4424,13 +4806,20 @@ class XYSeries:
 
     __slots__ = ('ptr',)
 
-    def __init__(self, ptr: XYSeriesPtr):
-        if not isinstance(ptr, XYSeriesPtr):
-            raise TypeError(f'Expected XYSeriesPtr, got {type(ptr).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('XYSeries instances are created by the library')
+
+    @classmethod
+    def _wrap(cls, ptr: XYSeriesPtr):
+        self = object.__new__(cls)
+        self._attach(ptr)
+        return self
+
+    def _attach(self, ptr: XYSeriesPtr):
         self.ptr = ptr
 
     def __del__(self):
-        if self.ptr is not None:
+        if getattr(self, 'ptr', None) is not None:
             libhebi_charts.hebi_charts_XYSeries_release(self.ptr)
         self.ptr = None
 
@@ -4445,7 +4834,7 @@ class XYSeries:
     @color.setter
     def color(self, color: Color):
         """Sets the rendering color
-        
+
         Args:
             color:
         """
@@ -4460,7 +4849,7 @@ class XYSeries:
     @label.setter
     def label(self, label: str):
         """Sets the label shown in the chart legend
-        
+
         Args:
             label:
         """
@@ -4476,7 +4865,7 @@ class XYSeries:
     @line_style.setter
     def line_style(self, line_style: LineStyle):
         """Sets the rendering style
-        
+
         Args:
             line_style:
         """
@@ -4490,7 +4879,7 @@ class XYSeries:
     @line_width.setter
     def line_width(self, line_width: float):
         """Sets the line width
-        
+
         Args:
             line_width: width in [px]
         """
@@ -4504,7 +4893,7 @@ class XYSeries:
     @marker_size.setter
     def marker_size(self, marker_size: float):
         """Sets the marker size
-        
+
         Args:
             marker_size:
         """
@@ -4518,7 +4907,7 @@ class XYSeries:
     @marker_type.setter
     def marker_type(self, marker_type: MarkerType):
         """Sets the marker type
-        
+
         Args:
             marker_type:
         """
@@ -4532,7 +4921,7 @@ class XYSeries:
     @show_in_legend.setter
     def show_in_legend(self, show_in_legend: bool):
         """Shows or hides this data set from the legend
-        
+
         Args:
             show_in_legend:
         """
@@ -4546,7 +4935,7 @@ class XYSeries:
     @visible.setter
     def visible(self, visible: bool):
         """Sets the visibility in the chart
-        
+
         Args:
             visible:
         """
@@ -4558,11 +4947,12 @@ class LatencyTrace(XYSeries):
 
     __slots__ = ('ref_LatencyTrace',)
 
-    def __init__(self, ref_LatencyTrace: LatencyTracePtr):
-        if not isinstance(ref_LatencyTrace, LatencyTracePtr):
-            raise TypeError(f'Expected LatencyTracePtr, got {type(ref_LatencyTrace).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('LatencyTrace instances are created by the library')
+
+    def _attach(self, ref_LatencyTrace: LatencyTracePtr):
         self.ref_LatencyTrace = ref_LatencyTrace
-        super().__init__(libhebi_charts.hebi_charts_LatencyTrace_to_XYSeries(ref_LatencyTrace))
+        super()._attach(libhebi_charts.hebi_charts_LatencyTrace_to_XYSeries(ref_LatencyTrace))
 
     def __del__(self):
         super().__del__()
@@ -4585,7 +4975,7 @@ class LatencyTrace(XYSeries):
 
     def record(self, value: float) -> None:
         """Record a latency value in the histogram
-        
+
         Args:
             value: the value to be recorded in [s]
         """
@@ -4593,7 +4983,7 @@ class LatencyTrace(XYSeries):
 
     def record_with_count(self, value: float, count: int) -> None:
         """Record a value in the histogram (adding to the value's current count)
-        
+
         Args:
             value: the value to be recorded in [s]
             count: the number of occurrences of this value to record
@@ -4606,7 +4996,7 @@ class LatencyTrace(XYSeries):
         To compensate for the loss of sampled values when a recorded value is larger than the expected interval
         between value samples, Histogram will auto-generate an additional series of decreasingly-smaller
         (down to the expectedIntervalBetweenValueSamples) value records.
-        
+
         Args:
             value: the value to be recorded in [s]
             expected_interval_between_value_samples: If expectedIntervalBetweenValueSamples in [s] is larger than
@@ -4628,11 +5018,12 @@ class Line(XYSeries):
 
     __slots__ = ('ref_Line',)
 
-    def __init__(self, ref_Line: LinePtr):
-        if not isinstance(ref_Line, LinePtr):
-            raise TypeError(f'Expected LinePtr, got {type(ref_Line).__name__}')
+    def __init__(self, *args, **kwargs):
+        raise TypeError('Line instances are created by the library')
+
+    def _attach(self, ref_Line: LinePtr):
         self.ref_Line = ref_Line
-        super().__init__(libhebi_charts.hebi_charts_Line_to_XYSeries(ref_Line))
+        super()._attach(libhebi_charts.hebi_charts_Line_to_XYSeries(ref_Line))
 
     def __del__(self):
         super().__del__()
@@ -4652,7 +5043,7 @@ class Line(XYSeries):
         Note: Changing the capacity clears all existing data. If the
         new capacity matches the current value, this operation is a
         no-op and data is preserved.
-        
+
         Args:
             count: maximum number of points
         """
@@ -4662,52 +5053,60 @@ class Line(XYSeries):
         """Clears all existing data"""
         libhebi_charts.hebi_charts_Line_clear(self.ref_Line)
 
-    def set_data(self, x: Sequence[float], y: Sequence[float], length: int = None) -> None:
+    def set_data(self, x: Sequence[float], y: Sequence[float]) -> None:
         """Replaces the entire dataset with the provided X and Y content. This
         operation copies the input data, so the caller retains ownership of
         the memory. Sets the buffer capacity to match the input length and
-        clears any previous rolling history.
-        
+        clears any previous rolling history. Mismatched input lengths get
+        truncated to the shorter one.
+
         Args:
             x: points
             y: points
-            length: number of x/y points
         """
         np = _require_numpy()
-        if length is None:
-            length = (0 if (x is None or y is None) else min(len(x), len(y)))
-        if x is not None and not isinstance(x, POINTER(c_double)):
-            x = np.ascontiguousarray(x, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if y is not None and not isinstance(y, POINTER(c_double)):
-            y = np.ascontiguousarray(y, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        libhebi_charts.hebi_charts_Line_setData(self.ref_Line, x, y, length)
+        if x is None:
+            x = _DoubleSpan(None, 0)
+        elif not isinstance(x, _DoubleSpan):
+            x_arr = np.ascontiguousarray(x, dtype=np.float64)
+            x = _DoubleSpan(x_arr.ctypes.data_as(POINTER(c_double)), len(x_arr))
+        if y is None:
+            y = _DoubleSpan(None, 0)
+        elif not isinstance(y, _DoubleSpan):
+            y_arr = np.ascontiguousarray(y, dtype=np.float64)
+            y = _DoubleSpan(y_arr.ctypes.data_as(POINTER(c_double)), len(y_arr))
+        libhebi_charts.hebi_charts_Line_setData(self.ref_Line, x, y)
 
-    def add_points(self, x: Sequence[float], y: Sequence[float], length: int = None) -> None:
+    def add_points(self, x: Sequence[float], y: Sequence[float]) -> None:
         """Appends multiple data points to the end of the internal rolling buffer.
         This operation copies the input data, so the caller retains ownership
         of the memory. If the total number of points exceeds the current capacity,
-        the oldest points are overwritten.
-        
+        the oldest points are overwritten. Mismatched input lengths get
+        truncated to the shorter one.
+
         Args:
             x: points
             y: points
-            length: number of x/y points
         """
         np = _require_numpy()
-        if length is None:
-            length = (0 if (x is None or y is None) else min(len(x), len(y)))
-        if x is not None and not isinstance(x, POINTER(c_double)):
-            x = np.ascontiguousarray(x, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        if y is not None and not isinstance(y, POINTER(c_double)):
-            y = np.ascontiguousarray(y, dtype=np.float64).ctypes.data_as(POINTER(c_double))
-        libhebi_charts.hebi_charts_Line_addPoints(self.ref_Line, x, y, length)
+        if x is None:
+            x = _DoubleSpan(None, 0)
+        elif not isinstance(x, _DoubleSpan):
+            x_arr = np.ascontiguousarray(x, dtype=np.float64)
+            x = _DoubleSpan(x_arr.ctypes.data_as(POINTER(c_double)), len(x_arr))
+        if y is None:
+            y = _DoubleSpan(None, 0)
+        elif not isinstance(y, _DoubleSpan):
+            y_arr = np.ascontiguousarray(y, dtype=np.float64)
+            y = _DoubleSpan(y_arr.ctypes.data_as(POINTER(c_double)), len(y_arr))
+        libhebi_charts.hebi_charts_Line_addPoints(self.ref_Line, x, y)
 
     def add_point(self, x: float, y: float) -> None:
         """Adds one point to an internal rolling buffer. Once the maximum
         point count is reached, it will overwrite the earliest data.
-        
+
         Args:
-            x: 
+            x:
             y:
         """
         libhebi_charts.hebi_charts_Line_addPoint(self.ref_Line, x, y)
@@ -4724,24 +5123,23 @@ class Runtime:
     @classmethod
     def set_option(cls, option: RuntimeOption, value: str) -> None:
         """Applies runtime options. Needs to be done before any other methods.
-        
+
         Args:
-            option: 
+            option:
             value: string value depending on the option (e.g. DpiScale='2.0', VerboseGraphics='true')
-        
+
         Raises:
             Exception: on internal errors
         """
         if value is not None and not isinstance(value, c_char_p):
             value = c_char_p(value.encode('utf-8') if isinstance(value, str) else value)
-        status_ = libhebi_charts.hebi_charts_Runtime_setOption(option, value)
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Runtime::set_option ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Runtime_setOption(byref(error_), option, value))
 
     @classmethod
     def set_theme(cls, theme: Theme) -> None:
         """Sets an AtlantaFX theme for rendering the UI
-        
+
         Args:
             theme:
         """
@@ -4750,7 +5148,7 @@ class Runtime:
     @classmethod
     def set_auto_close_windows(cls, auto_close: bool) -> None:
         """Applies a global auto-close behavior, i.e., window::keepOpen
-        
+
         Args:
             auto_close:
         """
@@ -4759,13 +5157,12 @@ class Runtime:
     @classmethod
     def wait_until_windows_closed(cls) -> None:
         """Waits until all windows were closed by the user
-        
+
         Raises:
             Exception: when called from the FX thread
         """
-        status_ = libhebi_charts.hebi_charts_Runtime_waitUntilWindowsClosed()
-        if status_ != 0:
-            raise RuntimeError(f'Encountered error in Runtime::wait_until_windows_closed ({libhebi_charts.hebi_charts_Runtime_getLastErrorString().decode("utf-8")})')
+        error_ = _ErrorInfo()
+        _checked(error_, libhebi_charts.hebi_charts_Runtime_waitUntilWindowsClosed(byref(error_)))
 
     @classmethod
     def collect(cls) -> None:
@@ -4778,39 +5175,28 @@ class Runtime:
         libhebi_charts.hebi_charts_Runtime_closeAll()
 
     @classmethod
-    def run_on_ui_thread(cls, func: UserCallbackFunction, user_data: Any | bytes | None) -> None:
+    def run_on_ui_thread(cls, func: Callable[[Any], None], user_data: Any | bytes | None) -> None:
         """Debug method to run code on the internal UI thread
-        
+
         Args:
-            func: 
+            func: Any callable is accepted, and a plain one is wrapped into a fresh
+                UserCallbackFunction per call. Build the prototype once for a hot loop.
             user_data:
         """
+        if func is not None and not isinstance(func, UserCallbackFunction):
+            func = UserCallbackFunction(func)
         libhebi_charts.hebi_charts_Runtime_runOnUiThread(func, user_data)
-
-    @classmethod
-    def print_last_error_details(cls) -> None:
-        """Debug method that prints the last exception encountered on the current thread"""
-        libhebi_charts.hebi_charts_Runtime_printLastErrorDetails()
 
     @classmethod
     def print_thread_info(cls, name: str) -> None:
         """Debug method to print internal thread information. May be removed in the future.
-        
+
         Args:
             name:
         """
         if name is not None and not isinstance(name, c_char_p):
             name = c_char_p(name.encode('utf-8') if isinstance(name, str) else name)
         libhebi_charts.hebi_charts_Runtime_printThreadInfo(name)
-
-    @classmethod
-    def get_last_error_string(cls) -> str:
-        """Returns an address to a c string that contains the last error message.
-        This address is only valid until the next call to this method from the
-        same thread. Never returns nullptr. Do not free the address!
-        """
-        ptr_ = libhebi_charts.hebi_charts_Runtime_getLastErrorString()
-        return ptr_.decode("utf-8") if ptr_ is not None else ""
 
 
 # ==== Cocoa utilities for supporting macOS ====
@@ -4822,7 +5208,7 @@ libhebi_charts.hebi_charts_runApplication.restype = c_int
 # Python wrapper. We ignore the C args as Python can just use a global namespace
 def run_application(callback_fn, *args, **kwargs):
     """Sets up required system libraries and executes the callback on an appropriate thread
-    
+
     This is technically only needed on macOS as the Cocoa framework for displaying
     windows needs to be run on the main thread. On Windows and Linux this method
     executes the callback directly and otherwise does nothing. However, all platforms
@@ -4833,3 +5219,52 @@ def run_application(callback_fn, *args, **kwargs):
         return 0
     c_callback = hebi_charts_MainCallbackFunction(c_callback_wrapper)
     return libhebi_charts.hebi_charts_runApplication(c_callback, 0, (c_char_p * 0)())
+
+# ==== Public API ====
+__all__ = [
+    'Error',
+    'CameraView',
+    'Color',
+    'DisplayStyle',
+    'LineStyle',
+    'MarkerShape',
+    'MarkerType',
+    'PixelFormat',
+    'RuntimeOption',
+    'Theme',
+    'VideoOutputFormat',
+    'UserCallbackFunction',
+    'Camera',
+    'Control',
+    'Button',
+    'Dropdown',
+    'Label',
+    'Slider',
+    'Toggle',
+    'ControlPanel',
+    'Cursor',
+    'FxmlView',
+    'GridWindow',
+    'HdrHistogramRecorder',
+    'HdrHistogramTrace',
+    'ImageStream',
+    'LoopTimer',
+    'Object3d',
+    'Frame',
+    'Mesh',
+    'Robot',
+    'Series3d',
+    'Line3d',
+    'Points3d',
+    'RecordingResult',
+    'Scene3d',
+    'StreamView',
+    'XYChart',
+    'LatencyChart',
+    'LineChart',
+    'XYSeries',
+    'LatencyTrace',
+    'Line',
+    'Runtime',
+    'run_application',
+]

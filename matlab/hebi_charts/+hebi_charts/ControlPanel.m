@@ -42,20 +42,20 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_ControlPanel_addSection', this.ptr, title);
-            if status_ ~= 0
-                error(['Encountered error in ControlPanel.addSection' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_ControlPanel_addSection', this.ptr, title);
         end
 
         function obj = addLabel(this, varargin)
             % Adds a label for displaying text to the control panel
             %
+            %   Outputs:
+            %       A control that displays some text or value
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ControlPanel_addLabel', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Label in ControlPanel.addLabel' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Label in ControlPanel.addLabel');
             end
             obj = hebi_charts.Label(ptr_, varargin{:});
         end
@@ -63,11 +63,14 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
         function obj = addButton(this, varargin)
             % Adds a button to the control panel
             %
+            %   Outputs:
+            %       A button control
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ControlPanel_addButton', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Button in ControlPanel.addButton' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Button in ControlPanel.addButton');
             end
             obj = hebi_charts.Button(ptr_, varargin{:});
         end
@@ -75,11 +78,14 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
         function obj = addStartButton(this, varargin)
             % Adds a 'start'-style button to the control panel
             %
+            %   Outputs:
+            %       A button control
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ControlPanel_addStartButton', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Button in ControlPanel.addStartButton' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Button in ControlPanel.addStartButton');
             end
             obj = hebi_charts.Button(ptr_, varargin{:});
         end
@@ -87,11 +93,14 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
         function obj = addStopButton(this, varargin)
             % Adds a 'stop'-style (red) button to the control panel
             %
+            %   Outputs:
+            %       A button control
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ControlPanel_addStopButton', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Button in ControlPanel.addStopButton' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Button in ControlPanel.addStopButton');
             end
             obj = hebi_charts.Button(ptr_, varargin{:});
         end
@@ -99,11 +108,14 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
         function obj = addSlider(this, varargin)
             % Adds a slider to the control panel
             %
+            %   Outputs:
+            %       A slider control for numeric input
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ControlPanel_addSlider', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Slider in ControlPanel.addSlider' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Slider in ControlPanel.addSlider');
             end
             obj = hebi_charts.Slider(ptr_, varargin{:});
         end
@@ -111,11 +123,14 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
         function obj = addToggle(this, varargin)
             % Adds a toggle to the control panel
             %
+            %   Outputs:
+            %       A boolean toggle switch for on/off states
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ControlPanel_addToggle', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Toggle in ControlPanel.addToggle' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Toggle in ControlPanel.addToggle');
             end
             obj = hebi_charts.Toggle(ptr_, varargin{:});
         end
@@ -123,11 +138,14 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
         function obj = addDropdown(this, varargin)
             % Adds a dropdown choice selector to the control panel
             %
+            %   Outputs:
+            %       A dropdown selection control for switching between discrete modes
+            %
             %   Throws:
             %       Error on internal errors
             ptr_ = hebi_charts_native('hebi_charts_ControlPanel_addDropdown', this.ptr);
             if isempty(ptr_)
-                error(['Failed to create hebi_charts.Dropdown in ControlPanel.addDropdown' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
+                error('Failed to create hebi_charts.Dropdown in ControlPanel.addDropdown');
             end
             obj = hebi_charts.Dropdown(ptr_, varargin{:});
         end
@@ -136,8 +154,8 @@ classdef (Sealed) ControlPanel < handle & matlab.mixin.SetGet
 
     methods(Access = public, Hidden = true)
         function this = ControlPanel(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('ControlPanel constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('ControlPanel instances are created by the library');
             end
             this.ptr = ptr;
 

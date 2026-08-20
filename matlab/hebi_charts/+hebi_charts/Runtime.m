@@ -13,10 +13,7 @@ classdef (Sealed) Runtime
             %
             %   Throws:
             %       Error on internal errors
-            status_ = hebi_charts_native('hebi_charts_Runtime_setOption', hebi_charts.RuntimeOption.toNativeValue(option), value);
-            if status_ ~= 0
-                error(['Encountered error in Runtime.setOption' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Runtime_setOption', hebi_charts.RuntimeOption.toNativeValue(option), value);
         end
 
         function setTheme(theme)
@@ -40,10 +37,7 @@ classdef (Sealed) Runtime
             %
             %   Throws:
             %       Error when called from the FX thread
-            status_ = hebi_charts_native('hebi_charts_Runtime_waitUntilWindowsClosed');
-            if status_ ~= 0
-                error(['Encountered error in Runtime.waitUntilWindowsClosed' ': ' hebi_charts_native('hebi_charts_Runtime_getLastErrorString')]);
-            end
+            hebi_charts_native('hebi_charts_Runtime_waitUntilWindowsClosed');
         end
 
         function collect()
@@ -56,18 +50,11 @@ classdef (Sealed) Runtime
             hebi_charts_native('hebi_charts_Runtime_closeAll');
         end
 
-        function userData = runOnUiThread(func, userData)
+        function varargout = runOnUiThread(varargin)
             % Debug method to run code on the internal UI thread
             %
-            %   Inputs:
-            %       func
-            %       userData
-            userData = hebi_charts_native('hebi_charts_Runtime_runOnUiThread', func, userData);
-        end
-
-        function printLastErrorDetails()
-            % Debug method that prints the last exception encountered on the current thread
-            hebi_charts_native('hebi_charts_Runtime_printLastErrorDetails');
+            %   Not supported from MATLAB: its callback takes an argument ('userData') that the gateway cannot convert to an mxArray.
+            error('hebi_charts:NotSupported', "'runOnUiThread' is not supported from MATLAB: its callback takes an argument ('userData') that the gateway cannot convert to an mxArray.");
         end
 
         function printThreadInfo(name)
@@ -76,13 +63,6 @@ classdef (Sealed) Runtime
             %   Inputs:
             %       name
             hebi_charts_native('hebi_charts_Runtime_printThreadInfo', name);
-        end
-
-        function result = getLastErrorString()
-            % Returns an address to a c string that contains the last error message.
-            %   This address is only valid until the next call to this method from the
-            %   same thread. Never returns nullptr. Do not free the address!
-            result = hebi_charts_native('hebi_charts_Runtime_getLastErrorString');
         end
 
     end

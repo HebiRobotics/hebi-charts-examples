@@ -66,8 +66,8 @@ classdef (Sealed) Cursor < handle & matlab.mixin.SetGet
 
     methods(Access = public, Hidden = true)
         function this = Cursor(ptr, varargin)
-            if ~isnumeric(ptr) && ~isa(ptr, 'lib.pointer')
-                error('Cursor constructor expects a C pointer type');
+            if ~isa(ptr, 'uint64') || ~isscalar(ptr)
+                error('Cursor instances are created by the library');
             end
             this.ptr = ptr;
 
