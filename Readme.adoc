@@ -677,6 +677,6 @@ or `~/.cache/HEBI/webcache`
 
 == Licensing
 
-The 2D rendering builds on https://github.com/fair-acc/chart-fx[ChartFx], a high-performance charting library developed at the https://www.gsi.de/en/[GSI Helmholtz Centre for Heavy Ion Research] for the accelerator control rooms of the https://fair-center.eu/[FAIR particle accelerator facility].
+SPDX: LGPL-3.0-or-later WITH LGPL-3.0-linking-exception
 
-ChartFx is licensed under the https://www.gnu.org/licenses/lgpl-3.0.html[LGPL 3.0]. It is contained entirely within the HEBI Charts shared binary, which applications access only through the C ABI, so user code is not subject to copyleft requirements and can remain closed-source.
+2D rendering builds on https://github.com/fair-acc/chart-fx[ChartFx], a high-performance scientific real-time charting library developed at the https://www.gsi.de/en/[GSI Helmholtz Centre for Heavy Ion Research] for the link:++https://fair-center.eu/[FAIR particle accelerator facility]++[FAIR particle accelerator facility].
